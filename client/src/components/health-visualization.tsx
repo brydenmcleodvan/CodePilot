@@ -373,7 +373,7 @@ export default function HealthVisualization() {
             </ResponsiveContainer>
           ) : null}
             
-          {visualizationType === 'area' && (
+          {visualizationType === 'area' ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -416,9 +416,9 @@ export default function HealthVisualization() {
                 )}
               </AreaChart>
             </ResponsiveContainer>
-          )}
+          ) : null}
             
-          {visualizationType === 'bar' && (
+          {visualizationType === 'bar' ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -440,9 +440,9 @@ export default function HealthVisualization() {
                 )}
               </BarChart>
             </ResponsiveContainer>
-          )}
+          ) : null}
             
-          {visualizationType === 'pie' && (
+          {visualizationType === 'pie' ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -463,7 +463,7 @@ export default function HealthVisualization() {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-          )}
+          ) : null}
         </div>
       </CardContent>
     </Card>
