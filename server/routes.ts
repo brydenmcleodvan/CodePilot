@@ -448,6 +448,261 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error fetching product recommendations' });
     }
   });
+  
+  // Symptom Checker routes
+  app.get(`${apiRouter}/symptoms`, async (req, res) => {
+    try {
+      const bodyArea = req.query.bodyArea as string | undefined;
+      const severity = req.query.severity as string | undefined;
+      
+      const symptoms = await storage.getSymptoms(bodyArea, severity);
+      res.json(symptoms);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching symptoms' });
+    }
+  });
+  
+  app.get(`${apiRouter}/symptoms/:id`, async (req, res) => {
+    try {
+      const symptomId = parseInt(req.params.id);
+      const symptom = await storage.getSymptomById(symptomId);
+      
+      if (!symptom) {
+        return res.status(404).json({ message: 'Symptom not found' });
+      }
+      
+      res.json(symptom);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching symptom' });
+    }
+  });
+  
+  app.post(`${apiRouter}/symptoms`, authenticateToken, async (req, res) => {
+    try {
+      // Only admins can add symptoms
+      if (req.body.user.username !== 'admin') {
+        return res.status(403).json({ message: 'Only administrators can add symptoms' });
+      }
+      
+      const symptomData = insertSymptomSchema.parse(req.body);
+      const symptom = await storage.createSymptom(symptomData);
+      res.status(201).json(symptom);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error creating symptom' });
+    }
+  });
+  
+  // Symptom Checks routes
+  app.get(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const checks = await storage.getUserSymptomChecks(userId);
+      res.json(checks);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching symptom checks' });
+    }
+  });
+  
+  app.get(`${apiRouter}/symptom-checks/:id`, authenticateToken, async (req, res) => {
+    try {
+      const checkId = parseInt(req.params.id);
+      const check = await storage.getSymptomCheckById(checkId);
+      
+      if (!check) {
+        return res.status(404).json({ message: 'Symptom check not found' });
+      }
+      
+      // Verify user can access this check
+      if (check.userId !== req.body.user.id) {
+        return res.status(403).json({ message: 'Not authorized to access this symptom check' });
+      }
+      
+      res.json(check);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching symptom check' });
+    }
+  });
+  
+  app.post(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const checkData = insertSymptomCheckSchema.parse({
+        ...req.body,
+        userId,
+        timestamp: new Date()
+      });
+      
+      const check = await storage.createSymptomCheck(checkData);
+      res.status(201).json(check);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error creating symptom check' });
+    }
+  });
+  
+  // Appointments routes
+  app.get(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const appointments = await storage.getUserAppointments(userId);
+      res.json(appointments);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching appointments' });
+    }
+  });
+  
+  app.get(`${apiRouter}/appointments/:id`, authenticateToken, async (req, res) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const appointment = await storage.getAppointmentById(appointmentId);
+      
+      if (!appointment) {
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+      
+      // Verify user can access this appointment
+      if (appointment.userId !== req.body.user.id) {
+        return res.status(403).json({ message: 'Not authorized to access this appointment' });
+      }
+      
+      res.json(appointment);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching appointment' });
+    }
+  });
+  
+  app.post(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Handle date conversion
+      const startTime = new Date(req.body.startTime);
+      const endTime = new Date(req.body.endTime);
+      
+      const appointmentData = insertAppointmentSchema.parse({
+        ...req.body,
+        userId,
+        startTime,
+        endTime
+      });
+      
+      const appointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(appointment);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error creating appointment' });
+    }
+  });
+  
+  app.patch(`${apiRouter}/appointments/:id`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const appointmentId = parseInt(req.params.id);
+      
+      // Verify appointment exists and belongs to user
+      const appointment = await storage.getAppointmentById(appointmentId);
+      if (!appointment) {
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+      
+      if (appointment.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to update this appointment' });
+      }
+      
+      // Handle date conversions if provided
+      const updateData = { ...req.body };
+      if (updateData.startTime) updateData.startTime = new Date(updateData.startTime);
+      if (updateData.endTime) updateData.endTime = new Date(updateData.endTime);
+      
+      // Don't allow changing userId
+      delete updateData.userId;
+      
+      const updatedAppointment = await storage.updateAppointment(appointmentId, updateData);
+      res.json(updatedAppointment);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error updating appointment' });
+    }
+  });
+  
+  // Health Data Connection routes
+  app.get(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const connections = await storage.getUserHealthDataConnections(userId);
+      res.json(connections);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching health data connections' });
+    }
+  });
+  
+  app.post(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      const connectionData = insertHealthDataConnectionSchema.parse({
+        ...req.body,
+        userId,
+        connected: false, // Always start as disconnected
+        lastSynced: null
+      });
+      
+      const connection = await storage.createHealthDataConnection(connectionData);
+      res.status(201).json(connection);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error creating health data connection' });
+    }
+  });
+  
+  app.patch(`${apiRouter}/health-data-connections/:id/sync`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const connectionId = parseInt(req.params.id);
+      
+      // Verify connection exists and belongs to user
+      const connection = await storage.getHealthDataConnectionById(connectionId);
+      if (!connection) {
+        return res.status(404).json({ message: 'Health data connection not found' });
+      }
+      
+      if (connection.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to sync this connection' });
+      }
+      
+      // Update connection with sync information
+      const now = new Date();
+      const updateData = {
+        connected: true,
+        lastSynced: now
+      };
+      
+      const updatedConnection = await storage.updateHealthDataConnection(connectionId, updateData);
+      
+      // Create a health stat from the sync
+      await storage.addHealthStat({
+        userId,
+        statType: "sync_heart_rate", 
+        value: (70 + Math.floor(Math.random() * 20)).toString(), // Simulated heart rate data
+        unit: "bpm",
+        timestamp: now,
+        icon: "ri-heart-pulse-line",
+        colorScheme: "primary"
+      });
+      
+      res.json(updatedConnection);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error syncing health data connection' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

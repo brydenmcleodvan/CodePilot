@@ -7,6 +7,10 @@ import {
   forumPosts,
   newsUpdates,
   products,
+  symptoms,
+  symptomChecks,
+  appointments,
+  healthDataConnections,
   type User,
   type InsertUser,
   type HealthStat,
@@ -22,7 +26,15 @@ import {
   type NewsUpdate,
   type InsertNewsUpdate,
   type Product,
-  type InsertProduct
+  type InsertProduct,
+  type Symptom,
+  type InsertSymptom,
+  type SymptomCheck,
+  type InsertSymptomCheck,
+  type Appointment,
+  type InsertAppointment,
+  type HealthDataConnection,
+  type InsertHealthDataConnection
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
@@ -131,6 +143,10 @@ export class MemStorage implements IStorage {
     this.forumPosts = new Map();
     this.newsUpdates = new Map();
     this.products = new Map();
+    this.symptoms = new Map();
+    this.symptomChecks = new Map();
+    this.appointments = new Map();
+    this.healthDataConnections = new Map();
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
@@ -140,6 +156,10 @@ export class MemStorage implements IStorage {
     this.forumPostIdCounter = 1;
     this.newsUpdateIdCounter = 1;
     this.productIdCounter = 1;
+    this.symptomIdCounter = 1;
+    this.symptomCheckIdCounter = 1;
+    this.appointmentIdCounter = 1;
+    this.healthDataConnectionIdCounter = 1;
 
     // Add some initial data
     this.initializeData();
@@ -329,6 +349,98 @@ export class MemStorage implements IStorage {
       downvotes: 1,
       tags: ["Experience", "Zinc", "Supplements"],
       timestamp: new Date()
+    });
+    
+    // Add sample symptoms
+    await this.createSymptom({
+      name: "Headache",
+      description: "Pain or discomfort in the head, scalp, or neck",
+      bodyArea: "head",
+      severity: "moderate",
+      commonCauses: ["Stress", "Dehydration", "Lack of sleep", "Eye strain"],
+      recommendedActions: ["Rest", "Hydrate", "Over-the-counter pain relievers"]
+    });
+    
+    await this.createSymptom({
+      name: "Fatigue",
+      description: "Feeling of tiredness, lack of energy, or exhaustion",
+      bodyArea: "full_body",
+      severity: "moderate",
+      commonCauses: ["Poor sleep", "Stress", "Nutrient deficiencies", "Anemia"],
+      recommendedActions: ["Rest", "Balanced diet", "Stress management", "Check for deficiencies"]
+    });
+    
+    await this.createSymptom({
+      name: "Chest Pain",
+      description: "Discomfort or pain in the chest area",
+      bodyArea: "chest",
+      severity: "severe",
+      commonCauses: ["Heart issues", "Muscle strain", "Anxiety", "Acid reflux"],
+      recommendedActions: ["Seek immediate medical attention", "Call emergency services"]
+    });
+    
+    // Add sample symptom check for the user
+    await this.createSymptomCheck({
+      userId: 1,
+      timestamp: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      reportedSymptoms: ["Headache", "Fatigue"],
+      preliminaryAssessment: "Possible dehydration or stress-related symptoms",
+      recommendedActions: ["Increase water intake", "Rest", "Over-the-counter pain relievers if needed"],
+      severity: "routine",
+      notes: "Symptoms appeared after long work session with limited water intake"
+    });
+    
+    // Add sample appointments
+    const nextWeek = new Date(now);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    nextWeek.setHours(10, 30, 0, 0);
+    
+    const nextWeekEnd = new Date(nextWeek);
+    nextWeekEnd.setHours(11, 15, 0, 0);
+    
+    await this.createAppointment({
+      userId: 1,
+      title: "Annual Physical Checkup",
+      description: "Regular annual physical examination with primary care physician",
+      startTime: nextWeek, 
+      endTime: nextWeekEnd,
+      location: "Dr. Smith's Clinic, 123 Health St",
+      provider: "Dr. James Smith",
+      status: "scheduled",
+      type: "checkup",
+      reminderSent: false
+    });
+    
+    const twoWeeksLater = new Date(now);
+    twoWeeksLater.setDate(twoWeeksLater.getDate() + 14);
+    twoWeeksLater.setHours(14, 0, 0, 0);
+    
+    const twoWeeksLaterEnd = new Date(twoWeeksLater);
+    twoWeeksLaterEnd.setHours(14, 45, 0, 0);
+    
+    await this.createAppointment({
+      userId: 1,
+      title: "Nutritional Consultation",
+      description: "Follow-up appointment to discuss zinc deficiency and nutritional plan",
+      startTime: twoWeeksLater,
+      endTime: twoWeeksLaterEnd,
+      location: "Wellness Nutrition Center, 456 Healthy Blvd",
+      provider: "Dr. Sarah Johnson, RD",
+      status: "scheduled",
+      type: "specialist",
+      reminderSent: false
+    });
+    
+    // Add health data connection
+    await this.createHealthDataConnection({
+      userId: 1,
+      provider: "apple_health",
+      connected: false,
+      lastSynced: null,
+      accessToken: null,
+      refreshToken: null,
+      scope: ["activity", "heart_rate", "sleep"],
+      expiresAt: null
     });
   }
 
@@ -634,6 +746,103 @@ export class MemStorage implements IStorage {
     const newProduct: Product = { ...product, id };
     this.products.set(id, newProduct);
     return newProduct;
+  }
+
+  // Symptom Checker Methods
+  async getSymptoms(bodyArea?: string, severity?: string): Promise<Symptom[]> {
+    let symptoms = Array.from(this.symptoms.values());
+    
+    if (bodyArea) {
+      symptoms = symptoms.filter(symptom => symptom.bodyArea === bodyArea);
+    }
+    
+    if (severity) {
+      symptoms = symptoms.filter(symptom => symptom.severity === severity);
+    }
+    
+    return symptoms;
+  }
+  
+  async getSymptomById(id: number): Promise<Symptom | undefined> {
+    return this.symptoms.get(id);
+  }
+  
+  async createSymptom(symptom: InsertSymptom): Promise<Symptom> {
+    const id = this.symptomIdCounter++;
+    const newSymptom: Symptom = { ...symptom, id };
+    this.symptoms.set(id, newSymptom);
+    return newSymptom;
+  }
+  
+  // Symptom Checks Methods
+  async getUserSymptomChecks(userId: number): Promise<SymptomCheck[]> {
+    return Array.from(this.symptomChecks.values())
+      .filter(check => check.userId === userId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+  
+  async getSymptomCheckById(id: number): Promise<SymptomCheck | undefined> {
+    return this.symptomChecks.get(id);
+  }
+  
+  async createSymptomCheck(check: InsertSymptomCheck): Promise<SymptomCheck> {
+    const id = this.symptomCheckIdCounter++;
+    const newCheck: SymptomCheck = { ...check, id };
+    this.symptomChecks.set(id, newCheck);
+    return newCheck;
+  }
+  
+  // Appointment Methods
+  async getUserAppointments(userId: number): Promise<Appointment[]> {
+    return Array.from(this.appointments.values())
+      .filter(appointment => appointment.userId === userId)
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  }
+  
+  async getAppointmentById(id: number): Promise<Appointment | undefined> {
+    return this.appointments.get(id);
+  }
+  
+  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
+    const id = this.appointmentIdCounter++;
+    const newAppointment: Appointment = { ...appointment, id };
+    this.appointments.set(id, newAppointment);
+    return newAppointment;
+  }
+  
+  async updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment | undefined> {
+    const appointment = this.appointments.get(id);
+    if (!appointment) return undefined;
+    
+    const updatedAppointment = { ...appointment, ...appointmentData };
+    this.appointments.set(id, updatedAppointment);
+    return updatedAppointment;
+  }
+  
+  // Health Data Connection Methods
+  async getUserHealthDataConnections(userId: number): Promise<HealthDataConnection[]> {
+    return Array.from(this.healthDataConnections.values())
+      .filter(connection => connection.userId === userId);
+  }
+  
+  async getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined> {
+    return this.healthDataConnections.get(id);
+  }
+  
+  async createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection> {
+    const id = this.healthDataConnectionIdCounter++;
+    const newConnection: HealthDataConnection = { ...connection, id };
+    this.healthDataConnections.set(id, newConnection);
+    return newConnection;
+  }
+  
+  async updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined> {
+    const connection = this.healthDataConnections.get(id);
+    if (!connection) return undefined;
+    
+    const updatedConnection = { ...connection, ...connectionData };
+    this.healthDataConnections.set(id, updatedConnection);
+    return updatedConnection;
   }
 }
 
