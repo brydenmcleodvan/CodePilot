@@ -1,0 +1,63 @@
+/* Legacy CSS styles */
+.legacy-nav {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+.legacy-nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.legacy-nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
+
+.legacy-nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.legacy-page {
+    padding: 20px;
+}
+
+.legacy-button {
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.legacy-button:hover {
+    background-color: #218838;
+}
+
+/* Additional styles for compatibility with the theme */
+.navbar-dark {
+    @apply bg-gray-800 text-white py-3 text-center;
+}
+
+.nav-list {
+    @apply list-none p-0;
+}
+
+.nav-item {
+    @apply inline-block mx-4;
+}
+
+.nav-link {
+    @apply text-white no-underline hover:text-gray-300;
+}
+
+.content-page {
+    @apply p-5;
+}
+
+.btn-green {
+    @apply px-4 py-2 bg-primary text-white border-none cursor-pointer rounded-md hover:bg-primary/90;
+}

@@ -3,13 +3,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressTracker } from "@/components/progress-tracker";
 
+interface HealthStat {
+  userId: number;
+  statType: string;
+  value: string;
+  unit?: string;
+  timestamp: string;
+  target?: number;
+  history?: Array<{ timestamp: string; value: number }>;
+  colorScheme: string;
+  icon: string;
+}
+
 interface HealthStatsProps {
   userId: number;
   detailed?: boolean;
 }
 
 const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
-  const { data: healthStats, isLoading } = useQuery({
+  const { data: healthStats = [], isLoading } = useQuery<HealthStat[]>({
     queryKey: ['/api/health/stats'],
     enabled: !!userId,
   });
@@ -57,7 +69,7 @@ const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {healthStats.map((stat, index) => (
+        {healthStats.map((stat: HealthStat, index: number) => (
           <div
             key={index}
             className="bg-white rounded-xl shadow-md p-6 flex items-center space-x-4 transition-transform hover:scale-105 duration-200"
@@ -69,7 +81,7 @@ const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
               <h3 className="text-lg font-medium">
                 {stat.statType
                   .replace(/_/g, " ")
-                  .replace(/\b\w/g, (l) => l.toUpperCase())}
+                  .replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </h3>
               <p className={`text-2xl font-bold text-${stat.colorScheme}`}>
                 {stat.value}
