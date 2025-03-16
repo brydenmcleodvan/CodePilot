@@ -6,10 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import ConnectHealthDataButton from "@/components/connect-health-data";
 
 interface ProductRecommendationsProps {
   user: User | null;
-  products: Product[];
+  products: Product[] | null | undefined;
 }
 
 const ProductRecommendations = ({ user, products }: ProductRecommendationsProps) => {
@@ -24,7 +25,9 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
   });
 
   // If user isn't logged in, show default products
-  const displayProducts = user ? (recommendedProducts || products) : products;
+  const displayProducts: Product[] = user 
+    ? (recommendedProducts as Product[] || products || []) 
+    : (products || []);
 
   const connectHealthData = () => {
     if (!user) {
@@ -75,9 +78,7 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
           </p>
 
           {user ? (
-            <Button className="bg-primary hover:bg-secondary" onClick={connectHealthData}>
-              Update Health Data
-            </Button>
+            <ConnectHealthDataButton />
           ) : (
             <Link href="/auth/login">
               <Button className="bg-primary hover:bg-secondary">
@@ -104,29 +105,37 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
-                  {product.tags.includes("recommended") ? "Recommended" : "Popular"}
-                </span>
-                <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
-                <p className="text-primary font-bold">{product.price}</p>
-                <p className="mt-2 text-gray-600 text-sm">{product.description}</p>
-                <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
-                  Add to Cart
-                </button>
+          {displayProducts.map((product) => {
+            // Use default image if none provided
+            const imageUrl = typeof product.image === 'string' ? product.image : 'https://placehold.co/600x400?text=Product+Image';
+            
+            // Check if tags exist before trying to use includes()
+            const isRecommended = Array.isArray(product.tags) && product.tags.includes("recommended");
+            
+            return (
+              <div
+                key={product.id}
+                className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+              >
+                <img
+                  src={imageUrl}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4">
+                  <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
+                    {isRecommended ? "Recommended" : "Popular"}
+                  </span>
+                  <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
+                  <p className="text-primary font-bold">{product.price}</p>
+                  <p className="mt-2 text-gray-600 text-sm">{product.description}</p>
+                  <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                    Add to Cart
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
