@@ -161,6 +161,13 @@ export interface IStorage {
   getMentalHealthAssessmentById(id: number): Promise<MentalHealthAssessment | undefined>;
   createMentalHealthAssessment(assessment: InsertMentalHealthAssessment): Promise<MentalHealthAssessment>;
   
+  // Mood Tracking
+  getUserMoodEntries(userId: number): Promise<MoodEntry[]>;
+  getMoodEntryById(id: number): Promise<MoodEntry | undefined>;
+  createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry>;
+  updateMoodEntry(id: number, entryData: Partial<MoodEntry>): Promise<MoodEntry | undefined>;
+  deleteMoodEntry(id: number): Promise<boolean>;
+  
   // Health Library
   getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]>;
   getHealthArticleById(id: number): Promise<HealthArticle | undefined>;
@@ -197,6 +204,7 @@ export class MemStorage implements IStorage {
   private wellnessChallenges: Map<number, WellnessChallenge>;
   private userChallengeProgresses: Map<number, UserChallengeProgress>;
   private mentalHealthAssessments: Map<number, MentalHealthAssessment>;
+  private moodEntries: Map<number, MoodEntry>;
   private healthArticles: Map<number, HealthArticle>;
   private mealPlans: Map<number, MealPlan>;
   private mealPlanEntries: Map<number, MealPlanEntry>;
@@ -218,6 +226,7 @@ export class MemStorage implements IStorage {
   private wellnessChallengeIdCounter: number;
   private userChallengeProgressIdCounter: number;
   private mentalHealthAssessmentIdCounter: number;
+  private moodEntryIdCounter: number;
   private healthArticleIdCounter: number;
   private mealPlanIdCounter: number;
   private mealPlanEntryIdCounter: number;
@@ -240,6 +249,7 @@ export class MemStorage implements IStorage {
     this.wellnessChallenges = new Map();
     this.userChallengeProgresses = new Map();
     this.mentalHealthAssessments = new Map();
+    this.moodEntries = new Map();
     this.healthArticles = new Map();
     this.mealPlans = new Map();
     this.mealPlanEntries = new Map();
@@ -261,6 +271,7 @@ export class MemStorage implements IStorage {
     this.wellnessChallengeIdCounter = 1;
     this.userChallengeProgressIdCounter = 1;
     this.mentalHealthAssessmentIdCounter = 1;
+    this.moodEntryIdCounter = 1;
     this.healthArticleIdCounter = 1;
     this.mealPlanIdCounter = 1;
     this.mealPlanEntryIdCounter = 1;
@@ -636,6 +647,40 @@ export class MemStorage implements IStorage {
         "Prioritize 7-8 hours of sleep",
         "Consider speaking with a mental health professional if stress persists"
       ]
+    });
+    
+    // Add mood entries
+    await this.createMoodEntry({
+      userId: 1,
+      date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+      mood: 6,
+      energy: 5,
+      sleep: 6.5,
+      categories: ["work", "health"],
+      notes: "Feeling tired after a long day at work. Stress about upcoming health appointment.",
+      factors: ["work stress", "health issue"]
+    });
+    
+    await this.createMoodEntry({
+      userId: 1,
+      date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      mood: 8,
+      energy: 7,
+      sleep: 7.5,
+      categories: ["personal", "social"],
+      notes: "Had a good night's sleep and spent time with friends. Feeling much better.",
+      factors: ["good sleep", "social connection", "relaxation"]
+    });
+    
+    await this.createMoodEntry({
+      userId: 1,
+      date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // Yesterday
+      mood: 7,
+      energy: 8,
+      sleep: 8,
+      categories: ["personal", "health"],
+      notes: "Started morning with exercise and took zinc supplement. Feeling energized.",
+      factors: ["exercise", "nutrition"]
     });
     
     // Add health articles
@@ -1248,6 +1293,35 @@ export class MemStorage implements IStorage {
     const newAssessment: MentalHealthAssessment = { ...assessment, id };
     this.mentalHealthAssessments.set(id, newAssessment);
     return newAssessment;
+  }
+
+  // Mood Entry methods
+  async getUserMoodEntries(userId: number): Promise<MoodEntry[]> {
+    return Array.from(this.moodEntries.values()).filter(entry => entry.userId === userId);
+  }
+
+  async getMoodEntryById(id: number): Promise<MoodEntry | undefined> {
+    return this.moodEntries.get(id);
+  }
+
+  async createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry> {
+    const id = this.moodEntryIdCounter++;
+    const newEntry: MoodEntry = { ...entry, id };
+    this.moodEntries.set(id, newEntry);
+    return newEntry;
+  }
+
+  async updateMoodEntry(id: number, entryData: Partial<MoodEntry>): Promise<MoodEntry | undefined> {
+    const entry = this.moodEntries.get(id);
+    if (!entry) return undefined;
+    
+    const updatedEntry: MoodEntry = { ...entry, ...entryData };
+    this.moodEntries.set(id, updatedEntry);
+    return updatedEntry;
+  }
+
+  async deleteMoodEntry(id: number): Promise<boolean> {
+    return this.moodEntries.delete(id);
   }
   
   // Health Library
