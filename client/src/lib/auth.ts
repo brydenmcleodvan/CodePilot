@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     error,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return React.createElement(AuthContext.Provider, { value }, children);
 };
 
 export const useAuth = (): AuthContextType => {

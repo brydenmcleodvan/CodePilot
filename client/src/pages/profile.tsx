@@ -7,6 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import HealthStats from "@/components/health-stats";
 import ConnectionCard from "@/components/connection-card";
+import AIHealthAssistant from "@/components/ai-health-assistant";
+import HealthVisualization from "@/components/health-visualization";
+import MedicationTracker from "@/components/medication-tracker";
 
 const Profile = () => {
   const { user } = useAuth();
