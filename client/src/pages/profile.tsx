@@ -10,7 +10,7 @@ import HealthStats from "@/components/health-stats";
 import ConnectionCard from "@/components/connection-card";
 import AIHealthAssistant from "@/components/ai-health-assistant";
 import HealthVisualization from "@/components/health-visualization";
-import { MedicationTracker } from "@/components/medication-tracker";
+import MedicationTracker from "@/components/medication-tracker";
 import { GoalTracker } from "@/components/goal-tracker";
 import { FamilyTree } from "@/components/family-tree";
 

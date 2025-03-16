@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
 interface Medication {
   id: number;
@@ -11,7 +12,10 @@ interface Medication {
   taken: boolean;
 }
 
+// Single implementation that merges both versions
 export default function MedicationTracker() {
+  // Using useState with mock data for now
+  // Later we can replace with real API data from useQuery
   const [medications] = useState<Medication[]>([
     {
       id: 1,
@@ -29,9 +33,20 @@ export default function MedicationTracker() {
     }
   ]);
 
+  // In the future, can use this API-based approach
+  // const { data: medications } = useQuery({
+  //   queryKey: ['/api/medications'],
+  // });
+
   const markAsTaken = (id: number) => {
-    // Implementation would update the medication status
+    // For now, log to console
     console.log(`Marked medication ${id} as taken`);
+    
+    // In the future, can use this API call
+    // fetch(`/api/medications/${id}/take`, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    // });
   };
 
   return (
@@ -53,6 +68,7 @@ export default function MedicationTracker() {
               <Button
                 onClick={() => markAsTaken(med.id)}
                 variant={med.taken ? "outline" : "default"}
+                size="sm"
               >
                 {med.taken ? 'Taken ✓' : 'Take Now'}
               </Button>
@@ -63,46 +79,3 @@ export default function MedicationTracker() {
     </Card>
   );
 }
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-
-export const MedicationTracker = () => {
-  const { data: medications } = useQuery({
-    queryKey: ['/api/medications'],
-  });
-
-  const handleMedicationTaken = async (id: number) => {
-    await fetch(`/api/medications/${id}/take`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Medication Schedule</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {medications?.map((med: any) => (
-            <div key={med.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-              <div>
-                <h4 className="font-medium">{med.name}</h4>
-                <p className="text-sm text-gray-600">{med.dosage} - {med.frequency}</p>
-              </div>
-              <Button 
-                onClick={() => handleMedicationTaken(med.id)}
-                variant="outline"
-                size="sm"
-              >
-                Mark as Taken
-              </Button>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
