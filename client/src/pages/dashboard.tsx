@@ -10,53 +10,62 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Dumbbell, Award, Brain, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
+import {
+  HealthJourneyEntry,
+  HealthCoachingPlan,
+  WellnessChallenge,
+  UserChallengeProgress,
+  MentalHealthAssessment,
+  HealthArticle,
+  MealPlan
+} from "@shared/schema";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch health journey entries
-  const { data: journeyEntries = [] } = useQuery({
+  const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
     queryKey: ["/api/health-journey"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
   // Fetch coaching plans
-  const { data: coachingPlans = [] } = useQuery({
+  const { data: coachingPlans = [] } = useQuery<HealthCoachingPlan[]>({
     queryKey: ["/api/coaching-plans"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
   // Fetch wellness challenges
-  const { data: challenges = [] } = useQuery({
+  const { data: challenges = [] } = useQuery<WellnessChallenge[]>({
     queryKey: ["/api/challenges"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Fetch user challenge progress
-  const { data: challengeProgress = [] } = useQuery({
+  const { data: challengeProgress = [] } = useQuery<(UserChallengeProgress & { challenge: WellnessChallenge })[]>({
     queryKey: ["/api/challenge-progress"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
   // Fetch mental health assessments
-  const { data: mentalHealthAssessments = [] } = useQuery({
+  const { data: mentalHealthAssessments = [] } = useQuery<MentalHealthAssessment[]>({
     queryKey: ["/api/mental-health"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
   // Fetch health articles
-  const { data: healthArticles = [] } = useQuery({
+  const { data: healthArticles = [] } = useQuery<HealthArticle[]>({
     queryKey: ["/api/health-articles"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Fetch meal plans
-  const { data: mealPlans = [] } = useQuery({
+  const { data: mealPlans = [] } = useQuery<MealPlan[]>({
     queryKey: ["/api/meal-plans"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
