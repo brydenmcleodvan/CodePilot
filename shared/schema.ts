@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -210,6 +210,19 @@ export const mentalHealthAssessments = pgTable("mental_health_assessments", {
   recommendations: text("recommendations").array()
 });
 
+// Mood Tracker
+export const moodEntries = pgTable("mood_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  date: timestamp("date").notNull(),
+  mood: real("mood").notNull(), // 1-10 scale
+  energy: real("energy").notNull(), // 1-10 scale
+  sleep: real("sleep").notNull(), // hours
+  categories: text("categories").array(),
+  notes: text("notes"),
+  factors: text("factors").array()
+});
+
 // Health Library
 export const healthArticles = pgTable("health_articles", {
   id: serial("id").primaryKey(),
@@ -271,6 +284,7 @@ export const insertHealthCoachingPlanSchema = createInsertSchema(healthCoachingP
 export const insertWellnessChallengeSchema = createInsertSchema(wellnessChallenges).omit({ id: true });
 export const insertUserChallengeProgressSchema = createInsertSchema(userChallengeProgress).omit({ id: true });
 export const insertMentalHealthAssessmentSchema = createInsertSchema(mentalHealthAssessments).omit({ id: true });
+export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({ id: true });
 export const insertHealthArticleSchema = createInsertSchema(healthArticles).omit({ id: true });
 export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({ id: true });
 export const insertMealPlanEntrySchema = createInsertSchema(mealPlanEntries).omit({ id: true });
@@ -332,6 +346,9 @@ export type UserChallengeProgress = typeof userChallengeProgress.$inferSelect;
 
 export type InsertMentalHealthAssessment = z.infer<typeof insertMentalHealthAssessmentSchema>;
 export type MentalHealthAssessment = typeof mentalHealthAssessments.$inferSelect;
+
+export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
+export type MoodEntry = typeof moodEntries.$inferSelect;
 
 export type InsertHealthArticle = z.infer<typeof insertHealthArticleSchema>;
 export type HealthArticle = typeof healthArticles.$inferSelect;
