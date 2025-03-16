@@ -3,13 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HealthStats from "@/components/health-stats";
 import ConnectionCard from "@/components/connection-card";
 import AIHealthAssistant from "@/components/ai-health-assistant";
 import HealthVisualization from "@/components/health-visualization";
-import MedicationTracker from "@/components/medication-tracker";
+import { MedicationTracker } from "@/components/medication-tracker";
+import { GoalTracker } from "@/components/goal-tracker";
+import { FamilyTree } from "@/components/family-tree";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -250,13 +253,23 @@ const Profile = () => {
           )}
 
           {activeTab === "health-data" && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Health Data</h2>
-              <p className="text-gray-600 mb-4">
-                Connect and manage your health data from various sources.
-              </p>
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-heading font-semibold mb-6">Health Data</h2>
+                <p className="text-gray-600 mb-4">
+                  Connect and manage your health data from various sources.
+                </p>
+                <HealthStats userId={user.id} detailed={true} />
+              </div>
               
-              <HealthStats userId={user.id} detailed={true} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <GoalTracker />
+                <MedicationTracker />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6">
+                <FamilyTree />
+              </div>
             </div>
           )}
 
