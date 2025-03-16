@@ -416,7 +416,7 @@ export class MemStorage implements IStorage {
       name: "Immune Defense",
       description: "Comprehensive immune support with zinc, vitamin C, and elderberry.",
       price: "$29.99",
-      image: "https://images.unsplash.com/photo-1622587034624-6f2ba1af11b4?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+      image: "https://images.unsplash.com/photo-1584362917137-56406a73241c?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
       category: "Supplements",
       tags: ["immune", "zinc", "vitamin c", "popular"],
       recommendedFor: ["immune_support", "zinc_deficiency"]
