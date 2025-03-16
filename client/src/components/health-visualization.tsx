@@ -75,7 +75,7 @@ const transformHealthData = (healthStats: any[] = []): HealthDataPoint[] => {
     } else if (stat.statType === 'sleep') {
       existingData.sleepHours = parseFloat(stat.value);
     } else if (stat.statType === 'blood_pressure') {
-      const [systolic, diastolic] = stat.value.split('/').map(v => parseFloat(v.trim()));
+      const [systolic, diastolic] = stat.value.split('/').map((v: string) => parseFloat(v.trim()));
       existingData.bloodPressureSystolic = systolic;
       existingData.bloodPressureDiastolic = diastolic;
     } else if (stat.statType === 'weight') {
@@ -313,8 +313,8 @@ export default function HealthVisualization() {
         
         {/* Visualization Chart */}
         <div className="h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            {visualizationType === 'line' && (
+          {visualizationType === 'line' ? (
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
@@ -370,9 +370,11 @@ export default function HealthVisualization() {
                   />
                 )}
               </LineChart>
-            )}
+            </ResponsiveContainer>
+          ) : null}
             
-            {visualizationType === 'area' && (
+          {visualizationType === 'area' && (
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
@@ -413,9 +415,11 @@ export default function HealthVisualization() {
                   />
                 )}
               </AreaChart>
-            )}
+            </ResponsiveContainer>
+          )}
             
-            {visualizationType === 'bar' && (
+          {visualizationType === 'bar' && (
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis 
@@ -435,9 +439,11 @@ export default function HealthVisualization() {
                   <Bar dataKey="stressLevel" fill={COLORS.stress} name="Stress Level" />
                 )}
               </BarChart>
-            )}
+            </ResponsiveContainer>
+          )}
             
-            {visualizationType === 'pie' && (
+          {visualizationType === 'pie' && (
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
@@ -456,8 +462,8 @@ export default function HealthVisualization() {
                 <Tooltip />
                 <Legend />
               </PieChart>
-            )}
-          </ResponsiveContainer>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>
