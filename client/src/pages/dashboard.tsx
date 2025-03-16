@@ -102,91 +102,67 @@ export default function Dashboard() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-6">
+          {/* Simplified stats section */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Health Journey</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{journeyEntries.length}</div>
-                <p className="text-xs text-muted-foreground">Entries tracked</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("journey")}>
-                    View details <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
+            <Card className="flex flex-row items-center p-4">
+              <div className="rounded-full p-2 bg-primary/10 mr-3">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Health Journey</p>
+                <div className="text-xl font-bold">{journeyEntries.length}</div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Challenges</CardTitle>
-                <Award className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{challengeProgress.length}</div>
-                <p className="text-xs text-muted-foreground">Challenges joined</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("challenges")}>
-                    View details <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
+            <Card className="flex flex-row items-center p-4">
+              <div className="rounded-full p-2 bg-primary/10 mr-3">
+                <Award className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Active Challenges</p>
+                <div className="text-xl font-bold">{challengeProgress.length}</div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Coaching Plans</CardTitle>
-                <Dumbbell className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{coachingPlans.length}</div>
-                <p className="text-xs text-muted-foreground">Active plans</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("coaching")}>
-                    View details <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
+            <Card className="flex flex-row items-center p-4">
+              <div className="rounded-full p-2 bg-primary/10 mr-3">
+                <Dumbbell className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Coaching Plans</p>
+                <div className="text-xl font-bold">{coachingPlans.length}</div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Mental Health</CardTitle>
-                <Brain className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mentalHealthAssessments.length}</div>
-                <p className="text-xs text-muted-foreground">Assessments completed</p>
-              </CardContent>
-              <CardFooter>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("mental")}>
-                    View details <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
+            <Card className="flex flex-row items-center p-4">
+              <div className="rounded-full p-2 bg-primary/10 mr-3">
+                <Brain className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Mental Health</p>
+                <div className="text-xl font-bold">{mentalHealthAssessments.length}</div>
+              </div>
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* Main sections */}
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Recent journey entries */}
             <Card className="col-span-1">
-              <CardHeader>
-                <CardTitle>Recent Health Journey</CardTitle>
-                <CardDescription>Your latest health milestones</CardDescription>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle>Recent Health Journey</CardTitle>
+                  <Button variant="ghost" size="sm" asChild className="h-8">
+                    <Link to="#" onClick={() => setActiveTab("journey")}>
+                      View all <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
-                {journeyEntries.slice(0, 3).map((entry: HealthJourneyEntry) => (
-                  <div key={entry.id} className="flex items-center gap-2 py-2">
+                {journeyEntries.slice(0, 2).map((entry: HealthJourneyEntry) => (
+                  <div key={entry.id} className="flex items-center gap-3 py-2">
                     <div className="rounded-full p-2 bg-primary/10">
                       {entry.category === "nutrition" ? (
                         <Utensils className="h-4 w-4 text-primary" />
@@ -198,70 +174,66 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{entry.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {entry.description}
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(entry.timestamp)}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(entry.timestamp)}
-                    </p>
                   </div>
                 ))}
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("journey")}>View all entries</Link>
-                </Button>
-              </CardFooter>
             </Card>
 
             {/* Active challenges */}
             <Card className="col-span-1">
-              <CardHeader>
-                <CardTitle>Active Challenges</CardTitle>
-                <CardDescription>Track your wellness challenges</CardDescription>
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle>Active Challenges</CardTitle>
+                  <Button variant="ghost" size="sm" asChild className="h-8">
+                    <Link to="#" onClick={() => setActiveTab("challenges")}>
+                      View all <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {challengeProgress.slice(0, 2).map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
+                {challengeProgress.slice(0, 1).map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
                   <div key={progress.id} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <p className="text-sm font-medium">{progress.challenge.title}</p>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">{progress.challenge.category}</Badge>
-                          <p className="text-xs text-muted-foreground">
-                            {progress.currentProgress} / {progress.challenge.requirementTarget} {progress.challenge.requirementType}
-                          </p>
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Ends {formatDate(progress.challenge.endDate)}
+                        {Math.round((progress.currentProgress / progress.challenge.requirementTarget) * 100)}%
                       </p>
                     </div>
                     <Progress value={(progress.currentProgress / progress.challenge.requirementTarget) * 100} />
                   </div>
                 ))}
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="#" onClick={() => setActiveTab("challenges")}>View all challenges</Link>
-                </Button>
-              </CardFooter>
             </Card>
           </div>
 
           {/* Articles preview */}
           <Card>
-            <CardHeader>
-              <CardTitle>Health Articles</CardTitle>
-              <CardDescription>Latest from our health library</CardDescription>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle>Health Articles</CardTitle>
+                <Button variant="ghost" size="sm" asChild className="h-8">
+                  <Link to="#" onClick={() => setActiveTab("library")}>
+                    View all <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {healthArticles.slice(0, 3).map((article: HealthArticle) => (
-                  <Card key={article.id} className="overflow-hidden">
+              <div className="grid gap-6 md:grid-cols-2">
+                {healthArticles.slice(0, 2).map((article: HealthArticle) => (
+                  <div key={article.id} className="flex space-x-4 items-start">
                     {article.imageUrl && (
-                      <div className="aspect-video w-full overflow-hidden">
+                      <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                         <img 
                           src={article.imageUrl} 
                           alt={article.title}
@@ -269,32 +241,20 @@ export default function Dashboard() {
                         />
                       </div>
                     )}
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base">{article.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                    <div>
+                      <h3 className="font-medium text-sm mb-1">{article.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                         {article.summary}
                       </p>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0 flex justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(article.publishedAt)}
-                      </p>
-                      <p className="text-xs flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {article.readTime} min read
-                      </p>
-                    </CardFooter>
-                  </Card>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <span>{article.readTime} min read</span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="#" onClick={() => setActiveTab("library")}>Browse all articles</Link>
-              </Button>
-            </CardFooter>
           </Card>
         </TabsContent>
 
