@@ -36,6 +36,21 @@ export const medications = pgTable("medications", {
   lastTaken: timestamp("last_taken"), // Last time medication was taken
   instructions: text("instructions"),
   active: boolean("active").notNull().default(true),
+  interactionCategory: text("interaction_category"), // Category for interaction checking
+  sideEffects: text("side_effects"), // Possible side effects
+  totalTaken: integer("total_taken").default(0), // Count of how many doses have been taken
+  sharedWith: text("shared_with").array(), // Array of userIds this medication is shared with
+});
+
+// Medication History
+export const medicationHistory = pgTable("medication_history", {
+  id: serial("id").primaryKey(),
+  medicationId: integer("medication_id").notNull(),
+  userId: integer("user_id").notNull(),
+  takenAt: timestamp("taken_at").notNull(),
+  scheduled: timestamp("scheduled"), // When it was scheduled to be taken
+  skipped: boolean("skipped").notNull().default(false), // Whether it was skipped
+  note: text("note"), // Any notes about this dose
 });
 
 // Connections (Family & Friends)
@@ -86,6 +101,7 @@ export const products = pgTable("products", {
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
+export const insertMedicationHistorySchema = createInsertSchema(medicationHistory).omit({ id: true });
 export const insertConnectionSchema = createInsertSchema(connections).omit({ id: true });
 export const insertForumPostSchema = createInsertSchema(forumPosts).omit({ id: true });
 export const insertNewsUpdateSchema = createInsertSchema(newsUpdates).omit({ id: true });
@@ -106,6 +122,9 @@ export type HealthStat = typeof healthStats.$inferSelect;
 
 export type InsertMedication = z.infer<typeof insertMedicationSchema>;
 export type Medication = typeof medications.$inferSelect;
+
+export type InsertMedicationHistory = z.infer<typeof insertMedicationHistorySchema>;
+export type MedicationHistory = typeof medicationHistory.$inferSelect;
 
 export type InsertConnection = z.infer<typeof insertConnectionSchema>;
 export type Connection = typeof connections.$inferSelect;
