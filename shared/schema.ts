@@ -97,6 +97,57 @@ export const products = pgTable("products", {
   recommendedFor: text("recommended_for").array(), // e.g. ["zinc_deficiency"]
 });
 
+// Symptom Checker
+export const symptoms = pgTable("symptoms", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  bodyArea: text("body_area").notNull(),  // e.g. "head", "chest", "abdomen"
+  severity: text("severity").notNull(),   // e.g. "mild", "moderate", "severe"
+  commonCauses: text("common_causes").array(),
+  recommendedActions: text("recommended_actions").array(),
+});
+
+// Symptom Check Records
+export const symptomChecks = pgTable("symptom_checks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  reportedSymptoms: text("reported_symptoms").array(),
+  preliminaryAssessment: text("preliminary_assessment"),
+  recommendedActions: text("recommended_actions").array(),
+  severity: text("severity"), // e.g. "routine", "urgent", "emergency"
+  notes: text("notes"),
+});
+
+// Appointments
+export const appointments = pgTable("appointments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  location: text("location"),
+  provider: text("provider"),
+  status: text("status").notNull(), // e.g. "scheduled", "completed", "cancelled"
+  type: text("type").notNull(), // e.g. "checkup", "follow-up", "specialist"
+  reminderSent: boolean("reminder_sent").default(false),
+});
+
+// Health Data Connections
+export const healthDataConnections = pgTable("health_data_connections", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  provider: text("provider").notNull(), // e.g. "apple_health", "google_fit", "fitbit"
+  connected: boolean("connected").notNull().default(false),
+  lastSynced: timestamp("last_synced"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  scope: text("scope").array(),
+  expiresAt: timestamp("expires_at"),
+});
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
@@ -106,6 +157,10 @@ export const insertConnectionSchema = createInsertSchema(connections).omit({ id:
 export const insertForumPostSchema = createInsertSchema(forumPosts).omit({ id: true });
 export const insertNewsUpdateSchema = createInsertSchema(newsUpdates).omit({ id: true });
 export const insertProductSchema = createInsertSchema(products).omit({ id: true });
+export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true });
+export const insertSymptomCheckSchema = createInsertSchema(symptomChecks).omit({ id: true });
+export const insertAppointmentSchema = createInsertSchema(appointments).omit({ id: true });
+export const insertHealthDataConnectionSchema = createInsertSchema(healthDataConnections).omit({ id: true });
 
 // Auth Schemas
 export const loginSchema = z.object({
@@ -137,5 +192,17 @@ export type NewsUpdate = typeof newsUpdates.$inferSelect;
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+
+export type InsertSymptom = z.infer<typeof insertSymptomSchema>;
+export type Symptom = typeof symptoms.$inferSelect;
+
+export type InsertSymptomCheck = z.infer<typeof insertSymptomCheckSchema>;
+export type SymptomCheck = typeof symptomChecks.$inferSelect;
+
+export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type Appointment = typeof appointments.$inferSelect;
+
+export type InsertHealthDataConnection = z.infer<typeof insertHealthDataConnectionSchema>;
+export type HealthDataConnection = typeof healthDataConnections.$inferSelect;
 
 export type Login = z.infer<typeof loginSchema>;

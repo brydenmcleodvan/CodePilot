@@ -71,6 +71,28 @@ export interface IStorage {
   getProducts(category?: string, recommendedFor?: string[]): Promise<Product[]>;
   getProductById(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
+  
+  // Symptom Checker
+  getSymptoms(bodyArea?: string, severity?: string): Promise<Symptom[]>;
+  getSymptomById(id: number): Promise<Symptom | undefined>;
+  createSymptom(symptom: InsertSymptom): Promise<Symptom>;
+  
+  // Symptom Checks
+  getUserSymptomChecks(userId: number): Promise<SymptomCheck[]>;
+  getSymptomCheckById(id: number): Promise<SymptomCheck | undefined>;
+  createSymptomCheck(check: InsertSymptomCheck): Promise<SymptomCheck>;
+  
+  // Appointments
+  getUserAppointments(userId: number): Promise<Appointment[]>;
+  getAppointmentById(id: number): Promise<Appointment | undefined>;
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment | undefined>;
+  
+  // Health Data Connections
+  getUserHealthDataConnections(userId: number): Promise<HealthDataConnection[]>;
+  getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined>;
+  createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection>;
+  updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -82,6 +104,10 @@ export class MemStorage implements IStorage {
   private forumPosts: Map<number, ForumPost>;
   private newsUpdates: Map<number, NewsUpdate>;
   private products: Map<number, Product>;
+  private symptoms: Map<number, Symptom>;
+  private symptomChecks: Map<number, SymptomCheck>;
+  private appointments: Map<number, Appointment>;
+  private healthDataConnections: Map<number, HealthDataConnection>;
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
@@ -91,6 +117,10 @@ export class MemStorage implements IStorage {
   private forumPostIdCounter: number;
   private newsUpdateIdCounter: number;
   private productIdCounter: number;
+  private symptomIdCounter: number;
+  private symptomCheckIdCounter: number;
+  private appointmentIdCounter: number;
+  private healthDataConnectionIdCounter: number;
 
   constructor() {
     this.users = new Map();

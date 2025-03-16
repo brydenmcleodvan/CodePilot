@@ -215,6 +215,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error updating medication status' });
     }
   });
+
+  // Medication history routes
+  app.get(`${apiRouter}/medications/:id/history`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationId = parseInt(req.params.id);
+      
+      // Verify medication belongs to user
+      const medication = await storage.getMedicationById(medicationId);
+      if (!medication || medication.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to access this medication history' });
+      }
+      
+      const history = await storage.getMedicationHistory(medicationId);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching medication history' });
+    }
+  });
+  
+  app.get(`${apiRouter}/medications/:id/adherence`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationId = parseInt(req.params.id);
+      
+      // Verify medication belongs to user
+      const medication = await storage.getMedicationById(medicationId);
+      if (!medication || medication.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to access this medication data' });
+      }
+      
+      const adherenceRate = await storage.getMedicationAdherenceRate(medicationId);
+      res.json({ medicationId, adherenceRate });
+    } catch (error) {
+      res.status(500).json({ message: 'Error calculating adherence rate' });
+    }
+  });
+  
+  app.patch(`${apiRouter}/medications/:id`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationId = parseInt(req.params.id);
+      
+      // Verify medication belongs to user
+      const medication = await storage.getMedicationById(medicationId);
+      if (!medication || medication.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to update this medication' });
+      }
+      
+      // Handle date conversions
+      const updateData = { ...req.body };
+      if (updateData.nextDose) updateData.nextDose = new Date(updateData.nextDose);
+      if (updateData.lastTaken) updateData.lastTaken = new Date(updateData.lastTaken);
+      
+      // Don't allow changing userId
+      delete updateData.userId;
+      
+      const updatedMedication = await storage.updateMedication(medicationId, updateData);
+      res.json(updatedMedication);
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating medication' });
+    }
+  });
+  
+  app.post(`${apiRouter}/medications/:id/share`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationId = parseInt(req.params.id);
+      const shareWithUserId = parseInt(req.body.shareWithUserId);
+      
+      // Verify medication belongs to user
+      const medication = await storage.getMedicationById(medicationId);
+      if (!medication || medication.userId !== userId) {
+        return res.status(403).json({ message: 'Not authorized to share this medication' });
+      }
+      
+      // Verify the user to share with exists
+      const shareWithUser = await storage.getUser(shareWithUserId);
+      if (!shareWithUser) {
+        return res.status(404).json({ message: 'User to share with not found' });
+      }
+      
+      // Update the sharedWith array
+      const sharedWith = medication.sharedWith || [];
+      if (!sharedWith.includes(shareWithUserId.toString())) {
+        sharedWith.push(shareWithUserId.toString());
+      }
+      
+      const updatedMedication = await storage.updateMedication(medicationId, { sharedWith });
+      res.json(updatedMedication);
+    } catch (error) {
+      res.status(500).json({ message: 'Error sharing medication' });
+    }
+  });
   
   // Connections routes
   app.get(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
