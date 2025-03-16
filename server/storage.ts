@@ -11,6 +11,14 @@ import {
   symptomChecks,
   appointments,
   healthDataConnections,
+  healthJourneyEntries,
+  healthCoachingPlans,
+  wellnessChallenges,
+  userChallengeProgress,
+  mentalHealthAssessments,
+  healthArticles,
+  mealPlans,
+  mealPlanEntries,
   type User,
   type InsertUser,
   type HealthStat,
@@ -34,7 +42,23 @@ import {
   type Appointment,
   type InsertAppointment,
   type HealthDataConnection,
-  type InsertHealthDataConnection
+  type InsertHealthDataConnection,
+  type HealthJourneyEntry,
+  type InsertHealthJourneyEntry,
+  type HealthCoachingPlan,
+  type InsertHealthCoachingPlan,
+  type WellnessChallenge,
+  type InsertWellnessChallenge,
+  type UserChallengeProgress,
+  type InsertUserChallengeProgress,
+  type MentalHealthAssessment,
+  type InsertMentalHealthAssessment,
+  type HealthArticle,
+  type InsertHealthArticle,
+  type MealPlan,
+  type InsertMealPlan,
+  type MealPlanEntry,
+  type InsertMealPlanEntry
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
@@ -519,6 +543,162 @@ export class MemStorage implements IStorage {
       scope: ["activity", "heart_rate", "sleep"],
       expiresAt: null
     });
+    
+    // Add health journey entries
+    await this.createHealthJourneyEntry({
+      userId: 1,
+      timestamp: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      category: "nutrition",
+      title: "Started Zinc Supplements",
+      description: "Started taking zinc supplements to improve my immune function after recent blood tests showed deficiency.",
+      metrics: JSON.stringify({
+        "supplement": "Zinc",
+        "dosage": "50mg",
+        "frequency": "daily"
+      }),
+      mediaUrl: null,
+      sentiment: "positive"
+    });
+
+    await this.createHealthJourneyEntry({
+      userId: 1,
+      timestamp: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      category: "exercise",
+      title: "Increased daily steps goal",
+      description: "Increased my daily step goal from 8,000 to 10,000 steps. Feeling more energetic lately.",
+      metrics: JSON.stringify({
+        "previous_goal": 8000,
+        "new_goal": 10000,
+        "current_average": 7500
+      }),
+      mediaUrl: null,
+      sentiment: "positive"
+    });
+    
+    // Add a health coaching plan
+    await this.createHealthCoachingPlan({
+      userId: 1,
+      title: "Zinc Deficiency Improvement Plan",
+      description: "A personalized plan to address your zinc deficiency and boost your immune system",
+      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      goals: [
+        "Increase zinc levels to normal range within 3 months",
+        "Reduce frequency of seasonal illness",
+        "Improve energy levels"
+      ],
+      recommendations: [
+        "Take zinc supplement daily with food",
+        "Increase consumption of zinc-rich foods (oysters, beef, pumpkin seeds)",
+        "Monitor for improvements in immune function",
+        "Retest zinc levels after 3 months"
+      ],
+      progress: 25,
+      active: true
+    });
+    
+    // Add wellness challenges
+    const walkingChallenge = await this.createWellnessChallenge({
+      title: "10K Steps Challenge",
+      description: "Walk at least 10,000 steps every day for 30 days to boost cardiovascular health and energy levels",
+      category: "fitness",
+      pointsReward: 500,
+      startDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000), // Started 15 days ago
+      endDate: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000), // Ends in 15 days
+      requirementType: "steps",
+      requirementTarget: 10000,
+      image: "https://images.unsplash.com/photo-1510021115607-c94b84bcb73a?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
+    });
+    
+    // Add user's progress in challenge
+    await this.createUserChallengeProgress({
+      userId: 1,
+      challengeId: walkingChallenge.id,
+      joined: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // Joined 10 days ago
+      currentProgress: 7500, // Average 7500 steps so far
+      completed: false,
+      completedAt: null
+    });
+    
+    // Add mental health assessment
+    await this.createMentalHealthAssessment({
+      userId: 1,
+      timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      assessmentType: "stress",
+      score: 7, // Scale of 1-10
+      notes: "Feeling moderately stressed due to work deadlines and health concerns",
+      recommendations: [
+        "Practice mindfulness meditation for 10 minutes daily",
+        "Take short breaks during work hours",
+        "Prioritize 7-8 hours of sleep",
+        "Consider speaking with a mental health professional if stress persists"
+      ]
+    });
+    
+    // Add health articles
+    await this.createHealthArticle({
+      title: "Understanding Zinc's Role in Immune Function",
+      summary: "A comprehensive guide to how zinc affects your immune system and what deficiency means for your health",
+      content: "Zinc is an essential micronutrient that plays a vital role in immune function, protein synthesis, wound healing, DNA synthesis, and cell division. Although the body does not naturally produce zinc, this essential nutrient is readily available in many food sources and supplements.\n\nResearch has consistently shown that zinc is critical for normal development and function of cells mediating innate immunity, neutrophils, and natural killer cells. It also affects the development of acquired immunity, particularly T-lymphocyte function.\n\nZinc deficiency, even mild to moderate, can impair immune function, making the body more susceptible to infections. Studies have found that zinc supplementation can reduce the duration and severity of common colds and other respiratory infections.\n\nGood dietary sources of zinc include oysters, red meat, poultry, beans, nuts, and fortified cereals. For those with deficiencies, supplements may be necessary, but should be taken under medical supervision as excessive zinc can interfere with the absorption of other essential minerals.\n\nIf you're experiencing symptoms such as frequent infections, slow wound healing, loss of taste or smell, or unexplained fatigue, consider having your zinc levels tested.",
+      authorName: "Dr. Emily Chen, PhD",
+      publishedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      category: "Nutrition",
+      tags: ["zinc", "immunity", "nutrition", "micronutrients"],
+      imageUrl: "https://images.unsplash.com/photo-1505253758473-96b7015fcd40?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
+      sourceName: "Journal of Nutritional Science",
+      sourceUrl: "https://example.com/jns/zinc-immune-function",
+      readTime: 8 // minutes
+    });
+    
+    // Add meal plan
+    const mealPlan = await this.createMealPlan({
+      userId: 1,
+      title: "Zinc-Rich Diet Plan",
+      createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      startDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      endDate: new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000), // 9 days from now
+      dietaryPreferences: ["balanced", "omnivore"],
+      healthGoals: ["increase zinc intake", "boost immunity"],
+      allergies: ["shellfish"],
+      active: true
+    });
+    
+    // Add meal plan entries
+    await this.createMealPlanEntry({
+      mealPlanId: mealPlan.id,
+      dayOfWeek: 1, // Monday
+      mealType: "breakfast",
+      name: "Pumpkin Seed Oatmeal",
+      recipe: "Combine 1/2 cup rolled oats with 1 cup milk, cook for 5 minutes. Top with 2 tbsp pumpkin seeds, 1 tbsp honey, and cinnamon.",
+      ingredients: ["rolled oats", "milk", "pumpkin seeds", "honey", "cinnamon"],
+      nutritionalInfo: JSON.stringify({
+        "calories": 380,
+        "protein": 15,
+        "carbs": 48,
+        "fat": 16,
+        "zinc": "3.5mg (32% DV)"
+      }),
+      preparationTime: 10,
+      imageUrl: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
+    });
+    
+    await this.createMealPlanEntry({
+      mealPlanId: mealPlan.id,
+      dayOfWeek: 1, // Monday
+      mealType: "lunch",
+      name: "Beef and Spinach Salad",
+      recipe: "Grill 4oz lean beef steak. Slice and serve over 2 cups spinach, 1/4 cup chickpeas, cherry tomatoes, and cucumber with balsamic vinaigrette.",
+      ingredients: ["lean beef", "spinach", "chickpeas", "cherry tomatoes", "cucumber", "balsamic vinaigrette"],
+      nutritionalInfo: JSON.stringify({
+        "calories": 420,
+        "protein": 35,
+        "carbs": 22,
+        "fat": 23,
+        "zinc": "6.2mg (56% DV)"
+      }),
+      preparationTime: 20,
+      imageUrl: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
+    });
   }
 
   // User Management
@@ -920,6 +1100,247 @@ export class MemStorage implements IStorage {
     const updatedConnection = { ...connection, ...connectionData };
     this.healthDataConnections.set(id, updatedConnection);
     return updatedConnection;
+  }
+  
+  // Health Journey Entries
+  async getUserHealthJourneyEntries(userId: number): Promise<HealthJourneyEntry[]> {
+    return Array.from(this.healthJourneyEntries.values()).filter(
+      (entry) => entry.userId === userId
+    ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  async getHealthJourneyEntryById(id: number): Promise<HealthJourneyEntry | undefined> {
+    return this.healthJourneyEntries.get(id);
+  }
+  
+  async createHealthJourneyEntry(entry: InsertHealthJourneyEntry): Promise<HealthJourneyEntry> {
+    const id = this.healthJourneyEntryIdCounter++;
+    const newEntry: HealthJourneyEntry = { ...entry, id };
+    this.healthJourneyEntries.set(id, newEntry);
+    return newEntry;
+  }
+  
+  async updateHealthJourneyEntry(id: number, entryData: Partial<HealthJourneyEntry>): Promise<HealthJourneyEntry | undefined> {
+    const entry = this.healthJourneyEntries.get(id);
+    if (!entry) return undefined;
+    
+    const updatedEntry = { ...entry, ...entryData };
+    this.healthJourneyEntries.set(id, updatedEntry);
+    return updatedEntry;
+  }
+  
+  // Health Coaching Plans
+  async getUserHealthCoachingPlans(userId: number): Promise<HealthCoachingPlan[]> {
+    return Array.from(this.healthCoachingPlans.values()).filter(
+      (plan) => plan.userId === userId
+    ).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
+  
+  async getHealthCoachingPlanById(id: number): Promise<HealthCoachingPlan | undefined> {
+    return this.healthCoachingPlans.get(id);
+  }
+  
+  async createHealthCoachingPlan(plan: InsertHealthCoachingPlan): Promise<HealthCoachingPlan> {
+    const id = this.healthCoachingPlanIdCounter++;
+    const newPlan: HealthCoachingPlan = { ...plan, id };
+    this.healthCoachingPlans.set(id, newPlan);
+    return newPlan;
+  }
+  
+  async updateHealthCoachingPlan(id: number, planData: Partial<HealthCoachingPlan>): Promise<HealthCoachingPlan | undefined> {
+    const plan = this.healthCoachingPlans.get(id);
+    if (!plan) return undefined;
+    
+    const updatedPlan = { ...plan, ...planData, updatedAt: new Date() };
+    this.healthCoachingPlans.set(id, updatedPlan);
+    return updatedPlan;
+  }
+  
+  // Wellness Challenges
+  async getWellnessChallenges(category?: string): Promise<WellnessChallenge[]> {
+    let challenges = Array.from(this.wellnessChallenges.values());
+    
+    // Filter by category if provided
+    if (category) {
+      challenges = challenges.filter(challenge => challenge.category === category);
+    }
+    
+    // Sort by start date (newest first)
+    return challenges.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
+  }
+  
+  async getWellnessChallengeById(id: number): Promise<WellnessChallenge | undefined> {
+    return this.wellnessChallenges.get(id);
+  }
+  
+  async createWellnessChallenge(challenge: InsertWellnessChallenge): Promise<WellnessChallenge> {
+    const id = this.wellnessChallengeIdCounter++;
+    const newChallenge: WellnessChallenge = { ...challenge, id };
+    this.wellnessChallenges.set(id, newChallenge);
+    return newChallenge;
+  }
+  
+  // User Challenge Progress
+  async getUserChallengeProgresses(userId: number): Promise<(UserChallengeProgress & { challenge: WellnessChallenge })[]> {
+    const progresses = Array.from(this.userChallengeProgresses.values())
+      .filter(progress => progress.userId === userId);
+    
+    // Join with challenge data
+    return progresses.map(progress => {
+      const challenge = this.wellnessChallenges.get(progress.challengeId);
+      if (!challenge) {
+        throw new Error(`Challenge not found: ${progress.challengeId}`);
+      }
+      return { ...progress, challenge };
+    });
+  }
+  
+  async getUserChallengeProgressById(id: number): Promise<UserChallengeProgress | undefined> {
+    return this.userChallengeProgresses.get(id);
+  }
+  
+  async createUserChallengeProgress(progress: InsertUserChallengeProgress): Promise<UserChallengeProgress> {
+    const id = this.userChallengeProgressIdCounter++;
+    const newProgress: UserChallengeProgress = { ...progress, id };
+    this.userChallengeProgresses.set(id, newProgress);
+    return newProgress;
+  }
+  
+  async updateUserChallengeProgress(id: number, progressData: Partial<UserChallengeProgress>): Promise<UserChallengeProgress | undefined> {
+    const progress = this.userChallengeProgresses.get(id);
+    if (!progress) return undefined;
+    
+    // Check if challenge is completed
+    let updatedProgress = { ...progress, ...progressData };
+    
+    // If currentProgress meets or exceeds the challenge target, mark as completed
+    if (progressData.currentProgress !== undefined) {
+      const challenge = this.wellnessChallenges.get(progress.challengeId);
+      if (challenge && progressData.currentProgress >= challenge.requirementTarget && !progress.completed) {
+        updatedProgress = { 
+          ...updatedProgress, 
+          completed: true,
+          completedAt: new Date()
+        };
+      }
+    }
+    
+    this.userChallengeProgresses.set(id, updatedProgress);
+    return updatedProgress;
+  }
+  
+  // Mental Health Integration
+  async getUserMentalHealthAssessments(userId: number): Promise<MentalHealthAssessment[]> {
+    return Array.from(this.mentalHealthAssessments.values())
+      .filter(assessment => assessment.userId === userId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  async getMentalHealthAssessmentById(id: number): Promise<MentalHealthAssessment | undefined> {
+    return this.mentalHealthAssessments.get(id);
+  }
+  
+  async createMentalHealthAssessment(assessment: InsertMentalHealthAssessment): Promise<MentalHealthAssessment> {
+    const id = this.mentalHealthAssessmentIdCounter++;
+    const newAssessment: MentalHealthAssessment = { ...assessment, id };
+    this.mentalHealthAssessments.set(id, newAssessment);
+    return newAssessment;
+  }
+  
+  // Health Library
+  async getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]> {
+    let articles = Array.from(this.healthArticles.values());
+    
+    // Filter by category if provided
+    if (category) {
+      articles = articles.filter(article => article.category === category);
+    }
+    
+    // Filter by tags if provided
+    if (tags && tags.length > 0) {
+      articles = articles.filter(article => 
+        article.tags && tags.some(tag => article.tags?.includes(tag))
+      );
+    }
+    
+    // Sort by published date (newest first)
+    return articles.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+  }
+  
+  async getHealthArticleById(id: number): Promise<HealthArticle | undefined> {
+    return this.healthArticles.get(id);
+  }
+  
+  async createHealthArticle(article: InsertHealthArticle): Promise<HealthArticle> {
+    const id = this.healthArticleIdCounter++;
+    const newArticle: HealthArticle = { ...article, id };
+    this.healthArticles.set(id, newArticle);
+    return newArticle;
+  }
+  
+  // Meal Planning
+  async getUserMealPlans(userId: number): Promise<MealPlan[]> {
+    return Array.from(this.mealPlans.values())
+      .filter(plan => plan.userId === userId && plan.active)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async getMealPlanById(id: number): Promise<MealPlan | undefined> {
+    return this.mealPlans.get(id);
+  }
+  
+  async createMealPlan(plan: InsertMealPlan): Promise<MealPlan> {
+    const id = this.mealPlanIdCounter++;
+    const newPlan: MealPlan = { ...plan, id };
+    this.mealPlans.set(id, newPlan);
+    return newPlan;
+  }
+  
+  async updateMealPlan(id: number, planData: Partial<MealPlan>): Promise<MealPlan | undefined> {
+    const plan = this.mealPlans.get(id);
+    if (!plan) return undefined;
+    
+    const updatedPlan = { ...plan, ...planData };
+    this.mealPlans.set(id, updatedPlan);
+    return updatedPlan;
+  }
+  
+  // Meal Plan Entries
+  async getMealPlanEntries(mealPlanId: number): Promise<MealPlanEntry[]> {
+    return Array.from(this.mealPlanEntries.values())
+      .filter(entry => entry.mealPlanId === mealPlanId)
+      .sort((a, b) => {
+        // Sort by day of week, then by meal type
+        if (a.dayOfWeek !== b.dayOfWeek) {
+          return a.dayOfWeek - b.dayOfWeek;
+        }
+        
+        // Custom order for meal types
+        const mealOrder = { breakfast: 0, lunch: 1, dinner: 2, snack: 3 };
+        const aOrder = mealOrder[a.mealType as keyof typeof mealOrder] || 999;
+        const bOrder = mealOrder[b.mealType as keyof typeof mealOrder] || 999;
+        return aOrder - bOrder;
+      });
+  }
+  
+  async getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined> {
+    return this.mealPlanEntries.get(id);
+  }
+  
+  async createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry> {
+    const id = this.mealPlanEntryIdCounter++;
+    const newEntry: MealPlanEntry = { ...entry, id };
+    this.mealPlanEntries.set(id, newEntry);
+    return newEntry;
+  }
+  
+  async updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined> {
+    const entry = this.mealPlanEntries.get(id);
+    if (!entry) return undefined;
+    
+    const updatedEntry = { ...entry, ...entryData };
+    this.mealPlanEntries.set(id, updatedEntry);
+    return updatedEntry;
   }
 }
 
