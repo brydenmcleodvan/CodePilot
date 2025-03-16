@@ -31,7 +31,7 @@ const Home = () => {
                 Transform Your Health Journey
               </h1>
               <p className="text-white text-lg mb-6">
-                Healthfolio unifies your genetics, genealogy, and health data into
+                Healthmap unifies your genetics, genealogy, and health data into
                 one powerful platform.
               </p>
               <div className="flex flex-wrap gap-3">

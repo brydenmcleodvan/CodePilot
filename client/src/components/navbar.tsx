@@ -31,7 +31,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-2">
             <i className="ri-heart-pulse-line text-primary text-2xl"></i>
             <Link href="/" className="text-xl font-heading font-bold text-gray-800">
-              Healthfolio
+              Healthmap
             </Link>
           </div>
 

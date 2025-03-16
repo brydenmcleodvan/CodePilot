@@ -87,7 +87,7 @@ const Auth = () => {
       await login(values.username, values.password);
       toast({
         title: "Login successful",
-        description: "Welcome back to Healthfolio!"
+        description: "Welcome back to Healthmap!"
       });
       setLocation("/");
     } catch (error: any) {
@@ -117,7 +117,7 @@ const Auth = () => {
       await register(userData);
       toast({
         title: "Registration successful",
-        description: "Welcome to Healthfolio!"
+        description: "Welcome to Healthmap!"
       });
       setLocation("/");
     } catch (error: any) {
@@ -143,7 +143,7 @@ const Auth = () => {
         <div className="text-center mb-6">
           <div className="flex items-center justify-center space-x-2 mb-2">
             <i className="ri-heart-pulse-line text-primary text-3xl"></i>
-            <h1 className="text-2xl font-heading font-bold text-gray-800">Healthfolio</h1>
+            <h1 className="text-2xl font-heading font-bold text-gray-800">Healthmap</h1>
           </div>
           <p className="text-gray-600">Your unified health and wellness platform</p>
         </div>
