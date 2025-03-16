@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressTracker } from "@/components/progress-tracker";
 
 interface HealthStatsProps {
   userId: number;
