@@ -1,0 +1,72 @@
+Code 2:
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Healthfolio - Streamlining Health Data</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <header>
+    <div class="container">
+      <h1>Healthfolio</h1>
+      <p>Streamlining Genetics, Genealogy, and Health Data into a Unified Platform</p>
+    </div>
+  </header>
+
+  <section id="mission">
+    <div class="container">
+      <h2>Our Mission</h2>
+      <p>Healthmap’s mission is to help you prevent disease or injury before it occurs by:</p>
+      <ul>
+        <li>Avoiding exposure to hazards.</li>
+        <li>Encouraging safer, healthier behaviors.</li>
+        <li>Strengthening resistance to disease and injury.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="platform">
+    <div class="container">
+      <h2>Platform Overview</h2>
+      <p>Healthmap brings together data from multiple sources—wearables, genetic testing, ancestry services, and personal medical records—into a single platform. This allows users to get a comprehensive, personalized health view.</p>
+    </div>
+  </section>
+
+  <section id="revenue">
+    <div class="container">
+      <h2>Revenue Model</h2>
+      <ul>
+        <li><strong>Paid Partnerships and Targeted Ads:</strong> Using anonymized data and medical profiles to provide targeted, health-related ads.</li>
+        <li><strong>Anonymized Data Sales:</strong> Selling anonymized data for healthcare mapping to identify health trends.</li>
+        <li><strong>Platform Integration:</strong> Partnerships with mental health programs, telemedicine services, DNA testing companies, and health insurers.</li>
+        <li><strong>Freemium Model:</strong> A two-tier system where users can start with a free version, upgrading to premium for advanced features.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="why-healthmap">
+    <div class="container">
+      <h2>Why Healthmap?</h2>
+      <p>Healthmap helps solve issues with fragmented health knowledge by:</p>
+      <ul>
+        <li>Providing access to personal and familial medical data.</li>
+        <li>Offering preemptive insight into potential health risks.</li>
+        <li>Promoting open dialogue between family members about medical history.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Healthfolio. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+
+</html>

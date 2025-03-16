@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Wellness Hub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #3ca374;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        nav {
+            text-align: center;
+            margin: 1.5rem;
+        }
+
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+
+        nav a:hover {
+            color: #3ca374;
+        }
+
+        .hero-section {
+            background-image: url('https://example.com/hero-image.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 60vh;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 3rem;
+            margin: 0;
+        }
+
+        .hero-section p {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .container {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .section {
+            margin: 2rem 0;
+        }
+
+        footer {
+            background-color: #3ca374;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        .button {
+            background-color: #3ca374;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        .button:hover {
+            background-color: #2e8059;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .grid img {
+            width: 100%;
+            height: auto;
+        }
+
+        .grid-item {
+            background-color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Health & Wellness Hub</h1>
+        <p>Your ultimate guide to living a healthier, happier life.</p>
+    </header>
+
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Services</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <section class="hero-section">
+        <div>
+            <h1>Transform Your Health Today</h1>
+            <p>Expert advice on nutrition, fitness, mental health, and wellness.</p>
+            <a href="#" class="button">Get Started</a>
+        </div>
+    </section>
+
+    <div class="container">
+        <section class="section">
+            <h2>Our Services</h2>
+            <p>We offer personalized wellness plans, fitness coaching, mental health support, and more.</p>
+            <div class="grid">
+                <div class="grid-item">
+                    <img src="https://example.com/nutrition.jpg" alt="Nutrition">
+                    <h3>Nutrition Coaching</h3>
+                    <p>Discover how balanced nutrition can transform your health.</p>
+                </div>
+                <div class="grid-item">
+                    <img src="https://example.com/fitness.jpg" alt="Fitness">
+                    <h3>Fitness Plans</h3>
+                    <p>Customized fitness plans to help you achieve your goals.</p>
+                </div>
+                <div class="grid-item">
+                    <img src="https://example.com/mental-health.jpg" alt="Mental Health">
+                    <h3>Mental Health Support</h3>
+                    <p>Guidance and support for managing your mental health.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Latest Articles</h2>
+            <p>Stay updated with our blog for tips and insights on maintaining a healthy lifestyle.</p>
+            <a href="#" class="button">Read Our Blog</a>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Health & Wellness Hub. All Rights Reserved.</p>
+    </footer>
+
+</body>
+
+</html>

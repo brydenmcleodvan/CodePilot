@@ -1,0 +1,155 @@
+Code 5: 
+
+// script.js
+
+function connectHealthData() {
+    alert("Connecting your health data for personalized recommendations...");
+    // Logic to connect user's health data (to be added)
+    // E.g., Fetch user data and recommend products
+}
+
+// You can add more dynamic behavior as needed
+
+Code 6:
+
+mkdir healthfolio
+cd healthfolio
+npm init -y
+npm install express mongoose cors dotenv jsonwebtoken bcryptjs
+
+Code 7:
+
+// server.js
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config();
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Database connection
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB Connected'))
+    .catch(err => console.log(err));
+
+// Sample route
+app.get('/', (req, res) => {
+    res.send('Welcome to HealthFolio API');
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+Code 8:
+
+// models/User.js
+const mongoose = require('mongoose');
+
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    healthData: { type: Object }, // Store user health data
+    connections: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+});
+
+module.exports = mongoose.model('User', userSchema);
+
+Code 9:
+
+// models/ForumPost.js
+const mongoose = require('mongoose');
+
+const postSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    subreddit: { type: String, required: true }, // e.g., Fitness, Nutrition
+    createdAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('ForumPost', postSchema);
+
+Code 10:
+
+// routes/auth.js
+const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+const router = express.Router();
+
+// Register
+router.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = new User({ username, password: hashedPassword });
+        await newUser.save();
+        res.status(201).json({ message: 'User registered successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Login
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token, user: { id: user._id, username: user.username } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+module.exports = router;
+
+Code 11:
+
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
+Code 12:
+
+// Example function to fetch personalized product recommendations
+async function fetchRecommendations(userId) {
+    const response = await fetch(`/api/recommendations/${userId}`);
+    const recommendations = await response.json();
+    displayRecommendations(recommendations);
+}
+
+function displayRecommendations(recommendations) {
+    // Logic to display recommendations on the home page
+}
+
+Code 13:
+
+// Fetch forum posts based on subreddit
+async function fetchForumPosts(subreddit) {
+    const response = await fetch(`/api/forum/${subreddit}`);
+    const posts = await response.json();
+    displayPosts(posts);
+}
+
+function displayPosts(posts) {
+    // Logic to dynamically display posts on the forum page
+}
+
+

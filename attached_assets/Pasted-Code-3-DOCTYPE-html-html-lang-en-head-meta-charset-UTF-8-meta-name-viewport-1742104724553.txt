@@ -1,0 +1,160 @@
+Code 3:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health & Wellness Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#profile">Profile</a></li>
+            <li><a href="#forum">Forum</a></li>
+        </ul>
+    </nav>
+
+    <!-- Home Page Section -->
+    <section id="home" class="page">
+        <h1>Welcome to the Health & Wellness Platform</h1>
+        <h2>News & Updates</h2>
+        <div id="news-updates">
+            <article>
+                <h3>Latest Health News</h3>
+                <p>Stay informed with the latest health news and tips to improve your well-being.</p>
+            </article>
+        </div>
+
+        <h2>Personalized Health Store</h2>
+        <div id="health-store">
+            <p>Access personalized product recommendations and discounts based on your health data.</p>
+            <button onclick="connectHealthData()">Connect Health Data</button>
+        </div>
+    </section>
+
+    <!-- Profile Page Section -->
+    <section id="profile" class="page">
+        <h1>Your Profile</h1>
+        <div id="profile-info">
+            <img src="profile-pic.jpg" alt="Profile Picture">
+            <h2>John Doe</h2>
+            <p>Health Stats: Zinc Deficient</p>
+        </div>
+
+        <h2>Friends & Family</h2>
+        <div id="connections">
+            <p>View and connect with family and friends</p>
+            <!-- Friends list with links to their profiles -->
+        </div>
+    </section>
+
+    <!-- Reddit-Style Forum Section -->
+    <section id="forum" class="page">
+        <h1>Forum</h1>
+        <h2>Subreddits</h2>
+        <ul id="subreddits">
+            <li><a href="#">Fitness</a></li>
+            <li><a href="#">Nutrition</a></li>
+            <li><a href="#">Mental Health</a></li>
+        </ul>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+Code 4:
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+nav {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.page {
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+#health-store {
+    margin-top: 20px;
+}
+
+button {
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+/* Profile Page Styles */
+#profile-info {
+    display: flex;
+    align-items: center;
+}
+
+#profile-info img {
+    border-radius: 50%;
+    margin-right: 20px;
+    width: 100px;
+    height: 100px;
+}
+
+#connections {
+    margin-top: 20px;
+}
+
+#connections p {
+    font-style: italic;
+}
+
+/* Forum Page Styles */
+#subreddits {
+    list-style-type: none;
+}
+
+#subreddits li {
+    padding: 10px 0;
+}
+
+#subreddits li a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+#subreddits li a:hover {
+    text-decoration: underline;
