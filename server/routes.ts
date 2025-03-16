@@ -704,6 +704,342 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health Journey Entries
+  app.get(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entries = await storage.getUserHealthJourneyEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching health journey entries:", error);
+      res.status(500).json({ error: "Failed to fetch health journey entries" });
+    }
+  });
+
+  app.post(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entryData = {
+        ...req.body,
+        userId,
+        timestamp: new Date()
+      };
+      const newEntry = await storage.createHealthJourneyEntry(entryData);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      console.error("Error creating health journey entry:", error);
+      res.status(500).json({ error: "Failed to create health journey entry" });
+    }
+  });
+
+  app.get(`${apiRouter}/health-journey/:id`, authenticateToken, async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getHealthJourneyEntryById(entryId);
+      if (!entry) {
+        return res.status(404).json({ error: "Health journey entry not found" });
+      }
+      
+      // Check if the entry belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (entry.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching health journey entry:", error);
+      res.status(500).json({ error: "Failed to fetch health journey entry" });
+    }
+  });
+
+  // Health Coaching Plans
+  app.get(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const plans = await storage.getUserHealthCoachingPlans(userId);
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching coaching plans:", error);
+      res.status(500).json({ error: "Failed to fetch coaching plans" });
+    }
+  });
+
+  app.post(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const now = new Date();
+      const planData = {
+        ...req.body,
+        userId,
+        createdAt: now,
+        updatedAt: now,
+        active: true
+      };
+      const newPlan = await storage.createHealthCoachingPlan(planData);
+      res.status(201).json(newPlan);
+    } catch (error) {
+      console.error("Error creating coaching plan:", error);
+      res.status(500).json({ error: "Failed to create coaching plan" });
+    }
+  });
+
+  app.patch(`${apiRouter}/coaching-plans/:id`, authenticateToken, async (req, res) => {
+    try {
+      const planId = parseInt(req.params.id);
+      const plan = await storage.getHealthCoachingPlanById(planId);
+      
+      if (!plan) {
+        return res.status(404).json({ error: "Coaching plan not found" });
+      }
+      
+      // Check if the plan belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (plan.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const updatedPlan = await storage.updateHealthCoachingPlan(planId, {
+        ...req.body,
+        updatedAt: new Date()
+      });
+      
+      res.json(updatedPlan);
+    } catch (error) {
+      console.error("Error updating coaching plan:", error);
+      res.status(500).json({ error: "Failed to update coaching plan" });
+    }
+  });
+
+  // Wellness Challenges
+  app.get(`${apiRouter}/challenges`, async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const challenges = await storage.getWellnessChallenges(category);
+      res.json(challenges);
+    } catch (error) {
+      console.error("Error fetching wellness challenges:", error);
+      res.status(500).json({ error: "Failed to fetch wellness challenges" });
+    }
+  });
+
+  app.get(`${apiRouter}/challenges/:id`, async (req, res) => {
+    try {
+      const challengeId = parseInt(req.params.id);
+      const challenge = await storage.getWellnessChallengeById(challengeId);
+      
+      if (!challenge) {
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+      
+      res.json(challenge);
+    } catch (error) {
+      console.error("Error fetching challenge:", error);
+      res.status(500).json({ error: "Failed to fetch challenge" });
+    }
+  });
+
+  // User Challenge Progress
+  app.get(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const progresses = await storage.getUserChallengeProgresses(userId);
+      res.json(progresses);
+    } catch (error) {
+      console.error("Error fetching challenge progress:", error);
+      res.status(500).json({ error: "Failed to fetch challenge progress" });
+    }
+  });
+
+  app.post(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const progressData = {
+        ...req.body,
+        userId,
+        joined: new Date(),
+        currentProgress: 0,
+        completed: false,
+        completedAt: null
+      };
+      
+      // Check if the challenge exists
+      const challenge = await storage.getWellnessChallengeById(progressData.challengeId);
+      if (!challenge) {
+        return res.status(404).json({ error: "Challenge not found" });
+      }
+      
+      const newProgress = await storage.createUserChallengeProgress(progressData);
+      res.status(201).json(newProgress);
+    } catch (error) {
+      console.error("Error joining challenge:", error);
+      res.status(500).json({ error: "Failed to join challenge" });
+    }
+  });
+
+  app.patch(`${apiRouter}/challenge-progress/:id`, authenticateToken, async (req, res) => {
+    try {
+      const progressId = parseInt(req.params.id);
+      const progress = await storage.getUserChallengeProgressById(progressId);
+      
+      if (!progress) {
+        return res.status(404).json({ error: "Challenge progress not found" });
+      }
+      
+      // Check if the progress belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (progress.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const updatedProgress = await storage.updateUserChallengeProgress(progressId, req.body);
+      res.json(updatedProgress);
+    } catch (error) {
+      console.error("Error updating challenge progress:", error);
+      res.status(500).json({ error: "Failed to update challenge progress" });
+    }
+  });
+
+  // Mental Health Assessments
+  app.get(`${apiRouter}/mental-health`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const assessments = await storage.getUserMentalHealthAssessments(userId);
+      res.json(assessments);
+    } catch (error) {
+      console.error("Error fetching mental health assessments:", error);
+      res.status(500).json({ error: "Failed to fetch mental health assessments" });
+    }
+  });
+
+  app.post(`${apiRouter}/mental-health`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const assessmentData = {
+        ...req.body,
+        userId,
+        timestamp: new Date()
+      };
+      
+      const newAssessment = await storage.createMentalHealthAssessment(assessmentData);
+      res.status(201).json(newAssessment);
+    } catch (error) {
+      console.error("Error creating mental health assessment:", error);
+      res.status(500).json({ error: "Failed to create mental health assessment" });
+    }
+  });
+
+  // Health Articles Library
+  app.get(`${apiRouter}/health-articles`, async (req, res) => {
+    try {
+      const category = req.query.category as string | undefined;
+      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
+      
+      const articles = await storage.getHealthArticles(category, tags);
+      res.json(articles);
+    } catch (error) {
+      console.error("Error fetching health articles:", error);
+      res.status(500).json({ error: "Failed to fetch health articles" });
+    }
+  });
+
+  app.get(`${apiRouter}/health-articles/:id`, async (req, res) => {
+    try {
+      const articleId = parseInt(req.params.id);
+      const article = await storage.getHealthArticleById(articleId);
+      
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+      
+      res.json(article);
+    } catch (error) {
+      console.error("Error fetching article:", error);
+      res.status(500).json({ error: "Failed to fetch article" });
+    }
+  });
+
+  // Meal Planning
+  app.get(`${apiRouter}/meal-plans`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const mealPlans = await storage.getUserMealPlans(userId);
+      res.json(mealPlans);
+    } catch (error) {
+      console.error("Error fetching meal plans:", error);
+      res.status(500).json({ error: "Failed to fetch meal plans" });
+    }
+  });
+
+  app.post(`${apiRouter}/meal-plans`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const mealPlanData = {
+        ...req.body,
+        userId,
+        createdAt: new Date(),
+        active: true
+      };
+      
+      const newMealPlan = await storage.createMealPlan(mealPlanData);
+      res.status(201).json(newMealPlan);
+    } catch (error) {
+      console.error("Error creating meal plan:", error);
+      res.status(500).json({ error: "Failed to create meal plan" });
+    }
+  });
+
+  app.get(`${apiRouter}/meal-plans/:id/entries`, authenticateToken, async (req, res) => {
+    try {
+      const mealPlanId = parseInt(req.params.id);
+      const mealPlan = await storage.getMealPlanById(mealPlanId);
+      
+      if (!mealPlan) {
+        return res.status(404).json({ error: "Meal plan not found" });
+      }
+      
+      // Check if the meal plan belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (mealPlan.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const entries = await storage.getMealPlanEntries(mealPlanId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching meal plan entries:", error);
+      res.status(500).json({ error: "Failed to fetch meal plan entries" });
+    }
+  });
+
+  app.post(`${apiRouter}/meal-plans/:id/entries`, authenticateToken, async (req, res) => {
+    try {
+      const mealPlanId = parseInt(req.params.id);
+      const mealPlan = await storage.getMealPlanById(mealPlanId);
+      
+      if (!mealPlan) {
+        return res.status(404).json({ error: "Meal plan not found" });
+      }
+      
+      // Check if the meal plan belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (mealPlan.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const entryData = {
+        ...req.body,
+        mealPlanId
+      };
+      
+      const newEntry = await storage.createMealPlanEntry(entryData);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      console.error("Error creating meal plan entry:", error);
+      res.status(500).json({ error: "Failed to create meal plan entry" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
