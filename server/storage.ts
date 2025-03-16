@@ -83,6 +83,7 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.healthStats = new Map();
+    this.medications = new Map();
     this.connections = new Map();
     this.forumPosts = new Map();
     this.newsUpdates = new Map();
@@ -90,6 +91,7 @@ export class MemStorage implements IStorage {
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
+    this.medicationIdCounter = 1;
     this.connectionIdCounter = 1;
     this.forumPostIdCounter = 1;
     this.newsUpdateIdCounter = 1;
@@ -138,6 +140,51 @@ export class MemStorage implements IStorage {
       icon: "ri-capsule-line",
       colorScheme: "accent",
       timestamp: new Date()
+    });
+    
+    // Add sample medications
+    const now = new Date();
+    const tomorrowMorning = new Date(now);
+    tomorrowMorning.setDate(tomorrowMorning.getDate() + 1);
+    tomorrowMorning.setHours(8, 0, 0, 0);
+    
+    const eveningTime = new Date(now);
+    eveningTime.setHours(20, 0, 0, 0);
+    if (eveningTime < now) {
+      eveningTime.setDate(eveningTime.getDate() + 1);
+    }
+    
+    await this.addMedication({
+      userId: 1,
+      name: "Zinc Supplement",
+      dosage: "50mg",
+      schedule: "Every morning",
+      nextDose: tomorrowMorning,
+      lastTaken: new Date(now.getTime() - 24 * 60 * 60 * 1000), // yesterday
+      instructions: "Take with food",
+      active: true
+    });
+    
+    await this.addMedication({
+      userId: 1,
+      name: "Vitamin D3",
+      dosage: "2000 IU",
+      schedule: "Daily",
+      nextDose: tomorrowMorning,
+      lastTaken: new Date(now.getTime() - 24 * 60 * 60 * 1000), // yesterday
+      instructions: "Take with breakfast",
+      active: true
+    });
+    
+    await this.addMedication({
+      userId: 1,
+      name: "Magnesium Glycinate",
+      dosage: "200mg",
+      schedule: "Every evening",
+      nextDose: eveningTime,
+      lastTaken: null,
+      instructions: "Take 1 hour before bedtime",
+      active: true
     });
 
     // Add news updates
@@ -286,6 +333,57 @@ export class MemStorage implements IStorage {
     const newStat: HealthStat = { ...stat, id };
     this.healthStats.set(id, newStat);
     return newStat;
+  }
+  
+  // Medications
+  async getUserMedications(userId: number): Promise<Medication[]> {
+    return Array.from(this.medications.values()).filter(
+      (medication) => medication.userId === userId && medication.active
+    );
+  }
+  
+  async getMedicationById(id: number): Promise<Medication | undefined> {
+    return this.medications.get(id);
+  }
+  
+  async addMedication(medication: InsertMedication): Promise<Medication> {
+    const id = this.medicationIdCounter++;
+    const newMedication: Medication = { ...medication, id };
+    this.medications.set(id, newMedication);
+    return newMedication;
+  }
+  
+  async markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined> {
+    const medication = this.medications.get(medicationId);
+    if (!medication || medication.userId !== userId) return undefined;
+    
+    const now = new Date();
+    // Calculate next dose time based on schedule
+    let nextDose: Date | null = null;
+    
+    if (medication.schedule.includes('daily')) {
+      nextDose = new Date(now);
+      nextDose.setDate(nextDose.getDate() + 1);
+    } else if (medication.schedule.includes('twice daily')) {
+      nextDose = new Date(now);
+      nextDose.setHours(nextDose.getHours() + 12);
+    } else if (medication.schedule.includes('weekly')) {
+      nextDose = new Date(now);
+      nextDose.setDate(nextDose.getDate() + 7);
+    } else {
+      // Default to next day if schedule is not recognized
+      nextDose = new Date(now);
+      nextDose.setDate(nextDose.getDate() + 1);
+    }
+    
+    const updatedMedication: Medication = {
+      ...medication,
+      lastTaken: now,
+      nextDose
+    };
+    
+    this.medications.set(medicationId, updatedMedication);
+    return updatedMedication;
   }
 
   // Connections
