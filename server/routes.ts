@@ -162,11 +162,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationData = {
+        ...req.body,
+        userId,
+        active: true,
+        lastTaken: req.body.lastTaken ? new Date(req.body.lastTaken) : null,
+        nextDose: req.body.nextDose ? new Date(req.body.nextDose) : null
+      };
+      
+      const medication = await storage.addMedication(medicationData);
+      res.status(201).json(medication);
+    } catch (error) {
+      res.status(500).json({ message: 'Error adding medication' });
+    }
+  });
+
+  app.get(`${apiRouter}/medications/:id`, authenticateToken, async (req, res) => {
+    try {
+      const medicationId = parseInt(req.params.id);
+      const medication = await storage.getMedicationById(medicationId);
+      
+      if (!medication) {
+        return res.status(404).json({ message: 'Medication not found' });
+      }
+      
+      // Verify that the medication belongs to the user
+      if (medication.userId !== req.body.user.id) {
+        return res.status(403).json({ message: 'Not authorized to access this medication' });
+      }
+      
+      res.json(medication);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching medication' });
+    }
+  });
+
   app.post(`${apiRouter}/medications/:id/take`, authenticateToken, async (req, res) => {
     try {
       const userId = req.body.user.id;
       const medicationId = parseInt(req.params.id);
       const result = await storage.markMedicationTaken(userId, medicationId);
+      
+      if (!result) {
+        return res.status(404).json({ message: 'Medication not found or not authorized' });
+      }
+      
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: 'Error updating medication status' });
