@@ -1,7 +1,20 @@
+/* Health Portfolio Global Styles */
+
+/* Brand Colors */
+:root {
+  --primary-blue: #4A90E2;
+  --light-blue-bg: #EAF3FF;
+  --light-blue-border: #D9E8FF;
+  --dark-text: #333333;
+  --body-text: #666666;
+  --light-body-text: #777777;
+  --background: #FFFFFF;
+}
+
 /* Legacy CSS styles */
 .legacy-nav {
-    background-color: #333;
-    color: #fff;
+    background-color: var(--dark-text);
+    color: var(--background);
     padding: 10px;
     text-align: center;
 }
@@ -17,7 +30,7 @@
 }
 
 .legacy-nav ul li a {
-    color: #fff;
+    color: var(--background);
     text-decoration: none;
 }
 
@@ -27,19 +40,19 @@
 
 .legacy-button {
     padding: 10px;
-    background-color: #28a745;
+    background-color: var(--primary-blue);
     color: white;
     border: none;
     cursor: pointer;
 }
 
 .legacy-button:hover {
-    background-color: #218838;
+    background-color: #3a80d2;
 }
 
 /* Additional styles for compatibility with the theme */
 .navbar-dark {
-    @apply bg-gray-800 text-white py-3 text-center;
+    @apply bg-dark-text text-white py-3 text-center;
 }
 
 .nav-list {
@@ -58,6 +71,27 @@
     @apply p-5;
 }
 
-.btn-green {
+.btn-blue {
     @apply px-4 py-2 bg-primary text-white border-none cursor-pointer rounded-md hover:bg-primary/90;
+}
+
+/* Health portfolio specific styles */
+.pill-bg {
+    @apply bg-blue-50 text-primary px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.heading-text {
+    @apply text-dark-text font-bold;
+}
+
+.body-text {
+    @apply text-body-text;
+}
+
+.card-light {
+    @apply bg-white border border-light-blue-border rounded-lg shadow-sm;
+}
+
+.feature-icon {
+    @apply text-primary text-xl;
 }
