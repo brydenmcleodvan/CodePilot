@@ -504,7 +504,7 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">Recommendations</h4>
                       <ul className="space-y-1">
-                        {plan.recommendations.map((rec: string, index: number) => (
+                        {plan.recommendations?.map((rec: string, index: number) => (
                           <li key={index} className="text-sm flex items-start gap-2">
                             <span className="rounded-full h-1.5 w-1.5 bg-primary mt-1.5"></span>
                             {rec}
