@@ -85,19 +85,17 @@ const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
       </div>
 
       {detailed && (
-        <div className="mt-8 bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-xl font-medium mb-4">Health Data Trends</h3>
-          <p className="text-gray-600 mb-4">
-            Connect more data sources to see your health trends over time.
-          </p>
-          <div className="bg-gray-100 rounded-lg p-8 flex items-center justify-center">
-            <div className="text-center">
-              <i className="ri-line-chart-line text-primary text-5xl mb-4"></i>
-              <p className="text-gray-700">
-                No trend data available. Connect more health sources to see insights.
-              </p>
-            </div>
-          </div>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {healthStats.map((stat, index) => (
+            <ProgressTracker
+              key={index}
+              title={stat.statType.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+              data={stat.history || []}
+              currentValue={parseFloat(stat.value)}
+              targetValue={stat.target || 100}
+              unit={stat.unit || ""}
+            />
+          ))}
         </div>
       )}
     </div>
