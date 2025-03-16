@@ -2,6 +2,7 @@ import {
   users,
   healthStats,
   medications,
+  medicationHistory,
   connections,
   forumPosts,
   newsUpdates,
@@ -12,6 +13,8 @@ import {
   type InsertHealthStat,
   type Medication,
   type InsertMedication,
+  type MedicationHistory,
+  type InsertMedicationHistory,
   type Connection,
   type InsertConnection,
   type ForumPost,
@@ -41,6 +44,13 @@ export interface IStorage {
   addMedication(medication: InsertMedication): Promise<Medication>;
   getMedicationById(id: number): Promise<Medication | undefined>;
   markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined>;
+  updateMedication(id: number, medicationData: Partial<Medication>): Promise<Medication | undefined>;
+  
+  // Medication History
+  getMedicationHistory(medicationId: number): Promise<MedicationHistory[]>;
+  getUserMedicationHistory(userId: number): Promise<MedicationHistory[]>;
+  addMedicationHistory(entry: InsertMedicationHistory): Promise<MedicationHistory>;
+  getMedicationAdherenceRate(medicationId: number): Promise<number>; // Returns percentage of medication taken on time
 
   // Connections
   getUserConnections(userId: number): Promise<{ connection: User, relationship: string, specific: string }[]>;
@@ -67,6 +77,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private healthStats: Map<number, HealthStat>;
   private medications: Map<number, Medication>;
+  private medicationHistories: Map<number, MedicationHistory>;
   private connections: Map<number, Connection>;
   private forumPosts: Map<number, ForumPost>;
   private newsUpdates: Map<number, NewsUpdate>;
@@ -75,6 +86,7 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private healthStatIdCounter: number;
   private medicationIdCounter: number;
+  private medicationHistoryIdCounter: number;
   private connectionIdCounter: number;
   private forumPostIdCounter: number;
   private newsUpdateIdCounter: number;
@@ -84,6 +96,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.healthStats = new Map();
     this.medications = new Map();
+    this.medicationHistories = new Map();
     this.connections = new Map();
     this.forumPosts = new Map();
     this.newsUpdates = new Map();
@@ -92,6 +105,7 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
     this.medicationIdCounter = 1;
+    this.medicationHistoryIdCounter = 1;
     this.connectionIdCounter = 1;
     this.forumPostIdCounter = 1;
     this.newsUpdateIdCounter = 1;
@@ -353,6 +367,15 @@ export class MemStorage implements IStorage {
     return newMedication;
   }
   
+  async updateMedication(id: number, medicationData: Partial<Medication>): Promise<Medication | undefined> {
+    const medication = this.medications.get(id);
+    if (!medication) return undefined;
+    
+    const updatedMedication = { ...medication, ...medicationData };
+    this.medications.set(id, updatedMedication);
+    return updatedMedication;
+  }
+
   async markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined> {
     const medication = this.medications.get(medicationId);
     if (!medication || medication.userId !== userId) return undefined;
@@ -376,14 +399,73 @@ export class MemStorage implements IStorage {
       nextDose.setDate(nextDose.getDate() + 1);
     }
     
+    // Calculate if it was taken on time
+    const onTime = medication.nextDose ? 
+      Math.abs(now.getTime() - medication.nextDose.getTime()) < 2 * 60 * 60 * 1000 : // Within 2 hours
+      true;
+    
+    // Add to medication history
+    this.addMedicationHistory({
+      medicationId,
+      userId,
+      takenAt: now,
+      scheduled: medication.nextDose || null,
+      skipped: false,
+      note: onTime ? "Taken on time" : "Taken late"
+    });
+    
+    // Update medication total taken counter
+    const totalTaken = (medication.totalTaken || 0) + 1;
+    
     const updatedMedication: Medication = {
       ...medication,
       lastTaken: now,
-      nextDose
+      nextDose,
+      totalTaken
     };
     
     this.medications.set(medicationId, updatedMedication);
     return updatedMedication;
+  }
+  
+  // Medication History Methods
+  async getMedicationHistory(medicationId: number): Promise<MedicationHistory[]> {
+    return Array.from(this.medicationHistories.values())
+      .filter(history => history.medicationId === medicationId)
+      .sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
+  }
+  
+  async getUserMedicationHistory(userId: number): Promise<MedicationHistory[]> {
+    return Array.from(this.medicationHistories.values())
+      .filter(history => history.userId === userId)
+      .sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
+  }
+  
+  async addMedicationHistory(entry: InsertMedicationHistory): Promise<MedicationHistory> {
+    const id = this.medicationHistoryIdCounter++;
+    const newEntry: MedicationHistory = { ...entry, id };
+    this.medicationHistories.set(id, newEntry);
+    return newEntry;
+  }
+  
+  async getMedicationAdherenceRate(medicationId: number): Promise<number> {
+    const history = await this.getMedicationHistory(medicationId);
+    if (history.length === 0) return 0;
+    
+    // Count entries that were taken on time (not skipped and taken within 2 hours of scheduled time)
+    const takenOnTime = history.filter(entry => {
+      if (entry.skipped) return false;
+      if (!entry.scheduled) return true; // If no scheduled time, count as on time
+      
+      const scheduledTime = new Date(entry.scheduled).getTime();
+      const takenTime = new Date(entry.takenAt).getTime();
+      const timeDiff = Math.abs(takenTime - scheduledTime);
+      
+      // Consider "on time" if within 2 hours of scheduled time
+      return timeDiff < 2 * 60 * 60 * 1000;
+    });
+    
+    return (takenOnTime.length / history.length) * 100;
   }
 
   // Connections
