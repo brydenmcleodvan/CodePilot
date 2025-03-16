@@ -1,6 +1,7 @@
 import {
   users,
   healthStats,
+  medications,
   connections,
   forumPosts,
   newsUpdates,
@@ -9,6 +10,8 @@ import {
   type InsertUser,
   type HealthStat,
   type InsertHealthStat,
+  type Medication,
+  type InsertMedication,
   type Connection,
   type InsertConnection,
   type ForumPost,
@@ -32,6 +35,12 @@ export interface IStorage {
   // Health Stats
   getUserHealthStats(userId: number): Promise<HealthStat[]>;
   addHealthStat(stat: InsertHealthStat): Promise<HealthStat>;
+  
+  // Medications
+  getUserMedications(userId: number): Promise<Medication[]>;
+  addMedication(medication: InsertMedication): Promise<Medication>;
+  getMedicationById(id: number): Promise<Medication | undefined>;
+  markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined>;
 
   // Connections
   getUserConnections(userId: number): Promise<{ connection: User, relationship: string, specific: string }[]>;
@@ -57,6 +66,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private healthStats: Map<number, HealthStat>;
+  private medications: Map<number, Medication>;
   private connections: Map<number, Connection>;
   private forumPosts: Map<number, ForumPost>;
   private newsUpdates: Map<number, NewsUpdate>;
@@ -64,6 +74,7 @@ export class MemStorage implements IStorage {
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
+  private medicationIdCounter: number;
   private connectionIdCounter: number;
   private forumPostIdCounter: number;
   private newsUpdateIdCounter: number;

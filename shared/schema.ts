@@ -25,6 +25,19 @@ export const healthStats = pgTable("health_stats", {
   timestamp: timestamp("timestamp").notNull(),
 });
 
+// Medications
+export const medications = pgTable("medications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  name: text("name").notNull(),
+  dosage: text("dosage").notNull(),
+  schedule: text("schedule").notNull(), // e.g. "Every morning", "Twice daily"
+  nextDose: timestamp("next_dose"), // Next scheduled dose
+  lastTaken: timestamp("last_taken"), // Last time medication was taken
+  instructions: text("instructions"),
+  active: boolean("active").notNull().default(true),
+});
+
 // Connections (Family & Friends)
 export const connections = pgTable("connections", {
   id: serial("id").primaryKey(),
@@ -72,6 +85,7 @@ export const products = pgTable("products", {
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
+export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertConnectionSchema = createInsertSchema(connections).omit({ id: true });
 export const insertForumPostSchema = createInsertSchema(forumPosts).omit({ id: true });
 export const insertNewsUpdateSchema = createInsertSchema(newsUpdates).omit({ id: true });
@@ -89,6 +103,9 @@ export type User = typeof users.$inferSelect;
 
 export type InsertHealthStat = z.infer<typeof insertHealthStatSchema>;
 export type HealthStat = typeof healthStats.$inferSelect;
+
+export type InsertMedication = z.infer<typeof insertMedicationSchema>;
+export type Medication = typeof medications.$inferSelect;
 
 export type InsertConnection = z.infer<typeof insertConnectionSchema>;
 export type Connection = typeof connections.$inferSelect;
