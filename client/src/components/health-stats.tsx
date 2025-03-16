@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressTracker } from "@/components/progress-tracker";
+import ConnectHealthDataButton from "./connect-health-data";
 
 interface HealthStat {
   userId: number;
@@ -50,9 +51,9 @@ const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
         </CardHeader>
         <CardContent>
           <p className="text-gray-600">Connect your health data to see your stats here.</p>
-          <button className="mt-4 bg-primary text-white py-2 px-4 rounded-md hover:bg-secondary transition-colors duration-200">
-            Connect Health Data
-          </button>
+          <div className="mt-4">
+            <ConnectHealthDataButton />
+          </div>
         </CardContent>
       </Card>
     );
@@ -99,10 +100,10 @@ const HealthStats = ({ userId, detailed = false }: HealthStatsProps) => {
 
       {detailed && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {healthStats.map((stat, index) => (
+          {healthStats.map((stat: HealthStat, index: number) => (
             <ProgressTracker
               key={index}
-              title={stat.statType.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+              title={stat.statType.replace(/_/g, " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
               data={stat.history || []}
               currentValue={parseFloat(stat.value)}
               targetValue={stat.target || 100}

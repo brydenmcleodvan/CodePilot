@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { 
   Dialog,
   DialogContent,
@@ -8,78 +8,129 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+
+type HealthProvider = {
+  id: string;
+  name: string;
+  logo: string;
+  description: string;
+};
+
+const providers: HealthProvider[] = [
+  {
+    id: 'apple',
+    name: 'Apple Health',
+    logo: 'ri-apple-fill',
+    description: 'Connect with Apple Health to sync your health and fitness data'
+  },
+  {
+    id: 'google',
+    name: 'Google Fit',
+    logo: 'ri-google-fill',
+    description: 'Sync your activity, heart data, and sleep information from Google Fit'
+  },
+  {
+    id: 'fitbit',
+    name: 'Fitbit',
+    logo: 'ri-fitness-fill',
+    description: 'Import your steps, exercise, sleep, and heart rate data from Fitbit'
+  },
+  {
+    id: 'garmin',
+    name: 'Garmin Connect',
+    logo: 'ri-run-line',
+    description: 'Sync your running, cycling, and other fitness data from Garmin devices'
+  }
+];
 
 export default function ConnectHealthDataButton() {
-  const [showDialog, setShowDialog] = useState(false);
-  
-  const connectHealthData = () => {
-    // First open the dialog to show connection options
-    setShowDialog(true);
+  const [open, setOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<HealthProvider | null>(null);
+
+  const handleConnect = (provider: HealthProvider) => {
+    setSelectedProvider(provider);
+    // This function would be implemented to handle the actual connection with the provider
+    connectHealthData(provider.id);
   };
-  
-  const handleConnect = (provider: string) => {
-    // This would connect to the selected health data provider
-    console.log(`Connecting to ${provider}...`);
-    // In a real implementation, this would initiate OAuth or similar
+
+  function connectHealthData(providerId: string) {
+    // This would be replaced with actual implementation to connect to the health provider's API
+    alert(`Connecting your health data for personal management from ${providerId}...`);
     
-    // Mock successful connection
+    // In a real implementation, this would redirect to the OAuth flow or API connection
     setTimeout(() => {
-      setShowDialog(false);
-      // Show success message
-      alert(`Connected to ${provider} successfully! Your health data will be synced for personalized recommendations.`);
+      alert('Connection successful! Your health data will begin syncing shortly.');
+      setOpen(false);
     }, 1500);
-  };
-  
+  }
+
   return (
     <>
       <Button 
-        onClick={connectHealthData}
-        className="bg-primary hover:bg-secondary text-white"
+        onClick={() => setOpen(true)}
+        className="bg-primary hover:bg-primary/90 text-white"
       >
+        <i className="ri-heart-pulse-line mr-2"></i>
         Connect Health Data
       </Button>
-      
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Connect Your Health Data</DialogTitle>
+            <DialogTitle className="text-2xl font-semibold">Connect Your Health Data</DialogTitle>
             <DialogDescription>
-              Choose a provider to connect your health data for personalized recommendations.
+              Link your health devices and apps to get personalized insights. Your data is secure and private.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center justify-between p-3 border rounded-md hover:border-primary cursor-pointer" 
-                 onClick={() => handleConnect("Apple Health")}>
-              <div className="flex items-center gap-2">
-                <i className="ri-apple-fill text-2xl"></i>
-                <span>Apple Health</span>
-              </div>
-              <i className="ri-arrow-right-line"></i>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 border rounded-md hover:border-primary cursor-pointer"
-                 onClick={() => handleConnect("Google Fit")}>
-              <div className="flex items-center gap-2">
-                <i className="ri-google-fill text-2xl"></i>
-                <span>Google Fit</span>
-              </div>
-              <i className="ri-arrow-right-line"></i>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 border rounded-md hover:border-primary cursor-pointer"
-                 onClick={() => handleConnect("Fitbit")}>
-              <div className="flex items-center gap-2">
-                <i className="ri-heart-pulse-line text-2xl"></i>
-                <span>Fitbit</span>
-              </div>
-              <i className="ri-arrow-right-line"></i>
-            </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+            {providers.map((provider) => (
+              <Card 
+                key={provider.id} 
+                className="cursor-pointer hover:border-primary transition-colors duration-200"
+                onClick={() => handleConnect(provider)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{provider.name}</CardTitle>
+                    <i className={`${provider.logo} text-2xl text-primary`}></i>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>{provider.description}</CardDescription>
+                </CardContent>
+                <CardFooter className="pt-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConnect(provider);
+                    }}
+                  >
+                    Connect
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
+            </Button>
+            <Button variant="ghost" className="flex items-center gap-1">
+              <i className="ri-question-line"></i>
+              Learn more about data privacy
             </Button>
           </DialogFooter>
         </DialogContent>
