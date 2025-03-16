@@ -11,6 +11,35 @@
   --background: #FFFFFF;
 }
 
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: var(--dark-text);
+}
+
+h1 {
+  font-weight: 800;
+}
+
+body, p, span, div, button, input, select, textarea {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 400;
+  color: var(--body-text);
+}
+
+strong, b, .strong-text {
+  font-weight: 600;
+}
+
+.heading-font {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.body-font {
+  font-family: 'Open Sans', sans-serif;
+}
+
 /* Legacy CSS styles */
 .legacy-nav {
     background-color: var(--dark-text);
