@@ -70,16 +70,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
+      console.log("Attempting login with username:", username);
       const response = await apiRequest("POST", "/api/auth/login", {
         username,
         password,
       });
 
       const data = await response.json();
+      console.log("Login successful:", data);
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
+      console.error("Login error:", err);
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
       throw new Error(errorMessage);
