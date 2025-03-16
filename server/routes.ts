@@ -132,6 +132,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error fetching health stats' });
     }
   });
+
+  // AI Health Assistant route
+  app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
+    try {
+      const { query } = req.body;
+      // For now, return mock responses
+      const responses = {
+        'sleep': 'Based on your sleep data, you\'re averaging 7.2 hours per night. Try to maintain a consistent sleep schedule for better quality rest.',
+        'stress': 'Your stress levels appear elevated. Consider trying meditation or deep breathing exercises.',
+        'nutrition': 'Your nutrient levels are generally good, but you might benefit from increasing zinc intake.',
+      };
+      const response = responses[query.toLowerCase().split(' ')[0]] || 
+        'I understand you\'re asking about your health. Could you please be more specific?';
+      res.json({ response });
+    } catch (error) {
+      res.status(500).json({ message: 'Error processing health assistant query' });
+    }
+  });
+
+  // Medication tracking routes
+  app.get(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medications = await storage.getUserMedications(userId);
+      res.json(medications);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching medications' });
+    }
+  });
+
+  app.post(`${apiRouter}/medications/:id/take`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const medicationId = parseInt(req.params.id);
+      const result = await storage.markMedicationTaken(userId, medicationId);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating medication status' });
+    }
+  });
   
   // Connections routes
   app.get(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
