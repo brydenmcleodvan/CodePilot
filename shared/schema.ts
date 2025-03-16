@@ -148,6 +148,111 @@ export const healthDataConnections = pgTable("health_data_connections", {
   expiresAt: timestamp("expires_at"),
 });
 
+// Health Journey Tracking
+export const healthJourneyEntries = pgTable("health_journey_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  category: text("category").notNull(), // e.g. "weight", "exercise", "nutrition"
+  title: text("title").notNull(),
+  description: text("description"),
+  metrics: text("metrics"), // JSON string with tracked metrics
+  mediaUrl: text("media_url"),
+  sentiment: text("sentiment"), // e.g. "positive", "neutral", "negative"
+});
+
+// Virtual Health Coaching
+export const healthCoachingPlans = pgTable("health_coaching_plans", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  goals: text("goals").array(),
+  recommendations: text("recommendations").array(),
+  progress: integer("progress").notNull().default(0), // 0-100 completion percentage
+  active: boolean("active").notNull().default(true)
+});
+
+// Wellness Challenges & Gamification
+export const wellnessChallenges = pgTable("wellness_challenges", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // e.g. "fitness", "nutrition", "mental-health"
+  pointsReward: integer("points_reward").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  requirementType: text("requirement_type").notNull(), // e.g. "steps", "meditation", "nutrition"
+  requirementTarget: integer("requirement_target").notNull(),
+  image: text("image")
+});
+
+export const userChallengeProgress = pgTable("user_challenge_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  challengeId: integer("challenge_id").notNull(),
+  joined: timestamp("joined").notNull(),
+  currentProgress: integer("current_progress").notNull().default(0),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at")
+});
+
+// Mental Health Integration
+export const mentalHealthAssessments = pgTable("mental_health_assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  assessmentType: text("assessment_type").notNull(), // e.g. "mood", "stress", "anxiety", "sleep"
+  score: integer("score"),
+  notes: text("notes"),
+  recommendations: text("recommendations").array()
+});
+
+// Health Library
+export const healthArticles = pgTable("health_articles", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary").notNull(),
+  authorName: text("author_name"),
+  publishedAt: timestamp("published_at").notNull(),
+  category: text("category").notNull(),
+  tags: text("tags").array(),
+  imageUrl: text("image_url"),
+  sourceName: text("source_name"),
+  sourceUrl: text("source_url"),
+  readTime: integer("read_time") // in minutes
+});
+
+// Meal Planning
+export const mealPlans = pgTable("meal_plans", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  dietaryPreferences: text("dietary_preferences").array(),
+  healthGoals: text("health_goals").array(),
+  allergies: text("allergies").array(),
+  active: boolean("active").notNull().default(true)
+});
+
+export const mealPlanEntries = pgTable("meal_plan_entries", {
+  id: serial("id").primaryKey(),
+  mealPlanId: integer("meal_plan_id").notNull(),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 for Sunday-Saturday
+  mealType: text("meal_type").notNull(), // e.g. "breakfast", "lunch", "dinner", "snack"
+  name: text("name").notNull(),
+  recipe: text("recipe"),
+  ingredients: text("ingredients").array(),
+  nutritionalInfo: text("nutritional_info"), // JSON string
+  preparationTime: integer("preparation_time"), // in minutes
+  imageUrl: text("image_url")
+});
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
@@ -161,6 +266,14 @@ export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true 
 export const insertSymptomCheckSchema = createInsertSchema(symptomChecks).omit({ id: true });
 export const insertAppointmentSchema = createInsertSchema(appointments).omit({ id: true });
 export const insertHealthDataConnectionSchema = createInsertSchema(healthDataConnections).omit({ id: true });
+export const insertHealthJourneyEntrySchema = createInsertSchema(healthJourneyEntries).omit({ id: true });
+export const insertHealthCoachingPlanSchema = createInsertSchema(healthCoachingPlans).omit({ id: true });
+export const insertWellnessChallengeSchema = createInsertSchema(wellnessChallenges).omit({ id: true });
+export const insertUserChallengeProgressSchema = createInsertSchema(userChallengeProgress).omit({ id: true });
+export const insertMentalHealthAssessmentSchema = createInsertSchema(mentalHealthAssessments).omit({ id: true });
+export const insertHealthArticleSchema = createInsertSchema(healthArticles).omit({ id: true });
+export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({ id: true });
+export const insertMealPlanEntrySchema = createInsertSchema(mealPlanEntries).omit({ id: true });
 
 // Auth Schemas
 export const loginSchema = z.object({
@@ -204,5 +317,29 @@ export type Appointment = typeof appointments.$inferSelect;
 
 export type InsertHealthDataConnection = z.infer<typeof insertHealthDataConnectionSchema>;
 export type HealthDataConnection = typeof healthDataConnections.$inferSelect;
+
+export type InsertHealthJourneyEntry = z.infer<typeof insertHealthJourneyEntrySchema>;
+export type HealthJourneyEntry = typeof healthJourneyEntries.$inferSelect;
+
+export type InsertHealthCoachingPlan = z.infer<typeof insertHealthCoachingPlanSchema>;
+export type HealthCoachingPlan = typeof healthCoachingPlans.$inferSelect;
+
+export type InsertWellnessChallenge = z.infer<typeof insertWellnessChallengeSchema>;
+export type WellnessChallenge = typeof wellnessChallenges.$inferSelect;
+
+export type InsertUserChallengeProgress = z.infer<typeof insertUserChallengeProgressSchema>;
+export type UserChallengeProgress = typeof userChallengeProgress.$inferSelect;
+
+export type InsertMentalHealthAssessment = z.infer<typeof insertMentalHealthAssessmentSchema>;
+export type MentalHealthAssessment = typeof mentalHealthAssessments.$inferSelect;
+
+export type InsertHealthArticle = z.infer<typeof insertHealthArticleSchema>;
+export type HealthArticle = typeof healthArticles.$inferSelect;
+
+export type InsertMealPlan = z.infer<typeof insertMealPlanSchema>;
+export type MealPlan = typeof mealPlans.$inferSelect;
+
+export type InsertMealPlanEntry = z.infer<typeof insertMealPlanEntrySchema>;
+export type MealPlanEntry = typeof mealPlanEntries.$inferSelect;
 
 export type Login = z.infer<typeof loginSchema>;

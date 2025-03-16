@@ -105,6 +105,51 @@ export interface IStorage {
   getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined>;
   createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection>;
   updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined>;
+  
+  // Health Journey Tracking
+  getUserHealthJourneyEntries(userId: number): Promise<HealthJourneyEntry[]>;
+  getHealthJourneyEntryById(id: number): Promise<HealthJourneyEntry | undefined>;
+  createHealthJourneyEntry(entry: InsertHealthJourneyEntry): Promise<HealthJourneyEntry>;
+  updateHealthJourneyEntry(id: number, entryData: Partial<HealthJourneyEntry>): Promise<HealthJourneyEntry | undefined>;
+  
+  // Health Coaching
+  getUserHealthCoachingPlans(userId: number): Promise<HealthCoachingPlan[]>;
+  getHealthCoachingPlanById(id: number): Promise<HealthCoachingPlan | undefined>;
+  createHealthCoachingPlan(plan: InsertHealthCoachingPlan): Promise<HealthCoachingPlan>;
+  updateHealthCoachingPlan(id: number, planData: Partial<HealthCoachingPlan>): Promise<HealthCoachingPlan | undefined>;
+  
+  // Wellness Challenges & Gamification
+  getWellnessChallenges(category?: string): Promise<WellnessChallenge[]>;
+  getWellnessChallengeById(id: number): Promise<WellnessChallenge | undefined>;
+  createWellnessChallenge(challenge: InsertWellnessChallenge): Promise<WellnessChallenge>;
+  
+  // User Challenge Progress
+  getUserChallengeProgresses(userId: number): Promise<(UserChallengeProgress & { challenge: WellnessChallenge })[]>;
+  getUserChallengeProgressById(id: number): Promise<UserChallengeProgress | undefined>;
+  createUserChallengeProgress(progress: InsertUserChallengeProgress): Promise<UserChallengeProgress>;
+  updateUserChallengeProgress(id: number, progressData: Partial<UserChallengeProgress>): Promise<UserChallengeProgress | undefined>;
+  
+  // Mental Health Integration
+  getUserMentalHealthAssessments(userId: number): Promise<MentalHealthAssessment[]>;
+  getMentalHealthAssessmentById(id: number): Promise<MentalHealthAssessment | undefined>;
+  createMentalHealthAssessment(assessment: InsertMentalHealthAssessment): Promise<MentalHealthAssessment>;
+  
+  // Health Library
+  getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]>;
+  getHealthArticleById(id: number): Promise<HealthArticle | undefined>;
+  createHealthArticle(article: InsertHealthArticle): Promise<HealthArticle>;
+  
+  // Meal Planning
+  getUserMealPlans(userId: number): Promise<MealPlan[]>;
+  getMealPlanById(id: number): Promise<MealPlan | undefined>;
+  createMealPlan(plan: InsertMealPlan): Promise<MealPlan>;
+  updateMealPlan(id: number, planData: Partial<MealPlan>): Promise<MealPlan | undefined>;
+  
+  // Meal Plan Entries
+  getMealPlanEntries(mealPlanId: number): Promise<MealPlanEntry[]>;
+  getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
+  createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
+  updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -120,6 +165,14 @@ export class MemStorage implements IStorage {
   private symptomChecks: Map<number, SymptomCheck>;
   private appointments: Map<number, Appointment>;
   private healthDataConnections: Map<number, HealthDataConnection>;
+  private healthJourneyEntries: Map<number, HealthJourneyEntry>;
+  private healthCoachingPlans: Map<number, HealthCoachingPlan>;
+  private wellnessChallenges: Map<number, WellnessChallenge>;
+  private userChallengeProgresses: Map<number, UserChallengeProgress>;
+  private mentalHealthAssessments: Map<number, MentalHealthAssessment>;
+  private healthArticles: Map<number, HealthArticle>;
+  private mealPlans: Map<number, MealPlan>;
+  private mealPlanEntries: Map<number, MealPlanEntry>;
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
@@ -133,6 +186,14 @@ export class MemStorage implements IStorage {
   private symptomCheckIdCounter: number;
   private appointmentIdCounter: number;
   private healthDataConnectionIdCounter: number;
+  private healthJourneyEntryIdCounter: number;
+  private healthCoachingPlanIdCounter: number;
+  private wellnessChallengeIdCounter: number;
+  private userChallengeProgressIdCounter: number;
+  private mentalHealthAssessmentIdCounter: number;
+  private healthArticleIdCounter: number;
+  private mealPlanIdCounter: number;
+  private mealPlanEntryIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -147,6 +208,14 @@ export class MemStorage implements IStorage {
     this.symptomChecks = new Map();
     this.appointments = new Map();
     this.healthDataConnections = new Map();
+    this.healthJourneyEntries = new Map();
+    this.healthCoachingPlans = new Map();
+    this.wellnessChallenges = new Map();
+    this.userChallengeProgresses = new Map();
+    this.mentalHealthAssessments = new Map();
+    this.healthArticles = new Map();
+    this.mealPlans = new Map();
+    this.mealPlanEntries = new Map();
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
@@ -160,6 +229,14 @@ export class MemStorage implements IStorage {
     this.symptomCheckIdCounter = 1;
     this.appointmentIdCounter = 1;
     this.healthDataConnectionIdCounter = 1;
+    this.healthJourneyEntryIdCounter = 1;
+    this.healthCoachingPlanIdCounter = 1;
+    this.wellnessChallengeIdCounter = 1;
+    this.userChallengeProgressIdCounter = 1;
+    this.mentalHealthAssessmentIdCounter = 1;
+    this.healthArticleIdCounter = 1;
+    this.mealPlanIdCounter = 1;
+    this.mealPlanEntryIdCounter = 1;
 
     // Add some initial data
     this.initializeData();
