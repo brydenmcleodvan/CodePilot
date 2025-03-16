@@ -93,7 +93,7 @@ export default function MoodTracker() {
 
   // Fetch mood entries
   const { data: moodEntries = [], refetch } = useQuery<MoodEntry[]>({
-    queryKey: ["/api/mood-entries"],
+    queryKey: ["/api/mood/entries"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user && activeView !== "add",
   });
@@ -124,12 +124,7 @@ export default function MoodTracker() {
         factors: newFactors,
       };
 
-      await apiRequest({
-        url: "/api/mood-entries",
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newEntry),
-      });
+      await apiRequest("POST", "/api/mood/entries", newEntry);
 
       toast({
         title: "Mood recorded",

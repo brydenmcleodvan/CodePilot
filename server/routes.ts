@@ -1040,6 +1040,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mood Tracking routes
+  app.get(`${apiRouter}/mood/entries`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entries = await storage.getUserMoodEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching mood entries:", error);
+      res.status(500).json({ message: "Failed to fetch mood entries" });
+    }
+  });
+
+  app.get(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getMoodEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Mood entry not found" });
+      }
+      
+      // Check if the entry belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(entry);
+    } catch (error) {
+      console.error("Error fetching mood entry:", error);
+      res.status(500).json({ message: "Failed to fetch mood entry" });
+    }
+  });
+
+  app.post(`${apiRouter}/mood/entries`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Ensure date is properly parsed as Date object
+      const entryData = {
+        ...req.body,
+        userId,
+        date: req.body.date ? new Date(req.body.date) : new Date()
+      };
+      
+      const newEntry = await storage.createMoodEntry(entryData);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      console.error("Error creating mood entry:", error);
+      res.status(500).json({ message: "Failed to create mood entry" });
+    }
+  });
+
+  app.patch(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getMoodEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Mood entry not found" });
+      }
+      
+      // Check if the entry belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Ensure date is properly handled if it's being updated
+      const updateData = { ...req.body };
+      if (updateData.date) {
+        updateData.date = new Date(updateData.date);
+      }
+      
+      // Don't allow changing userId
+      delete updateData.userId;
+      
+      const updatedEntry = await storage.updateMoodEntry(entryId, updateData);
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error("Error updating mood entry:", error);
+      res.status(500).json({ message: "Failed to update mood entry" });
+    }
+  });
+
+  app.delete(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const entryId = parseInt(req.params.id);
+      const entry = await storage.getMoodEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Mood entry not found" });
+      }
+      
+      // Check if the entry belongs to the authenticated user
+      const userId = req.body.user.id;
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const success = await storage.deleteMoodEntry(entryId);
+      if (success) {
+        res.json({ message: "Mood entry deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete mood entry" });
+      }
+    } catch (error) {
+      console.error("Error deleting mood entry:", error);
+      res.status(500).json({ message: "Failed to delete mood entry" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
