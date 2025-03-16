@@ -71,8 +71,9 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateInput: Date | string | null) => {
+    if (!dateInput) return "N/A";
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -341,10 +342,10 @@ export default function Dashboard() {
                     <div className="bg-muted rounded-md p-3">
                       <h4 className="text-sm font-medium mb-2">Metrics</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {Object.entries(JSON.parse(entry.metrics)).map(([key, value]) => (
+                        {Object.entries(JSON.parse(entry.metrics || '{}')).map(([key, value]) => (
                           <div key={key} className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground capitalize">{key.replace('_', ' ')}:</span>
-                            <span className="text-xs font-medium">{value}</span>
+                            <span className="text-xs font-medium">{String(value)}</span>
                           </div>
                         ))}
                       </div>
@@ -491,7 +492,7 @@ export default function Dashboard() {
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">Goals</h4>
                       <ul className="space-y-1">
-                        {plan.goals.map((goal: string, index: number) => (
+                        {plan.goals?.map((goal: string, index: number) => (
                           <li key={index} className="text-sm flex items-start gap-2">
                             <span className="rounded-full h-1.5 w-1.5 bg-primary mt-1.5"></span>
                             {goal}
@@ -694,7 +695,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {healthArticles.map((article: any) => (
+                {healthArticles.map((article: HealthArticle) => (
                   <Card key={article.id} className="overflow-hidden">
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden">
