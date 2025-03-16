@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import Profile from "@/pages/profile";
 import Forum from "@/pages/forum";
 import Auth from "@/pages/auth";
+import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -26,6 +27,7 @@ function Router() {
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/forum" component={Forum} />
           <Route path="/forum/:subreddit" component={Forum} />

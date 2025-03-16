@@ -45,6 +45,14 @@ const Navbar = () => {
               Home
             </Link>
             <Link
+              href="/dashboard"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/dashboard" ? "text-primary" : ""
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
               href="/profile"
               className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
                 location === "/profile" ? "text-primary" : ""
@@ -128,6 +136,14 @@ const Navbar = () => {
                 }`}
               >
                 Home
+              </Link>
+              <Link
+                href="/dashboard"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/dashboard" ? "text-primary" : ""
+                }`}
+              >
+                Dashboard
               </Link>
               <Link
                 href="/profile"
