@@ -8,7 +8,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <i className="ri-heart-pulse-line text-primary text-2xl"></i>
-              <span className="text-xl font-heading font-bold">Healthfolio</span>
+              <span className="text-xl font-heading font-bold">Healthmap</span>
             </div>
             <p className="text-gray-400 mb-4">
               Streamlining genetics, genealogy, and health data into a unified
@@ -106,7 +106,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400">
-            &copy; {new Date().getFullYear()} Healthfolio. All rights reserved.
+            &copy; {new Date().getFullYear()} Healthmap. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <a

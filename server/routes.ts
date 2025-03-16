@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
 import { ZodError } from "zod";
 
-const JWT_SECRET = process.env.JWT_SECRET || "healthfolio-secret-key";
+const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
 
 // Middleware to verify JWT token
 const authenticateToken = (req: Request, res: Response, next: Function) => {
