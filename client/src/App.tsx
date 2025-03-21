@@ -11,22 +11,26 @@ import Forum from "@/pages/forum";
 import Auth from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 function Router() {
   const [location] = useLocation();
   
-  // Check if we're on the auth page to hide navbar and footer
+  // Check if we're on the auth page or landing page to hide navbar and footer
   const isAuthPage = location.startsWith("/auth");
+  const isLandingPage = location === "/landing";
+  const hideNavAndFooter = isAuthPage || isLandingPage;
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isAuthPage && <Navbar />}
+      {!hideNavAndFooter && <Navbar />}
       
       <main className="flex-grow">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/landing" component={LandingPage} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={Profile} />
           <Route path="/forum" component={Forum} />
@@ -36,7 +40,7 @@ function Router() {
         </Switch>
       </main>
       
-      {!isAuthPage && <Footer />}
+      {!hideNavAndFooter && <Footer />}
     </div>
   );
 }
