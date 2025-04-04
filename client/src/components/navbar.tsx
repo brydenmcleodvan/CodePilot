@@ -46,20 +46,20 @@ const Navbar = () => {
               Home
             </Link>
             <Link
-              href="/dashboard"
-              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location === "/dashboard" ? "text-primary font-semibold" : ""
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
               href="/profile"
               className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
                 location === "/profile" ? "text-primary font-semibold" : ""
               }`}
             >
               Profile
+            </Link>
+            <Link
+              href="/dashboard"
+              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                location === "/dashboard" ? "text-primary font-semibold" : ""
+              }`}
+            >
+              Dashboard
             </Link>
             <Link
               href="/family"
@@ -180,14 +180,6 @@ const Navbar = () => {
                 Home
               </Link>
               <Link
-                href="/dashboard"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
                 href="/profile"
                 className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
@@ -196,13 +188,14 @@ const Navbar = () => {
                 Profile
               </Link>
               <Link
-                href="/forum"
+                href="/dashboard"
                 className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
+                  location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
-                Forum
+                Dashboard
               </Link>
+
               <Link
                 href="/health-coach"
                 className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
@@ -226,6 +219,14 @@ const Navbar = () => {
                 }`}
               >
                 Family Health
+              </Link>
+              <Link
+                href="/forum"
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                Forum
               </Link>
 
             </nav>
