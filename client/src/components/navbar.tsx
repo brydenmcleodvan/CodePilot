@@ -68,6 +68,14 @@ const Navbar = () => {
             >
               Forum
             </Link>
+            <Link
+              href="/python-integration"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/python-integration" ? "text-primary" : ""
+              }`}
+            >
+              Neural Profile
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -160,6 +168,14 @@ const Navbar = () => {
                 }`}
               >
                 Forum
+              </Link>
+              <Link
+                href="/python-integration"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/python-integration" ? "text-primary" : ""
+                }`}
+              >
+                Neural Profile
               </Link>
             </nav>
           </div>

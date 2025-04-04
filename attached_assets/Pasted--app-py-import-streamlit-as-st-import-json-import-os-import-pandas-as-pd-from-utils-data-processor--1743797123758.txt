@@ -1,0 +1,62 @@
+# app.py
+import streamlit as st
+import json
+import os
+import pandas as pd
+from utils.data_processor import load_patient_data, analyze_seizure_frequency
+from utils.visualization import create_timeline
+from components.patient_profile import display_patient_profile
+from components.medical_history import display_medical_history
+from components.treatment_plan import display_treatment_plan
+from components.diagnostics import display_diagnostic_tests
+
+st.set_page_config(
+    page_title="Medical Record Dashboard",
+    page_icon="🏥",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+st.title("Medical Record Dashboard")
+st.markdown("---")
+
+def get_data_path():
+    return "data/sample_patient.json"
+
+@st.cache_data
+def load_data():
+    data_path = get_data_path()
+    with open(data_path, 'r') as f:
+        return json.load(f)
+
+patient_data = load_data()
+processed_data = load_patient_data(patient_data)
+
+st.sidebar.title("Navigation")
+selected_view = st.sidebar.radio(
+    "Select View",
+    ["Patient Profile", "Medical History", "Treatment Plan", "Diagnostic Tests", "Analysis Dashboard"]
+)
+
+if selected_view == "Patient Profile":
+    display_patient_profile(processed_data)
+elif selected_view == "Medical History":
+    display_medical_history(processed_data)
+elif selected_view == "Treatment Plan":
+    display_treatment_plan(processed_data)
+elif selected_view == "Diagnostic Tests":
+    display_diagnostic_tests(processed_data)
+elif selected_view == "Analysis Dashboard":
+    st.header("Analysis Dashboard")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Neurological Summary")
+        timeline_chart = create_timeline(processed_data)
+        st.plotly_chart(timeline_chart, use_container_width=True)
+    with col2:
+        st.subheader("Symptom Impact Analysis")
+        if 'seizure_history' in processed_data.get('medical_history', {}).get('neurological_history', {}):
+            seizure_analysis = analyze_seizure_frequency(processed_data)
+            st.write(seizure_analysis)
+        else:
+            st.info("No seizure history data available for analysis.")

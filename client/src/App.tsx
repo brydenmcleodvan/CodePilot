@@ -12,6 +12,7 @@ import Auth from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
+import PythonIntegrationPage from "@/pages/python-integration";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/forum" component={Forum} />
           <Route path="/forum/:subreddit" component={Forum} />
           <Route path="/auth/:type" component={Auth} />
+          <Route path="/python-integration" component={PythonIntegrationPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
