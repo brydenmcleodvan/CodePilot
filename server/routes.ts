@@ -422,6 +422,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Neural Profile routes
+  app.get(`${apiRouter}/neural-profile`, async (req, res) => {
+    try {
+      // Read the neural profile data from the JSON file
+      const fs = require('fs');
+      const path = require('path');
+      
+      const filePath = path.join(process.cwd(), 'data', 'neural_profile.json');
+      
+      if (fs.existsSync(filePath)) {
+        const rawData = fs.readFileSync(filePath, 'utf8');
+        const profileData = JSON.parse(rawData);
+        res.json(profileData);
+      } else {
+        res.status(404).json({ message: 'Neural profile data not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching neural profile:', error);
+      res.status(500).json({ message: 'Server error fetching neural profile data' });
+    }
+  });
+  
   app.get(`${apiRouter}/products/recommendations`, authenticateToken, async (req, res) => {
     try {
       const userId = req.body.user.id;

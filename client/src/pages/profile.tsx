@@ -14,6 +14,8 @@ import MedicationTracker from "@/components/medication-tracker";
 import { GoalTracker } from "@/components/goal-tracker";
 import { FamilyTree } from "@/components/family-tree";
 import StreamlitEmbed from "@/components/streamlit-embed";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -338,12 +340,152 @@ const Profile = () => {
           {activeTab === "neural-profile" && (
             <div className="space-y-6">
               <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-2xl font-heading font-semibold mb-4">Neural Profile</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-heading font-semibold">Neural Profile</h2>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">Medical Record</Badge>
+                </div>
                 <p className="text-gray-600 mb-6">
                   Your comprehensive neurological profile provides insights into brain activity patterns, 
                   seizure history, cognitive assessments, and personalized treatment recommendations.
                 </p>
-                <StreamlitEmbed />
+                
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h3 className="text-xl font-medium mb-4">Patient Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="font-medium">Patient X</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Age at Record</p>
+                      <p className="font-medium">17</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Record Date</p>
+                      <p className="font-medium">November 28, 2002</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Neurological History</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">Brain Injury</Badge>
+                        <span className="text-red-500 font-medium">Positive</span>
+                      </div>
+                      <p className="text-gray-600 text-sm">Neonatal brain injury documented</p>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">Seizures</Badge>
+                        <span className="text-red-500 font-medium">Present</span>
+                      </div>
+                      <p className="text-gray-600 text-sm">Type: Partial complex epilepsy</p>
+                      <p className="text-gray-600 text-sm">Frequency: Frequent partial seizures, some progressing to generalized</p>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">Migraines</Badge>
+                        <span className="text-red-500 font-medium">Present</span>
+                      </div>
+                      <p className="text-gray-600 text-sm">Documented migraine history</p>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">Headaches</Badge>
+                        <span className="text-amber-500 font-medium">Fluctuating</span>
+                      </div>
+                      <p className="text-gray-600 text-sm">Headaches: Fluctuating, occasional</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Diagnostic Tests</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">EEG</Badge>
+                      </div>
+                      <p className="text-gray-600 text-sm">No consistent epileptiform activity; noted slowing in frontotemporal region</p>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center mb-3">
+                        <Badge variant="secondary" className="mr-2">MRI</Badge>
+                      </div>
+                      <p className="text-gray-600 text-sm">Images provided (axial and sagittal views show brain structure and ventricles)</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Treatment Plan</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Medications</h4>
+                      <ul className="space-y-2">
+                        <li className="flex items-center">
+                          <span className="w-1/3 text-gray-600">Naprosyn</span>
+                          <span className="text-gray-800">Migraine treatment</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-1/3 text-gray-600">Tylenol with codeine</span>
+                          <span className="text-gray-800">Pain management</span>
+                        </li>
+                      </ul>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <h4 className="font-medium mb-2">Referrals</h4>
+                      <ul className="space-y-1">
+                        <li className="flex items-center">
+                          <i className="ri-arrow-right-line text-primary mr-2"></i>
+                          <span>Headache clinic</span>
+                        </li>
+                        <li className="flex items-center">
+                          <i className="ri-arrow-right-line text-primary mr-2"></i>
+                          <span>Counseling services</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Social Health Impact</h3>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <h4 className="font-medium mb-1">Impact on Daily Life</h4>
+                        <p className="text-gray-600">Seizure and migraine activity may affect social interactions and routines</p>
+                      </div>
+                      <Separator />
+                      <div>
+                        <h4 className="font-medium mb-1">Support Network</h4>
+                        <p className="text-gray-600">Family, friends, and healthcare providers</p>
+                      </div>
+                      <Separator />
+                      <div>
+                        <h4 className="font-medium mb-1">Self Management</h4>
+                        <p className="text-gray-600">Regular follow-ups and supportive counseling recommended</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <h3 className="text-xl font-medium mb-4">Interactive Neural Profile</h3>
+                  <p className="text-gray-600 mb-4">
+                    Access the interactive neural profile visualization with more detailed analysis below:
+                  </p>
+                  <StreamlitEmbed />
+                </div>
               </div>
             </div>
           )}

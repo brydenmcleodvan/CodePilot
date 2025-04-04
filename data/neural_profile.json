@@ -1,0 +1,46 @@
+{
+  "profile": {
+    "personal_info": {
+      "display_name": "Patient X",
+      "age_at_record": 17,
+      "physical_description": "Tall and slim",
+      "record_date": "2002-11-28"
+    },
+    "medical_history": {
+      "neurological_history": {
+        "neonatal_brain_injury": true,
+        "seizure_history": {
+          "type": "Partial complex epilepsy",
+          "frequency": "Frequent partial seizures, some progressing to generalized"
+        },
+        "migraines": true,
+        "headaches": "Fluctuating, occasional"
+      },
+      "diagnostic_tests": {
+        "EEG": "No consistent epileptiform activity; noted slowing in frontotemporal region",
+        "MRI": "Images provided (axial and sagittal views show brain structure and ventricles)"
+      }
+    },
+    "treatment_plan": {
+      "medications": [
+        {
+          "name": "Naprosyn",
+          "purpose": "Migraine treatment"
+        },
+        {
+          "name": "Tylenol with codeine",
+          "purpose": "Pain management"
+        }
+      ],
+      "referrals": [
+        "Headache clinic",
+        "Counseling services"
+      ]
+    },
+    "social_health": {
+      "impact_on_daily_life": "Seizure and migraine activity may affect social interactions and routines",
+      "support_network": "Family, friends, and healthcare providers",
+      "self_management": "Regular follow-ups and supportive counseling recommended"
+    }
+  }
+}
