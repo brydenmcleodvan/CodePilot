@@ -25,99 +25,101 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-2">
+    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-border-light">
+      <div className="clean-container">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center gap-3">
             <i className="ri-heart-pulse-line text-primary text-2xl"></i>
-            <Link href="/" className="text-xl font-heading font-bold text-gray-800">
+            <Link href="/" className="text-xl font-heading font-bold text-dark-text">
               Healthmap
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Main navigation - better spacing and reduced visual noise */}
+          <nav className="hidden md:flex items-center space-x-8">
             <Link
               href="/"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/" ? "text-primary" : ""
+              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                location === "/" ? "text-primary font-semibold" : ""
               }`}
             >
               Home
             </Link>
             <Link
               href="/dashboard"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/dashboard" ? "text-primary" : ""
+              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                location === "/dashboard" ? "text-primary font-semibold" : ""
               }`}
             >
               Dashboard
             </Link>
             <Link
               href="/profile"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/profile" ? "text-primary" : ""
+              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                location === "/profile" ? "text-primary font-semibold" : ""
               }`}
             >
               Profile
             </Link>
             <Link
               href="/forum"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location.startsWith("/forum") ? "text-primary" : ""
+              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                location.startsWith("/forum") ? "text-primary font-semibold" : ""
               }`}
             >
               Forum
             </Link>
-            <Link
-              href="/health-coach"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/health-coach" ? "text-primary" : ""
-              }`}
-            >
-              Health Coach
-            </Link>
-            <Link
-              href="/connections"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/connections" ? "text-primary" : ""
-              }`}
-            >
-              Connections
-            </Link>
-            <Link
-              href="/family"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/family" ? "text-primary" : ""
-              }`}
-            >
-              Family Health
-            </Link>
-            <Link
-              href="/python-integration"
-              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/python-integration" ? "text-primary" : ""
-              }`}
-            >
-              Neural Profile
-            </Link>
-          </div>
+            
+            {/* Dropdown for additional pages to reduce visual clutter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-body-text hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
+                More <ChevronDown className="h-3 w-3" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""}`}>
+                    Health Coach
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""}`}>
+                    Connections
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/family" className={`cursor-pointer w-full ${location === "/family" ? "text-primary" : ""}`}>
+                    Family Health
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/python-integration" className={`cursor-pointer w-full ${location === "/python-integration" ? "text-primary" : ""}`}>
+                    Neural Profile
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
 
-          <div className="flex items-center space-x-4">
+          {/* User section with improved spacing */}
+          <div className="flex items-center gap-6">
             {user ? (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-3">
                 <img
                   src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                   alt="User profile"
-                  className="w-8 h-8 rounded-full border-2 border-primary"
+                  className="w-9 h-9 rounded-full border border-light-blue-border shadow-sm"
                 />
-                <span className="hidden md:inline font-medium">
-                  {user.name ? user.name.split(" ")[0] : user.username}
-                </span>
+                <div className="hidden md:block">
+                  <span className="text-sm font-medium block leading-tight text-dark-text">
+                    {user.name ? user.name.split(" ")[0] : user.username}
+                  </span>
+                  <span className="text-xs text-light-body-text">Health Profile</span>
+                </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="text-gray-700 hover:text-primary transition-colors duration-200">
+                  <DropdownMenuTrigger className="text-gray-500 hover:text-primary transition-colors duration-200">
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer">Profile</Link>
                     </DropdownMenuItem>
@@ -147,16 +149,16 @@ const Navbar = () => {
                 </DropdownMenu>
               </div>
             ) : (
-              <div>
+              <div className="flex items-center gap-3">
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 rounded-md bg-white text-primary border border-primary hover:bg-gray-50 transition-colors duration-200"
+                  className="px-4 py-2 rounded-lg bg-white text-primary border border-light-blue-border text-sm font-medium hover:bg-light-blue-bg transition-colors duration-200"
                 >
                   Login
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="px-4 py-2 rounded-md bg-primary text-white hover:bg-secondary transition-colors duration-200 ml-2"
+                  className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary-blue-hover transition-colors duration-200"
                 >
                   Sign Up
                 </Link>
@@ -165,77 +167,77 @@ const Navbar = () => {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-700 focus:outline-none"
+              className="md:hidden text-gray-700 hover:text-primary focus:outline-none"
             >
               <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu - cleaner organization */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden py-4 border-t border-light-blue-border">
+            <nav className="flex flex-col">
               <Link
                 href="/"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Home
               </Link>
               <Link
                 href="/dashboard"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/dashboard" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Dashboard
               </Link>
               <Link
                 href="/profile"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/profile" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Profile
               </Link>
               <Link
                 href="/forum"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location.startsWith("/forum") ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Forum
               </Link>
               <Link
                 href="/health-coach"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/health-coach" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/health-coach" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Health Coach
               </Link>
               <Link
                 href="/connections"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/connections" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/connections" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Connections
               </Link>
               <Link
                 href="/family"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/family" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Family Health
               </Link>
               <Link
                 href="/python-integration"
-                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/python-integration" ? "text-primary" : ""
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/python-integration" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Neural Profile

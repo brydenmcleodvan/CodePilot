@@ -27,25 +27,28 @@ function Router() {
   const isLandingPage = location === "/landing";
   const hideNavAndFooter = isAuthPage || isLandingPage;
 
+  // Apply cleaner layout with improved spacing
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       {!hideNavAndFooter && <Navbar />}
       
-      <main className="flex-grow">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/landing" component={LandingPage} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/forum" component={Forum} />
-          <Route path="/forum/:subreddit" component={Forum} />
-          <Route path="/auth/:type" component={Auth} />
-          <Route path="/python-integration" component={PythonIntegrationPage} />
-          <Route path="/health-coach" component={HealthCoach} />
-          <Route path="/connections" component={Connections} />
-          <Route path="/family" component={Family} />
-          <Route component={NotFound} />
-        </Switch>
+      <main className="flex-grow py-8">
+        <div className="clean-container">
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/landing" component={LandingPage} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/forum" component={Forum} />
+            <Route path="/forum/:subreddit" component={Forum} />
+            <Route path="/auth/:type" component={Auth} />
+            <Route path="/python-integration" component={PythonIntegrationPage} />
+            <Route path="/health-coach" component={HealthCoach} />
+            <Route path="/connections" component={Connections} />
+            <Route path="/family" component={Family} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
       </main>
       
       {!hideNavAndFooter && <Footer />}

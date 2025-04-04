@@ -82,158 +82,188 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Health Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user?.name || user?.username}. Here's your health overview.
+    <div className="clean-container py-10">
+      <div className="clean-header mb-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
+        <p className="text-muted-foreground text-body-text">
+          Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
         </p>
       </div>
 
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="journey">Health Journey</TabsTrigger>
-          <TabsTrigger value="challenges">Challenges</TabsTrigger>
-          <TabsTrigger value="coaching">Health Coaching</TabsTrigger>
-          <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-          <TabsTrigger value="mental">Mental Health</TabsTrigger>
-          <TabsTrigger value="library">Health Library</TabsTrigger>
-        </TabsList>
+      {/* Clean tabs with consistent spacing */}
+      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <div className="clean-tabs overflow-x-auto pb-2 mb-4">
+          <TabsList className="bg-muted border border-light-blue-border rounded-lg p-1">
+            <TabsTrigger value="overview" className="text-sm rounded-md">Overview</TabsTrigger>
+            <TabsTrigger value="journey" className="text-sm rounded-md">Health Journey</TabsTrigger>
+            <TabsTrigger value="challenges" className="text-sm rounded-md">Challenges</TabsTrigger>
+            <TabsTrigger value="coaching" className="text-sm rounded-md">Health Coaching</TabsTrigger>
+            <TabsTrigger value="nutrition" className="text-sm rounded-md">Nutrition</TabsTrigger>
+            <TabsTrigger value="mental" className="text-sm rounded-md">Mental Health</TabsTrigger>
+            <TabsTrigger value="library" className="text-sm rounded-md">Health Library</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Simplified stats section */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="flex flex-row items-center p-4">
-              <div className="rounded-full p-2 bg-primary/10 mr-3">
+          {/* Stat cards with enhanced clean UI */}
+          <div className="clean-grid clean-grid-4 gap-6 mb-8">
+            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
+              <div className="icon-bg mr-4">
                 <Clock className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Health Journey</p>
-                <div className="text-xl font-bold">{journeyEntries.length}</div>
+                <p className="text-sm font-medium text-body-text mb-1">Health Journey</p>
+                <div className="text-2xl font-bold text-dark-text">{journeyEntries.length}</div>
               </div>
             </Card>
 
-            <Card className="flex flex-row items-center p-4">
-              <div className="rounded-full p-2 bg-primary/10 mr-3">
+            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
+              <div className="icon-bg mr-4">
                 <Award className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Active Challenges</p>
-                <div className="text-xl font-bold">{challengeProgress.length}</div>
+                <p className="text-sm font-medium text-body-text mb-1">Active Challenges</p>
+                <div className="text-2xl font-bold text-dark-text">{challengeProgress.length}</div>
               </div>
             </Card>
 
-            <Card className="flex flex-row items-center p-4">
-              <div className="rounded-full p-2 bg-primary/10 mr-3">
+            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
+              <div className="icon-bg mr-4">
                 <Dumbbell className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Coaching Plans</p>
-                <div className="text-xl font-bold">{coachingPlans.length}</div>
+                <p className="text-sm font-medium text-body-text mb-1">Coaching Plans</p>
+                <div className="text-2xl font-bold text-dark-text">{coachingPlans.length}</div>
               </div>
             </Card>
 
-            <Card className="flex flex-row items-center p-4">
-              <div className="rounded-full p-2 bg-primary/10 mr-3">
+            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
+              <div className="icon-bg mr-4">
                 <Brain className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Mental Health</p>
-                <div className="text-xl font-bold">{mentalHealthAssessments.length}</div>
+                <p className="text-sm font-medium text-body-text mb-1">Mental Health</p>
+                <div className="text-2xl font-bold text-dark-text">{mentalHealthAssessments.length}</div>
               </div>
             </Card>
           </div>
 
-          {/* Main sections */}
-          <div className="grid gap-6 md:grid-cols-2">
+          {/* Main sections with improved spacing and organization */}
+          <div className="clean-grid clean-grid-2 gap-8 mb-8">
             {/* Recent journey entries */}
-            <Card className="col-span-1">
-              <CardHeader className="pb-3">
+            <Card className="clean-card overflow-hidden">
+              <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
                 <div className="flex justify-between items-center">
-                  <CardTitle>Recent Health Journey</CardTitle>
-                  <Button variant="ghost" size="sm" asChild className="h-8">
+                  <CardTitle className="text-lg font-semibold">Recent Health Journey</CardTitle>
+                  <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
                     <Link to="#" onClick={() => setActiveTab("journey")}>
                       View all <ChevronRight className="ml-1 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {journeyEntries.slice(0, 2).map((entry: HealthJourneyEntry) => (
-                  <div key={entry.id} className="flex items-center gap-3 py-2">
-                    <div className="rounded-full p-2 bg-primary/10">
-                      {entry.category === "nutrition" ? (
-                        <Utensils className="h-4 w-4 text-primary" />
-                      ) : entry.category === "exercise" ? (
-                        <Dumbbell className="h-4 w-4 text-primary" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-primary" />
-                      )}
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {journeyEntries.slice(0, 2).map((entry: HealthJourneyEntry) => (
+                    <div key={entry.id} className="flex items-center gap-4 p-3 rounded-lg border border-light-blue-border bg-white">
+                      <div className="icon-bg">
+                        {entry.category === "nutrition" ? (
+                          <Utensils className="h-4 w-4 text-primary" />
+                        ) : entry.category === "exercise" ? (
+                          <Dumbbell className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Clock className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-dark-text">{entry.title}</p>
+                        <p className="text-xs text-body-text mt-1">
+                          {formatDate(entry.timestamp)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{entry.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(entry.timestamp)}
-                      </p>
+                  ))}
+                  
+                  {journeyEntries.length === 0 && (
+                    <div className="text-center py-6">
+                      <p className="text-body-text">No journey entries yet</p>
+                      <Button variant="outline" size="sm" className="mt-2">Add first entry</Button>
                     </div>
-                  </div>
-                ))}
+                  )}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Active challenges */}
-            <Card className="col-span-1">
-              <CardHeader className="pb-3">
+            {/* Active challenges with cleaner design */}
+            <Card className="clean-card overflow-hidden">
+              <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
                 <div className="flex justify-between items-center">
-                  <CardTitle>Active Challenges</CardTitle>
-                  <Button variant="ghost" size="sm" asChild className="h-8">
+                  <CardTitle className="text-lg font-semibold">Active Challenges</CardTitle>
+                  <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
                     <Link to="#" onClick={() => setActiveTab("challenges")}>
                       View all <ChevronRight className="ml-1 h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-6">
                 {challengeProgress.slice(0, 1).map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
-                  <div key={progress.id} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-medium">{progress.challenge.title}</p>
+                  <div key={progress.id} className="p-4 border border-light-blue-border rounded-lg bg-white">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-base font-medium text-dark-text mb-1">{progress.challenge.title}</p>
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline">{progress.challenge.category}</Badge>
+                          <Badge variant="outline" className="clean-badge">{progress.challenge.category}</Badge>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        {Math.round((progress.currentProgress / progress.challenge.requirementTarget) * 100)}%
-                      </p>
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-primary">
+                          {Math.round((progress.currentProgress / progress.challenge.requirementTarget) * 100)}%
+                        </p>
+                        <p className="text-xs text-body-text">
+                          {progress.currentProgress} / {progress.challenge.requirementTarget}
+                        </p>
+                      </div>
                     </div>
-                    <Progress value={(progress.currentProgress / progress.challenge.requirementTarget) * 100} />
+                    <Progress 
+                      value={(progress.currentProgress / progress.challenge.requirementTarget) * 100} 
+                      className="h-2 mb-2"
+                    />
+                    <div className="flex justify-end mt-4">
+                      <Button variant="outline" size="sm">Update Progress</Button>
+                    </div>
                   </div>
                 ))}
+                
+                {challengeProgress.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-body-text mb-2">No active challenges</p>
+                    <Button variant="outline" size="sm">Browse challenges</Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Articles preview */}
-          <Card>
-            <CardHeader className="pb-3">
+          {/* Articles preview with enhanced design */}
+          <Card className="clean-card overflow-hidden">
+            <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
               <div className="flex justify-between items-center">
-                <CardTitle>Health Articles</CardTitle>
-                <Button variant="ghost" size="sm" asChild className="h-8">
+                <CardTitle className="text-lg font-semibold">Health Articles</CardTitle>
+                <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
                   <Link to="#" onClick={() => setActiveTab("library")}>
                     View all <ChevronRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
+            <CardContent className="p-6">
+              <div className="clean-grid clean-grid-2 gap-6">
                 {healthArticles.slice(0, 2).map((article: HealthArticle) => (
-                  <div key={article.id} className="flex space-x-4 items-start">
+                  <div key={article.id} className="flex gap-4 p-4 border border-light-blue-border rounded-lg bg-white">
                     {article.imageUrl && (
-                      <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                      <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                         <img 
                           src={article.imageUrl} 
                           alt={article.title}
@@ -241,18 +271,24 @@ export default function Dashboard() {
                         />
                       </div>
                     )}
-                    <div>
-                      <h3 className="font-medium text-sm mb-1">{article.title}</h3>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-dark-text mb-2">{article.title}</h3>
+                      <p className="text-sm text-body-text mb-2 line-clamp-2">
                         {article.summary}
                       </p>
-                      <div className="flex items-center text-xs text-muted-foreground">
+                      <div className="flex items-center text-xs text-light-body-text">
                         <Clock className="h-3 w-3 mr-1" />
                         <span>{article.readTime} min read</span>
                       </div>
                     </div>
                   </div>
                 ))}
+                
+                {healthArticles.length === 0 && (
+                  <div className="col-span-2 text-center py-8">
+                    <p className="text-body-text">No articles available</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
