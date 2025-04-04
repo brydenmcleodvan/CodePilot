@@ -62,12 +62,12 @@ const Navbar = () => {
               Profile
             </Link>
             <Link
-              href="/forum"
+              href="/family"
               className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location.startsWith("/forum") ? "text-primary font-semibold" : ""
+                location === "/family" ? "text-primary font-semibold" : ""
               }`}
             >
-              Forum
+              Family Health
             </Link>
             
             {/* Dropdown for additional pages to reduce visual clutter */}
@@ -87,8 +87,8 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/family" className={`cursor-pointer w-full ${location === "/family" ? "text-primary" : ""}`}>
-                    Family Health
+                  <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""}`}>
+                    Forum
                   </Link>
                 </DropdownMenuItem>
 
