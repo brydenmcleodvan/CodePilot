@@ -3,12 +3,13 @@ import streamlit as st
 import json
 import os
 import pandas as pd
-from utils.data_processor import load_patient_data, analyze_seizure_frequency
+from utils.data_processor import load_patient_data, analyze_seizure_frequency, get_all_patients
 from utils.visualization import create_timeline
 from components.patient_profile import display_patient_profile
 from components.medical_history import display_medical_history
 from components.treatment_plan import display_treatment_plan
 from components.diagnostics import display_diagnostic_tests
+from components.database_admin import display_database_admin
 
 st.set_page_config(
     page_title="Medical Record Dashboard",
@@ -20,25 +21,69 @@ st.set_page_config(
 st.title("Medical Record Dashboard")
 st.markdown("---")
 
-def get_data_path(data_type="patient"):
-    if data_type == "neural_profile":
-        return "data/neural_profile.json"
-    return "data/sample_patient.json"
+# Initialize session state for data source preference
+if 'use_database' not in st.session_state:
+    st.session_state.use_database = False
 
-@st.cache_data
-def load_data(data_type="patient"):
-    data_path = get_data_path(data_type)
-    with open(data_path, 'r') as f:
-        return json.load(f)
+# Data Source Selection
+with st.sidebar:
+    st.title("Data Settings")
+    use_db = st.checkbox("Use Database", value=st.session_state.use_database)
+    st.session_state.use_database = use_db
 
-patient_data = load_data()
-processed_data = load_patient_data(patient_data)
-neural_profile_data = load_data("neural_profile")
+# Get patient list based on data source
+patients = get_all_patients(use_db=st.session_state.use_database)
 
+# Patient Selection
+selected_patient_id = None
+if patients:
+    with st.sidebar:
+        st.subheader("Select Patient")
+        
+        if st.session_state.use_database:
+            # Format options for database patients
+            patient_options = {f"{p['display_name']} (ID: {p['id']})": p['id'] for p in patients}
+            selected_patient = st.selectbox(
+                "Patient",
+                options=list(patient_options.keys()),
+                key="patient_selector"
+            )
+            selected_patient_id = patient_options[selected_patient]
+        else:
+            # Format options for JSON patients
+            patient_options = {f"{p['display_name']}": p['id'] for p in patients}
+            selected_patient = st.selectbox(
+                "Patient",
+                options=list(patient_options.keys()),
+                key="patient_selector_json"
+            )
+            selected_patient_id = patient_options[selected_patient]
+else:
+    st.sidebar.warning("No patients available")
+
+# Load the selected patient data
+processed_data = load_patient_data(
+    patient_id=selected_patient_id,
+    use_db=st.session_state.use_database
+)
+
+# Navigation menu
 st.sidebar.title("Navigation")
+nav_options = [
+    "Patient Profile",
+    "Medical History",
+    "Treatment Plan",
+    "Diagnostic Tests",
+    "Analysis Dashboard"
+]
+
+# Add admin page if using database
+if st.session_state.use_database:
+    nav_options.append("Database Admin")
+
 selected_view = st.sidebar.radio(
     "Select View",
-    ["Patient Profile", "Medical History", "Treatment Plan", "Diagnostic Tests", "Analysis Dashboard", "Neurological Profile"]
+    nav_options
 )
 
 if selected_view == "Patient Profile":
@@ -63,70 +108,6 @@ elif selected_view == "Analysis Dashboard":
             st.write(seizure_analysis)
         else:
             st.info("No seizure history data available for analysis.")
-elif selected_view == "Neurological Profile":
-    profile_data = neural_profile_data.get('profile', {})
-    
-    st.header(f"Neurological Profile: {profile_data.get('personal_info', {}).get('display_name', 'Unknown')}")
-    
-    # Personal Info Section
-    st.subheader("Personal Information")
-    personal_info = profile_data.get('personal_info', {})
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"**Age at Record:** {personal_info.get('age_at_record', 'Unknown')}")
-        st.write(f"**Physical Description:** {personal_info.get('physical_description', 'Unknown')}")
-    with col2:
-        st.write(f"**Record Date:** {personal_info.get('record_date', 'Unknown')}")
-    
-    # Medical History Section
-    st.subheader("Neurological History")
-    neuro_history = profile_data.get('medical_history', {}).get('neurological_history', {})
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"**Neonatal Brain Injury:** {'Yes' if neuro_history.get('neonatal_brain_injury') else 'No'}")
-        st.write(f"**Migraines:** {'Yes' if neuro_history.get('migraines') else 'No'}")
-        st.write(f"**Headaches:** {neuro_history.get('headaches', 'Unknown')}")
-    with col2:
-        seizure_history = neuro_history.get('seizure_history', {})
-        st.write("**Seizure History:**")
-        st.write(f"- Type: {seizure_history.get('type', 'Unknown')}")
-        st.write(f"- Frequency: {seizure_history.get('frequency', 'Unknown')}")
-    
-    # Diagnostic Tests Section
-    st.subheader("Diagnostic Tests")
-    diagnostic_tests = profile_data.get('medical_history', {}).get('diagnostic_tests', {})
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"**EEG Results:** {diagnostic_tests.get('EEG', 'Unknown')}")
-    with col2:
-        st.write(f"**MRI Results:** {diagnostic_tests.get('MRI', 'Unknown')}")
-    
-    # Treatment Plan Section
-    st.subheader("Treatment Plan")
-    treatment_plan = profile_data.get('treatment_plan', {})
-    
-    st.write("**Medications:**")
-    medications = treatment_plan.get('medications', [])
-    if medications:
-        for med in medications:
-            st.write(f"- {med.get('name', 'Unknown')}: {med.get('purpose', 'Unknown')}")
-    else:
-        st.write("No medications listed")
-        
-    st.write("**Referrals:**")
-    referrals = treatment_plan.get('referrals', [])
-    if referrals:
-        for referral in referrals:
-            st.write(f"- {referral}")
-    else:
-        st.write("No referrals listed")
-    
-    # Social Health Section
-    st.subheader("Social Health Impact")
-    social_health = profile_data.get('social_health', {})
-    
-    st.write(f"**Impact on Daily Life:** {social_health.get('impact_on_daily_life', 'Unknown')}")
-    st.write(f"**Support Network:** {social_health.get('support_network', 'Unknown')}")
-    st.write(f"**Self Management:** {social_health.get('self_management', 'Unknown')}")
+elif selected_view == "Database Admin":
+    # Show database administration view
+    display_database_admin()

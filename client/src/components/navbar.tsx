@@ -68,7 +68,14 @@ const Navbar = () => {
             >
               Forum
             </Link>
-
+            <Link
+              href="/python-integration"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/python-integration" ? "text-primary" : ""
+              }`}
+            >
+              Neural Profile
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -91,7 +98,10 @@ const Navbar = () => {
                       <Link href="/profile" className="cursor-pointer">Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
+                      <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile (Tab)</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/python-integration" className="cursor-pointer">Neural Profile (Full)</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
@@ -165,7 +175,14 @@ const Navbar = () => {
               >
                 Forum
               </Link>
-
+              <Link
+                href="/python-integration"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/python-integration" ? "text-primary" : ""
+                }`}
+              >
+                Neural Profile
+              </Link>
             </nav>
           </div>
         )}

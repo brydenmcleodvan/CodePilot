@@ -1,19 +1,109 @@
 import json
 import pandas as pd
+import os
 from datetime import datetime
 
-def load_patient_data(data=None):
-    """Load and preprocess patient data"""
-    if data is None:
+def load_patient_data(data=None, patient_id=None, use_db=False):
+    """
+    Load and preprocess patient data from either JSON or database
+    
+    Args:
+        data: Pre-loaded patient data (optional)
+        patient_id: ID of patient to load from database (optional)
+        use_db: Whether to use database as data source (default: False)
+    
+    Returns:
+        Processed patient data dictionary
+    """
+    # If data is already provided, use it
+    if data is not None:
+        return data
+    
+    # If using database and patient_id is provided
+    if use_db and patient_id is not None:
         try:
+            from utils.db import fetch_patient_data
+            data = fetch_patient_data(patient_id)
+            if not data:
+                print(f"No patient found with ID {patient_id}")
+                return {"error": f"No patient found with ID {patient_id}"}
+            return data
+        except Exception as e:
+            print(f"Error loading patient data from database: {e}")
+            return {"error": f"Failed to load patient data from database: {str(e)}"}
+    
+    # Otherwise load from JSON file
+    try:
+        # First try loading neural profile data
+        if os.path.exists('data/neural_profile.json'):
+            with open('data/neural_profile.json', 'r') as f:
+                json_data = json.load(f)
+                data = json_data.get('profile', {})
+                if data:
+                    return data
+        
+        # Fall back to sample patient data
+        with open('data/sample_patient.json', 'r') as f:
+            data = json.load(f)
+            return data
+    except Exception as e:
+        print(f"Error loading patient data from file: {e}")
+        return {"error": f"Failed to load patient data: {str(e)}"}
+    
+def get_all_patients(use_db=False):
+    """
+    Get a list of all available patients
+    
+    Args:
+        use_db: Whether to use database as data source (default: False)
+    
+    Returns:
+        List of patient summary dictionaries
+    """
+    if use_db:
+        try:
+            from utils.db import fetch_all_patients
+            patients = fetch_all_patients()
+            return patients
+        except Exception as e:
+            print(f"Error fetching patients from database: {e}")
+            return []
+    
+    # If not using database, check for JSON files
+    patients = []
+    try:
+        # Check for neural profile
+        if os.path.exists('data/neural_profile.json'):
+            with open('data/neural_profile.json', 'r') as f:
+                data = json.load(f)
+                profile = data.get('profile', {})
+                personal_info = profile.get('personal_info', {})
+                
+                if personal_info:
+                    patients.append({
+                        'id': 'neural_profile',
+                        'display_name': personal_info.get('display_name', 'Unknown'),
+                        'age_at_record': personal_info.get('age_at_record', 'Unknown'),
+                        'record_date': personal_info.get('record_date', 'Unknown')
+                    })
+        
+        # Check for sample patient
+        if os.path.exists('data/sample_patient.json'):
             with open('data/sample_patient.json', 'r') as f:
                 data = json.load(f)
-        except Exception as e:
-            print(f"Error loading patient data: {e}")
-            return {"error": "Failed to load patient data"}
+                personal_info = data.get('personal_info', {})
+                
+                if personal_info:
+                    patients.append({
+                        'id': 'sample_patient',
+                        'display_name': personal_info.get('display_name', 'Unknown'),
+                        'age_at_record': personal_info.get('age_at_record', 'Unknown'),
+                        'record_date': personal_info.get('record_date', 'Unknown')
+                    })
+    except Exception as e:
+        print(f"Error loading patients from JSON: {e}")
     
-    # Add additional processing here if needed
-    return data
+    return patients
 
 def analyze_seizure_frequency(data):
     """Analyze seizure frequency and patterns"""
