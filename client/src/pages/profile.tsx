@@ -13,6 +13,7 @@ import HealthVisualization from "@/components/health-visualization";
 import MedicationTracker from "@/components/medication-tracker";
 import { GoalTracker } from "@/components/goal-tracker";
 import { FamilyTree } from "@/components/family-tree";
+import StreamlitEmbed from "@/components/streamlit-embed";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -120,6 +121,18 @@ const Profile = () => {
                 >
                   <i className="ri-group-line"></i>
                   <span>Family & Friends</span>
+                </a>
+                <a
+                  href="#neural-profile"
+                  onClick={() => setActiveTab("neural-profile")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "neural-profile"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-brain-line"></i>
+                  <span>Neural Profile</span>
                 </a>
                 <a
                   href="#settings"
@@ -318,6 +331,19 @@ const Profile = () => {
                     Connect
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "neural-profile" && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-heading font-semibold mb-4">Neural Profile</h2>
+                <p className="text-gray-600 mb-6">
+                  Your comprehensive neurological profile provides insights into brain activity patterns, 
+                  seizure history, cognitive assessments, and personalized treatment recommendations.
+                </p>
+                <StreamlitEmbed />
               </div>
             </div>
           )}

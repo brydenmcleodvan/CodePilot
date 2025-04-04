@@ -69,9 +69,9 @@ const Navbar = () => {
               Forum
             </Link>
             <Link
-              href="/python-integration"
+              href="/profile#neural-profile"
               className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                location === "/python-integration" ? "text-primary" : ""
+                location === "/profile#neural-profile" ? "text-primary" : ""
               }`}
             >
               Neural Profile
@@ -170,9 +170,9 @@ const Navbar = () => {
                 Forum
               </Link>
               <Link
-                href="/python-integration"
+                href="/profile#neural-profile"
                 className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
-                  location === "/python-integration" ? "text-primary" : ""
+                  location === "/profile#neural-profile" ? "text-primary" : ""
                 }`}
               >
                 Neural Profile
