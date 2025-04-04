@@ -91,56 +91,52 @@ const Navbar = () => {
                     Forum
                   </Link>
                 </DropdownMenuItem>
-
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
 
           {/* User section with improved spacing */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-3">
-                <img
-                  src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
-                  alt="User profile"
-                  className="w-9 h-9 rounded-full border border-light-blue-border shadow-sm"
-                />
-                <div className="hidden md:block">
-                  <span className="text-sm font-medium block leading-tight text-dark-text">
-                    {user.name ? user.name.split(" ")[0] : user.username}
-                  </span>
-                  <span className="text-xs text-light-body-text">Health Profile</span>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="text-gray-500 hover:text-primary transition-colors duration-200">
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="cursor-pointer">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/health-coach" className="cursor-pointer">Health Coach</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/connections" className="cursor-pointer">Connections</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/family" className="cursor-pointer">Family Health</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-2 p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
+                  <img
+                    src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                    alt="User profile"
+                    className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
+                  />
+                  <div className="hidden md:flex items-center gap-1">
+                    <span className="text-sm font-medium text-dark-text">
+                      {user.name ? user.name.split(" ")[0] : user.username}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/health-coach" className="cursor-pointer">Health Coach</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/connections" className="cursor-pointer">Connections</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/family" className="cursor-pointer">Family Health</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <div className="flex items-center gap-3">
                 <Link
@@ -195,7 +191,6 @@ const Navbar = () => {
               >
                 Dashboard
               </Link>
-
               <Link
                 href="/health-coach"
                 className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
@@ -228,7 +223,6 @@ const Navbar = () => {
               >
                 Forum
               </Link>
-
             </nav>
           </div>
         )}
