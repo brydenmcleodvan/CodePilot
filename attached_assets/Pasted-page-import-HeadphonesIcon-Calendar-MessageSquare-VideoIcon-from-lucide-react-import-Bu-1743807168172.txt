@@ -1,0 +1,671 @@
+page
+
+import { HeadphonesIcon, Calendar, MessageSquare, VideoIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function HealthCoachPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <HeadphonesIcon className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Health Coach</h1>
+      </div>
+
+      <p className="text-lg mb-8">
+        Get personalized guidance from certified health professionals to achieve your wellness goals.
+      </p>
+
+      <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Your Assigned Coach</h2>
+          <div className="flex items-center gap-6 mb-6">
+            <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
+              <span className="text-2xl font-bold text-primary">AC</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Alex Chen</h3>
+              <p className="text-sm text-muted-foreground mb-1">Certified Nutrition & Fitness Coach</p>
+              <div className="flex items-center">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span key={star} className="text-yellow-400">★</span>
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground ml-2">4.9 (128 reviews)</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="mb-6">
+            "I focus on creating sustainable lifestyle changes tailored to your unique needs. Together, we'll build habits that last a lifetime."
+          </p>
+
+          <div className="flex gap-3">
+            <Button className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Message
+            </Button>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Schedule
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-4">Upcoming Sessions</h2>
+
+          <div className="space-y-4">
+            <div className="p-4 border rounded-md">
+              <div className="flex justify-between mb-2">
+                <h3 className="font-semibold">Weekly Check-in</h3>
+                <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">Tomorrow</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">10:00 AM - 10:30 AM</p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="flex items-center gap-2">
+                  <VideoIcon className="w-3 h-3" />
+                  Join
+                </Button>
+                <Button size="sm" variant="outline">Reschedule</Button>
+              </div>
+            </div>
+
+            <div className="p-4 border rounded-md">
+              <div className="flex justify-between mb-2">
+                <h3 className="font-semibold">Nutrition Plan Review</h3>
+                <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">Next Week</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Tuesday, 2:00 PM - 3:00 PM</p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" disabled>Join</Button>
+                <Button size="sm" variant="outline">Reschedule</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Your Coaching Plan</h2>
+        <div className="mb-6">
+          <h3 className="font-semibold mb-3">Current Focus Areas:</h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="p-3 border rounded-md">
+              <p className="font-medium">Stress Management</p>
+              <div className="h-2 bg-gray-200 rounded-full mt-2">
+                <div className="h-full bg-primary rounded-full w-4/5" />
+              </div>
+            </div>
+            <div className="p-3 border rounded-md">
+              <p className="font-medium">Nutrition Planning</p>
+              <div className="h-2 bg-gray-200 rounded-full mt-2">
+                <div className="h-full bg-primary rounded-full w-1/2" />
+              </div>
+            </div>
+            <div className="p-3 border rounded-md">
+              <p className="font-medium">Exercise Routine</p>
+              <div className="h-2 bg-gray-200 rounded-full mt-2">
+                <div className="h-full bg-primary rounded-full w-2/3" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-3">Recent Notes:</h3>
+          <div className="p-4 bg-gray-50 rounded-md">
+            <p className="text-sm mb-2">
+              <strong>Last session (May 2):</strong> Discussed improving sleep hygiene. Client is making progress with evening routine. Recommended reducing screen time by 30 minutes before bed.
+            </p>
+            <p className="text-sm">
+              <strong>Action items:</strong> Track sleep quality for the next week, practice 5-minute meditation before bed, limit caffeine after 2pm.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+import { Users, User, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function ConnectionsPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <Users className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Connections</h1>
+      </div>
+
+      <p className="text-lg mb-8">
+        Connect with family, friends, and health professionals to share your health journey.
+      </p>
+
+      <div className="bg-white p-4 rounded-lg shadow mb-8">
+        <div className="flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search for connections..."
+              className="w-full pl-10 py-2 border rounded-md"
+            />
+          </div>
+          <Button>Find Connections</Button>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">Your Connections</h2>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[
+            { name: "Dr. Jane Smith", type: "Health Professional", specialty: "Nutritionist" },
+            { name: "Mike Johnson", type: "Friend", joinedDate: "2 months ago" },
+            { name: "Health Club SF", type: "Organization", members: "243 members" },
+            { name: "Fitness with Tom", type: "Health Coach", specialty: "Cardio Training" }
+          ].map((connection, index) => (
+            <div key={connection.name} className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{connection.name}</h3>
+                  <p className="text-sm text-muted-foreground">{connection.type}</p>
+                </div>
+              </div>
+              <div className="border-t pt-4">
+                {connection.specialty && (
+                  <p className="text-sm mb-2"><strong>Specialty:</strong> {connection.specialty}</p>
+                )}
+                {connection.joinedDate && (
+                  <p className="text-sm mb-2"><strong>Joined:</strong> {connection.joinedDate}</p>
+                )}
+                {connection.members && (
+                  <p className="text-sm mb-2"><strong>Community:</strong> {connection.members}</p>
+                )}
+                <div className="flex justify-end mt-4">
+                  <Button variant="outline" size="sm">Message</Button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <span className="text-2xl text-primary font-bold">+</span>
+            </div>
+            <h2 className="text-lg font-semibold mb-2">Add Connection</h2>
+            <p className="text-sm text-muted-foreground">Connect with health professionals and like-minded individuals</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+export default function DashboardPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Your Health Dashboard</h1>
+      <p className="text-lg mb-4">
+        Welcome to your personal health dashboard. Track your progress and view your health metrics here.
+      </p>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-3">Health Metrics</h2>
+          <p>Your health metrics will be displayed here.</p>
+        </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <h2 className="text-xl font-semibold mb-3">Activity Log</h2>
+          <p>Your recent health activities will be shown here.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+import { Heart, User } from "lucide-react";
+
+export default function FamilyPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <Heart className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Family Health</h1>
+      </div>
+
+      <p className="text-lg mb-8">
+        Manage and monitor your family's health in one place. Connect with family members to share health updates and keep track of important information.
+      </p>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[
+          { name: "Sarah Doe", relation: "Spouse", lastActive: "Today" },
+          { name: "Tommy Doe", relation: "Child", lastActive: "Yesterday" },
+          { name: "Emma Doe", relation: "Child", lastActive: "2 days ago" },
+          { name: "Robert Doe", relation: "Parent", lastActive: "1 week ago" }
+        ].map((member, i) => (
+          <div key={i} className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">{member.name}</h2>
+                <p className="text-sm text-muted-foreground">{member.relation}</p>
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <p className="text-sm mb-2"><strong>Last Active:</strong> {member.lastActive}</p>
+              <p className="text-sm mb-2"><strong>Health Status:</strong> <span className="text-green-600">Good</span></p>
+              <p className="text-sm"><strong>Upcoming:</strong> Annual checkup in 2 weeks</p>
+            </div>
+          </div>
+        ))}
+
+        <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <span className="text-2xl text-primary font-bold">+</span>
+          </div>
+          <h2 className="text-lg font-semibold mb-2">Add Family Member</h2>
+          <p className="text-sm text-muted-foreground">Invite a family member to connect and share health information</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+import { MessageSquare } from "lucide-react";
+
+export default function ForumPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <MessageSquare className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Public Forum</h1>
+      </div>
+
+      <p className="text-lg mb-8">
+        Join discussions about health trends, fitness tips, and preventive care.
+      </p>
+
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="p-6 bg-white rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-2">Health Discussion Topic {i}</h2>
+            <p className="text-muted-foreground mb-4">
+              This is a sample discussion topic about health and wellness.
+            </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Posted by: User{i}</span>
+              <span>•</span>
+              <span>Comments: {i * 5}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+page
+
+import { User } from "lucide-react";
+
+export default function ProfilePage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <User className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Your Profile</h1>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        <div className="md:col-span-1">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="w-32 h-32 bg-primary/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <User className="w-16 h-16 text-primary" />
+            </div>
+            <h2 className="text-xl font-semibold text-center mb-2">John Doe</h2>
+            <p className="text-muted-foreground text-center mb-4">Health Enthusiast</p>
+            <div className="space-y-2 text-sm">
+              <p><strong>Age:</strong> 32</p>
+              <p><strong>Location:</strong> San Francisco, CA</p>
+              <p><strong>Member Since:</strong> January 2024</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 className="text-xl font-semibold mb-4">Health Journey</h2>
+            <p className="mb-4">
+              Track your health journey and get personalized recommendations based on your activity and goals.
+            </p>
+            <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full bg-primary w-3/4 rounded-full"></div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">Progress: 75% to your goal</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Health Metrics</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 border rounded-md">
+                <p className="text-sm text-muted-foreground">Steps Today</p>
+                <p className="text-xl font-semibold">8,432</p>
+              </div>
+              <div className="p-3 border rounded-md">
+                <p className="text-sm text-muted-foreground">Sleep</p>
+                <p className="text-xl font-semibold">7.5 hrs</p>
+              </div>
+              <div className="p-3 border rounded-md">
+                <p className="text-sm text-muted-foreground">Water</p>
+                <p className="text-xl font-semibold">1.8 L</p>
+              </div>
+              <div className="p-3 border rounded-md">
+                <p className="text-sm text-muted-foreground">Heart Rate</p>
+                <p className="text-xl font-semibold">72 bpm</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+import { ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function ShopPage() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center gap-2 mb-6">
+        <ShoppingBag className="w-6 h-6" />
+        <h1 className="text-3xl font-bold">Health Shop</h1>
+      </div>
+
+      <p className="text-lg mb-8">
+        Discover health and wellness products recommended for your personal journey.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { name: "Smart Fitness Tracker", price: "$89.99", category: "Fitness" },
+          { name: "Organic Protein Powder", price: "$32.99", category: "Nutrition" },
+          { name: "Meditation Cushion Set", price: "$45.00", category: "Wellness" },
+          { name: "Yoga Mat Premium", price: "$38.50", category: "Fitness" },
+          { name: "Digital Food Scale", price: "$24.99", category: "Nutrition" },
+          { name: "Sleep Tracking Device", price: "$79.99", category: "Wellness" },
+          { name: "Resistance Bands Set", price: "$18.99", category: "Fitness" },
+          { name: "Herbal Tea Collection", price: "$22.50", category: "Nutrition" }
+        ].map((product) => (
+          <div key={product.name} className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="h-40 bg-primary/10 flex items-center justify-center">
+              <ShoppingBag className="w-12 h-12 text-primary/50" />
+            </div>
+            <div className="p-4">
+              <h3 className="font-semibold">{product.name}</h3>
+              <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">{product.price}</span>
+                <Button size="sm">Add to Cart</Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 p-6 bg-white rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Recommended for You</h2>
+        <p className="mb-4">Based on your health profile, we recommend these personalized products:</p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 border rounded-md">
+            <h3 className="font-semibold">Personalized Vitamin Pack</h3>
+            <p className="text-sm text-muted-foreground mb-2">Customized for your health needs</p>
+            <p className="font-semibold">$49.99/month</p>
+          </div>
+          <div className="p-4 border rounded-md">
+            <h3 className="font-semibold">Ergonomic Home Office Kit</h3>
+            <p className="text-sm text-muted-foreground mb-2">Improve your work health</p>
+            <p className="font-semibold">$129.99</p>
+          </div>
+          <div className="p-4 border rounded-md">
+            <h3 className="font-semibold">Digital Wellness Course</h3>
+            <p className="text-sm text-muted-foreground mb-2">4-week guided program</p>
+            <p className="font-semibold">$75.00</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+page
+
+"use client";
+
+import { useEffect } from "react";
+
+export default function ClientBody({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Remove any extension-added classes during hydration
+  useEffect(() => {
+    // This runs only on the client after hydration
+    document.body.className = "antialiased";
+  }, []);
+
+  return (
+    <body className="antialiased" suppressHydrationWarning>
+      {children}
+    </body>
+  );
+}
+
+page
+
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Navbar } from "@/components/navbar";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Healthfolio",
+  description: "Connect with health-minded individuals, share experiences, and access personalized insights.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <Navbar />
+        <main className="min-h-screen main-bg">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
+
+page
+
+import Link from "next/link";
+import { MessageSquare, User, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+
+export default function Home() {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <section className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Healthfolio</h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Connect with health-minded individuals, share experiences, and
+          access personalized insights.
+        </p>
+      </section>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Public Forum Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" />
+              Public Forum
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="mb-4">
+              Join discussions about health trends, fitness tips, and preventive care.
+            </p>
+            <Button className="w-full" asChild>
+              <Link href="/forum">Browse Forum</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Your Profile Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              Your Profile
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="mb-4">
+              Track your health journey and get personalized recommendations.
+            </p>
+            <Button className="w-full" asChild>
+              <Link href="/profile">View Profile</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Connections Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Connections
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="mb-4">
+              Connect with family, friends, and health professionals.
+            </p>
+            <Button className="w-full" asChild>
+              <Link href="/connections">Find Connections</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+page
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { BarChart2, MessageSquare, User, Heart, Users, ShoppingBag, HeadphonesIcon } from "lucide-react";
+
+export function Navbar() {
+  return (
+    <nav className="bg-primary text-primary-foreground py-4">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between">
+          <Button asChild variant="ghost" className="text-2xl font-bold hover:text-primary-foreground/80 hover:bg-accent">
+            <Link href="/">Healthfolio</Link>
+          </Button>
+
+          <div className="flex items-center space-x-6">
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/dashboard">
+                <BarChart2 className="w-4 h-4" />
+                Dashboard
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/forum">
+                <MessageSquare className="w-4 h-4" />
+                Forum
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/profile">
+                <User className="w-4 h-4" />
+                Profile
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/family">
+                <Heart className="w-4 h-4" />
+                Family
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/connections">
+                <Users className="w-4 h-4" />
+                Connections
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/shop">
+                <ShoppingBag className="w-4 h-4" />
+                Shop
+              </Link>
+            </Button>
+
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-primary-foreground/80 flex items-center gap-2">
+              <Link href="/coach">
+                <HeadphonesIcon className="w-4 h-4" />
+                Health Coach
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+page
+
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+

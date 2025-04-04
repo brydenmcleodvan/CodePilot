@@ -13,6 +13,9 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 import PythonIntegrationPage from "@/pages/python-integration";
+import { HealthCoach } from "@/pages/health-coach";
+import { Connections } from "@/pages/connections";
+import { Family } from "@/pages/family";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -38,6 +41,9 @@ function Router() {
           <Route path="/forum/:subreddit" component={Forum} />
           <Route path="/auth/:type" component={Auth} />
           <Route path="/python-integration" component={PythonIntegrationPage} />
+          <Route path="/health-coach" component={HealthCoach} />
+          <Route path="/connections" component={Connections} />
+          <Route path="/family" component={Family} />
           <Route component={NotFound} />
         </Switch>
       </main>

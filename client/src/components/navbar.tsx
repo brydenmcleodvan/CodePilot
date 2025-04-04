@@ -69,6 +69,30 @@ const Navbar = () => {
               Forum
             </Link>
             <Link
+              href="/health-coach"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/health-coach" ? "text-primary" : ""
+              }`}
+            >
+              Health Coach
+            </Link>
+            <Link
+              href="/connections"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/connections" ? "text-primary" : ""
+              }`}
+            >
+              Connections
+            </Link>
+            <Link
+              href="/family"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/family" ? "text-primary" : ""
+              }`}
+            >
+              Family Health
+            </Link>
+            <Link
               href="/python-integration"
               className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
                 location === "/python-integration" ? "text-primary" : ""
@@ -96,6 +120,15 @@ const Navbar = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/health-coach" className="cursor-pointer">Health Coach</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/connections" className="cursor-pointer">Connections</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/family" className="cursor-pointer">Family Health</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile (Tab)</Link>
@@ -174,6 +207,30 @@ const Navbar = () => {
                 }`}
               >
                 Forum
+              </Link>
+              <Link
+                href="/health-coach"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/health-coach" ? "text-primary" : ""
+                }`}
+              >
+                Health Coach
+              </Link>
+              <Link
+                href="/connections"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/connections" ? "text-primary" : ""
+                }`}
+              >
+                Connections
+              </Link>
+              <Link
+                href="/family"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/family" ? "text-primary" : ""
+                }`}
+              >
+                Family Health
               </Link>
               <Link
                 href="/python-integration"
