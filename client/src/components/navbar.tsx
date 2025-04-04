@@ -91,11 +91,7 @@ const Navbar = () => {
                     Family Health
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/python-integration" className={`cursor-pointer w-full ${location === "/python-integration" ? "text-primary" : ""}`}>
-                    Neural Profile
-                  </Link>
-                </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           </nav>
@@ -133,10 +129,7 @@ const Navbar = () => {
                       <Link href="/family" className="cursor-pointer">Family Health</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile (Tab)</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/python-integration" className="cursor-pointer">Neural Profile (Full)</Link>
+                      <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
@@ -234,14 +227,7 @@ const Navbar = () => {
               >
                 Family Health
               </Link>
-              <Link
-                href="/python-integration"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/python-integration" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Neural Profile
-              </Link>
+
             </nav>
           </div>
         )}
