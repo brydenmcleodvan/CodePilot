@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -9,7 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Dumbbell, Award, Brain, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   HealthJourneyEntry,
   HealthCoachingPlan,
@@ -20,9 +21,17 @@ import {
   MealPlan
 } from "@shared/schema";
 
+interface MetricCard {
+  title: string;
+  value: number;
+  icon: JSX.Element;
+  color: string;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   // Fetch health journey entries
   const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
@@ -71,6 +80,33 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const metrics: MetricCard[] = [
+    { 
+      title: "Daily Activity",
+      value: 75,
+      icon: <Activity className="h-6 w-6" />,
+      color: "bg-blue-500"
+    },
+    {
+      title: "Heart Rate",
+      value: 68,
+      icon: <Heart className="h-6 w-6" />,
+      color: "bg-red-500"
+    },
+    {
+      title: "Mental Wellness",
+      value: 85,
+      icon: <Brain className="h-6 w-6" />,
+      color: "bg-purple-500"
+    },
+    {
+      title: "Sleep Quality",
+      value: 90,
+      icon: <Moon className="h-6 w-6" />,
+      color: "bg-indigo-500"
+    }
+  ];
+
   const formatDate = (dateInput: Date | string | null) => {
     if (!dateInput) return "N/A";
     const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
@@ -106,192 +142,133 @@ export default function Dashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Stat cards with enhanced clean UI */}
-          <div className="clean-grid clean-grid-4 gap-6 mb-8">
-            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
-              <div className="icon-bg mr-4">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-body-text mb-1">Health Journey</p>
-                <div className="text-2xl font-bold text-dark-text">{journeyEntries.length}</div>
-              </div>
-            </Card>
+          <motion.h1 
+            className="text-3xl font-bold mb-6"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Wellness Dashboard
+          </motion.h1>
 
-            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
-              <div className="icon-bg mr-4">
-                <Award className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-body-text mb-1">Active Challenges</p>
-                <div className="text-2xl font-bold text-dark-text">{challengeProgress.length}</div>
-              </div>
-            </Card>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {metrics.map((metric) => (
+              <motion.div
+                key={metric.title}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onHoverStart={() => setHoveredCard(metric.title)}
+                onHoverEnd={() => setHoveredCard(null)}
+              >
+                <Card className="relative overflow-hidden">
+                  <motion.div
+                    className={`absolute inset-0 opacity-10 ${metric.color}`}
+                    initial={{ scale: 0 }}
+                    animate={{ 
+                      scale: hoveredCard === metric.title ? 1.5 : 1,
+                      opacity: hoveredCard === metric.title ? 0.2 : 0.1
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ 
+                          rotate: hoveredCard === metric.title ? 360 : 0 
+                        }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        {metric.icon}
+                      </motion.div>
+                      {metric.title}
+                    </CardTitle>
+                  </CardHeader>
 
-            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
-              <div className="icon-bg mr-4">
-                <Dumbbell className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-body-text mb-1">Coaching Plans</p>
-                <div className="text-2xl font-bold text-dark-text">{coachingPlans.length}</div>
-              </div>
-            </Card>
-
-            <Card className="clean-card flex flex-row items-center p-6 hover:shadow-md transition-shadow">
-              <div className="icon-bg mr-4">
-                <Brain className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-body-text mb-1">Mental Health</p>
-                <div className="text-2xl font-bold text-dark-text">{mentalHealthAssessments.length}</div>
-              </div>
-            </Card>
+                  <CardContent>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                    >
+                      <Progress value={metric.value} className="h-2" />
+                    </motion.div>
+                    <p className="text-2xl font-bold mt-2">{metric.value}%</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
           </div>
 
-          {/* Main sections with improved spacing and organization */}
-          <div className="clean-grid clean-grid-2 gap-8 mb-8">
-            {/* Recent journey entries */}
-            <Card className="clean-card overflow-hidden">
-              <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-semibold">Recent Health Journey</CardTitle>
-                  <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
-                    <Link to="#" onClick={() => setActiveTab("journey")}>
-                      View all <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
+          <motion.div
+            className="mt-8 grid md:grid-cols-2 gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sun className="h-6 w-6 text-primary" />
+                  Daily Wellness Tips
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent>
+                <motion.ul className="space-y-4">
+                  {[
+                    "Take a 10-minute mindfulness break",
+                    "Drink 8 glasses of water",
+                    "Get 30 minutes of moderate exercise",
+                    "Practice good posture while working"
+                  ].map((tip, index) => (
+                    <motion.li
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-2"
+                    >
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                      {tip}
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-6 w-6 text-primary" />
+                  Weekly Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-4">
-                  {journeyEntries.slice(0, 2).map((entry: HealthJourneyEntry) => (
-                    <div key={entry.id} className="flex items-center gap-4 p-3 rounded-lg border border-light-blue-border bg-white">
-                      <div className="icon-bg">
-                        {entry.category === "nutrition" ? (
-                          <Utensils className="h-4 w-4 text-primary" />
-                        ) : entry.category === "exercise" ? (
-                          <Dumbbell className="h-4 w-4 text-primary" />
-                        ) : (
-                          <Clock className="h-4 w-4 text-primary" />
-                        )}
+                  {[
+                    { label: "Exercise Goals", progress: 80 },
+                    { label: "Nutrition Goals", progress: 65 },
+                    { label: "Sleep Goals", progress: 90 },
+                    { label: "Mindfulness Goals", progress: 70 }
+                  ].map((goal, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>{goal.label}</span>
+                        <span>{goal.progress}%</span>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-dark-text">{entry.title}</p>
-                        <p className="text-xs text-body-text mt-1">
-                          {formatDate(entry.timestamp)}
-                        </p>
-                      </div>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 1, delay: index * 0.2 }}
+                      >
+                        <Progress value={goal.progress} className="h-2" />
+                      </motion.div>
                     </div>
                   ))}
-                  
-                  {journeyEntries.length === 0 && (
-                    <div className="text-center py-6">
-                      <p className="text-body-text">No journey entries yet</p>
-                      <Button variant="outline" size="sm" className="mt-2">Add first entry</Button>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
-
-            {/* Active challenges with cleaner design */}
-            <Card className="clean-card overflow-hidden">
-              <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-semibold">Active Challenges</CardTitle>
-                  <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
-                    <Link to="#" onClick={() => setActiveTab("challenges")}>
-                      View all <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                {challengeProgress.slice(0, 1).map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
-                  <div key={progress.id} className="p-4 border border-light-blue-border rounded-lg bg-white">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-base font-medium text-dark-text mb-1">{progress.challenge.title}</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="clean-badge">{progress.challenge.category}</Badge>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-primary">
-                          {Math.round((progress.currentProgress / progress.challenge.requirementTarget) * 100)}%
-                        </p>
-                        <p className="text-xs text-body-text">
-                          {progress.currentProgress} / {progress.challenge.requirementTarget}
-                        </p>
-                      </div>
-                    </div>
-                    <Progress 
-                      value={(progress.currentProgress / progress.challenge.requirementTarget) * 100} 
-                      className="h-2 mb-2"
-                    />
-                    <div className="flex justify-end mt-4">
-                      <Button variant="outline" size="sm">Update Progress</Button>
-                    </div>
-                  </div>
-                ))}
-                
-                {challengeProgress.length === 0 && (
-                  <div className="text-center py-8">
-                    <p className="text-body-text mb-2">No active challenges</p>
-                    <Button variant="outline" size="sm">Browse challenges</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Articles preview with enhanced design */}
-          <Card className="clean-card overflow-hidden">
-            <CardHeader className="p-6 border-b border-light-blue-border bg-muted/30">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg font-semibold">Health Articles</CardTitle>
-                <Button variant="ghost" size="sm" asChild className="h-8 text-primary">
-                  <Link to="#" onClick={() => setActiveTab("library")}>
-                    View all <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="clean-grid clean-grid-2 gap-6">
-                {healthArticles.slice(0, 2).map((article: HealthArticle) => (
-                  <div key={article.id} className="flex gap-4 p-4 border border-light-blue-border rounded-lg bg-white">
-                    {article.imageUrl && (
-                      <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
-                        <img 
-                          src={article.imageUrl} 
-                          alt={article.title}
-                          className="object-cover w-full h-full" 
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <h3 className="text-base font-medium text-dark-text mb-2">{article.title}</h3>
-                      <p className="text-sm text-body-text mb-2 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center text-xs text-light-body-text">
-                        <Clock className="h-3 w-3 mr-1" />
-                        <span>{article.readTime} min read</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {healthArticles.length === 0 && (
-                  <div className="col-span-2 text-center py-8">
-                    <p className="text-body-text">No articles available</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          </motion.div>
         </TabsContent>
 
         {/* Health Journey Tab */}

@@ -1,0 +1,175 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Activity, Heart, Brain, Sun, Moon } from "lucide-react";
+
+interface MetricCard {
+  title: string;
+  value: number;
+  icon: JSX.Element;
+  color: string;
+}
+
+export default function Dashboard() {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+
+  const metrics: MetricCard[] = [
+    { 
+      title: "Daily Activity",
+      value: 75,
+      icon: <Activity className="h-6 w-6" />,
+      color: "bg-blue-500"
+    },
+    {
+      title: "Heart Rate",
+      value: 68,
+      icon: <Heart className="h-6 w-6" />,
+      color: "bg-red-500"
+    },
+    {
+      title: "Mental Wellness",
+      value: 85,
+      icon: <Brain className="h-6 w-6" />,
+      color: "bg-purple-500"
+    },
+    {
+      title: "Sleep Quality",
+      value: 90,
+      icon: <Moon className="h-6 w-6" />,
+      color: "bg-indigo-500"
+    }
+  ];
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <motion.h1 
+        className="text-3xl font-bold mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        Wellness Dashboard
+      </motion.h1>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {metrics.map((metric) => (
+          <motion.div
+            key={metric.title}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onHoverStart={() => setHoveredCard(metric.title)}
+            onHoverEnd={() => setHoveredCard(null)}
+          >
+            <Card className="relative overflow-hidden">
+              <motion.div
+                className={`absolute inset-0 opacity-10 ${metric.color}`}
+                initial={{ scale: 0 }}
+                animate={{ 
+                  scale: hoveredCard === metric.title ? 1.5 : 1,
+                  opacity: hoveredCard === metric.title ? 0.2 : 0.1
+                }}
+                transition={{ duration: 0.3 }}
+              />
+              
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ 
+                      rotate: hoveredCard === metric.title ? 360 : 0 
+                    }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {metric.icon}
+                  </motion.div>
+                  {metric.title}
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1, delay: 0.2 }}
+                >
+                  <Progress value={metric.value} className="h-2" />
+                </motion.div>
+                <p className="text-2xl font-bold mt-2">{metric.value}%</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      <motion.div
+        className="mt-8 grid md:grid-cols-2 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sun className="h-6 w-6 text-primary" />
+              Daily Wellness Tips
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <motion.ul className="space-y-4">
+              {[
+                "Take a 10-minute mindfulness break",
+                "Drink 8 glasses of water",
+                "Get 30 minutes of moderate exercise",
+                "Practice good posture while working"
+              ].map((tip, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex items-center gap-2"
+                >
+                  <div className="h-2 w-2 rounded-full bg-primary" />
+                  {tip}
+                </motion.li>
+              ))}
+            </motion.ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-6 w-6 text-primary" />
+              Weekly Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { label: "Exercise Goals", progress: 80 },
+                { label: "Nutrition Goals", progress: 65 },
+                { label: "Sleep Goals", progress: 90 },
+                { label: "Mindfulness Goals", progress: 70 }
+              ].map((goal, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{goal.label}</span>
+                    <span>{goal.progress}%</span>
+                  </div>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 1, delay: index * 0.2 }}
+                  >
+                    <Progress value={goal.progress} className="h-2" />
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
