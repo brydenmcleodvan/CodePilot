@@ -28,71 +28,85 @@ const Navbar = () => {
     <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-border-light">
       <div className="clean-container">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-3">
-            <i className="ri-heart-pulse-line text-primary text-2xl"></i>
-            <Link href="/" className="text-xl font-heading font-bold text-dark-text">
-              Healthmap
-            </Link>
+          <div className="flex items-center gap-3 h-full">
+            <div className="flex items-center justify-center h-full">
+              <i className="ri-heart-pulse-line text-primary text-2xl"></i>
+            </div>
+            <div className="flex items-center justify-center h-full">
+              <Link href="/" className="text-xl font-heading font-bold text-dark-text">
+                Healthmap
+              </Link>
+            </div>
           </div>
 
           {/* Main navigation - better spacing and reduced visual noise */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location === "/" ? "text-primary font-semibold" : ""
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/profile"
-              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location === "/profile" ? "text-primary font-semibold" : ""
-              }`}
-            >
-              Profile
-            </Link>
-            <Link
-              href="/dashboard"
-              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location === "/dashboard" ? "text-primary font-semibold" : ""
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/family"
-              className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                location === "/family" ? "text-primary font-semibold" : ""
-              }`}
-            >
-              Family Health
-            </Link>
+          <nav className="hidden md:flex items-center space-x-8 h-full">
+            <div className="flex items-center justify-center h-full">
+              <Link
+                href="/"
+                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                  location === "/" ? "text-primary font-semibold" : ""
+                }`}
+              >
+                Home
+              </Link>
+            </div>
+            <div className="flex items-center justify-center h-full">
+              <Link
+                href="/profile"
+                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                  location === "/profile" ? "text-primary font-semibold" : ""
+                }`}
+              >
+                Profile
+              </Link>
+            </div>
+            <div className="flex items-center justify-center h-full">
+              <Link
+                href="/dashboard"
+                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                  location === "/dashboard" ? "text-primary font-semibold" : ""
+                }`}
+              >
+                Dashboard
+              </Link>
+            </div>
+            <div className="flex items-center justify-center h-full">
+              <Link
+                href="/family"
+                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                  location === "/family" ? "text-primary font-semibold" : ""
+                }`}
+              >
+                Family Health
+              </Link>
+            </div>
             
             {/* Dropdown for additional pages to reduce visual clutter */}
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-body-text hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
-                More <ChevronDown className="h-3 w-3" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                  <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""}`}>
-                    Health Coach
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""}`}>
-                    Connections
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""}`}>
-                    Forum
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center justify-center h-full">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-body-text hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
+                  More <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""}`}>
+                      Health Coach
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""}`}>
+                      Connections
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""}`}>
+                      Forum
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </nav>
 
           {/* User section with improved spacing */}
@@ -100,16 +114,16 @@ const Navbar = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 relative">
+                  <div className="flex items-center h-8">
+                    <div className="flex items-center justify-center h-full">
                       <img
                         src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                         alt="User profile"
                         className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
                       />
                     </div>
-                    <div className="hidden md:flex items-center ml-2">
-                      <span className="text-sm font-medium text-dark-text flex items-center" style={{ lineHeight: '32px' }}>
+                    <div className="hidden md:flex items-center justify-center h-full ml-2">
+                      <span className="text-sm font-medium text-dark-text">
                         {user.name ? user.name.split(" ")[0] : user.username}
                       </span>
                       <ChevronDown className="h-3.5 w-3.5 text-gray-500 ml-1" />
