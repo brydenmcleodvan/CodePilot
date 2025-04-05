@@ -19,7 +19,7 @@ export default function ForumPage() {
       title: "Has anyone tried the Mediterranean diet for heart health?",
       description: "My doctor recommended the Mediterranean diet to help with my cholesterol levels. I'm three weeks in and wanted to share some meal ideas and hear others' experiences.",
       author: "HeartHealthy50",
-      subreddit: "r/Nutrition",
+      subreddit: "h/Nutrition",
       upvotes: 247,
       comments: 24,
       timePosted: "5 hours ago",
@@ -33,7 +33,7 @@ export default function ForumPage() {
       title: "Tips for managing chronic back pain without medication?",
       description: "I've been dealing with lower back pain for years and trying to reduce my reliance on pain meds. Looking for alternative approaches that have worked for others.",
       author: "BackPainWarrior",
-      subreddit: "r/ChronicPain",
+      subreddit: "h/ChronicPain",
       upvotes: 421,
       comments: 38,
       timePosted: "12 hours ago",
@@ -47,7 +47,7 @@ export default function ForumPage() {
       title: "Mental health strategies during major life transitions",
       description: "Going through a career change and feeling anxious most days. What mental health practices have helped you stay grounded during big life changes?",
       author: "NewBeginnings",
-      subreddit: "r/MentalHealth",
+      subreddit: "h/MentalHealth",
       upvotes: 1024,
       comments: 96,
       timePosted: "1 day ago",
@@ -61,7 +61,7 @@ export default function ForumPage() {
       title: "Best fitness trackers for seniors - recommendations?",
       description: "Looking for a simple fitness tracker for my 70-year-old mother who wants to monitor her daily steps and heart rate. Ease of use is the priority.",
       author: "ActiveSenior",
-      subreddit: "r/FitnessTech",
+      subreddit: "h/FitnessTech",
       upvotes: 67,
       comments: 19,
       timePosted: "2 days ago",
@@ -75,7 +75,7 @@ export default function ForumPage() {
       title: "Sleep apnea diagnosis journey - what to expect?",
       description: "Recently referred for a sleep study based on my symptoms. Would appreciate hearing from others about their diagnosis process and treatment experiences.",
       author: "SleepSeeker",
-      subreddit: "r/SleepApnea",
+      subreddit: "h/SleepApnea",
       upvotes: 312,
       comments: 31,
       timePosted: "3 days ago",
@@ -89,7 +89,7 @@ export default function ForumPage() {
       title: "Managing type 2 diabetes through lifestyle changes - My 6-month progress",
       description: "Recently diagnosed with type 2 diabetes and determined to manage it through diet and exercise. Here's what's worked for me over the past 6 months...",
       author: "DiabetesNewbie",
-      subreddit: "r/diabetes",
+      subreddit: "h/Diabetes",
       upvotes: 1482,
       comments: 145,
       timePosted: "4 days ago",
@@ -100,29 +100,29 @@ export default function ForumPage() {
     }
   ];
 
-  // Reddit-style trending communities
+  // Healthmap trending communities
   const trendingCommunities = [
-    { name: "r/Nutrition", members: "2.4m", online: "5.2k", trend: "+15%" },
-    { name: "r/MentalHealth", members: "1.8m", online: "3.9k", trend: "+22%" },
-    { name: "r/Fitness", members: "3.6m", online: "8.7k", trend: "+8%" },
-    { name: "r/ChronicPain", members: "567k", online: "1.2k", trend: "+19%" },
-    { name: "r/SleepHealth", members: "782k", online: "2.1k", trend: "+12%" }
+    { name: "h/Nutrition", members: "2.4m", online: "5.2k", trend: "+15%" },
+    { name: "h/MentalHealth", members: "1.8m", online: "3.9k", trend: "+22%" },
+    { name: "h/Fitness", members: "3.6m", online: "8.7k", trend: "+8%" },
+    { name: "h/ChronicPain", members: "567k", online: "1.2k", trend: "+19%" },
+    { name: "h/SleepHealth", members: "782k", online: "2.1k", trend: "+12%" }
   ];
 
   // Format the upvote count in Reddit style (1.2k instead of 1200)
-  const formatCount = (count) => {
-    if (count < 1000) return count;
+  const formatCount = (count: number): string => {
+    if (count < 1000) return count.toString();
     return (count / 1000).toFixed(1) + 'k';
   };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-[1200px]">
-      {/* Reddit-style header with subreddit name */}
+      {/* Reddit-style header with community name */}
       <div className="flex items-center gap-3 mb-4 bg-white p-3 rounded-md shadow-sm">
         <MessageSquare className="w-8 h-8 text-primary" />
         <div>
           <h1 className="text-xl font-bold">HealthMap Forum</h1>
-          <p className="text-sm text-muted-foreground">health.reddit.com</p>
+          <p className="text-sm text-muted-foreground">forum.healthmap.com</p>
         </div>
         <Button variant="outline" size="sm" className="ml-auto">Join</Button>
       </div>
@@ -346,7 +346,7 @@ export default function ForumPage() {
                   <li key={idx} className="flex items-center justify-between hover:bg-gray-50 p-1.5 rounded-md cursor-pointer">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
-                        r/
+                        h/
                       </div>
                       <div>
                         <p className="text-sm font-medium">{community.name}</p>
