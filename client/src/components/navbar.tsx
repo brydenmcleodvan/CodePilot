@@ -100,16 +100,18 @@ const Navbar = () => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-2 p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
-                  <img
-                    src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
-                    alt="User profile"
-                    className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
-                  />
-                  <div className="hidden md:flex items-center gap-1">
-                    <span className="text-sm font-medium text-dark-text">
-                      {user.name ? user.name.split(" ")[0] : user.username}
-                    </span>
-                    <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+                  <div className="flex items-center">
+                    <img
+                      src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                      alt="User profile"
+                      className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
+                    />
+                    <div className="hidden md:flex items-center gap-1 ml-2">
+                      <span className="text-sm font-medium text-dark-text leading-none flex items-center">
+                        {user.name ? user.name.split(" ")[0] : user.username}
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+                    </div>
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
