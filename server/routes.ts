@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import { handlePerplexityRequest } from "./perplexity";
 
 const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
 
@@ -1172,6 +1173,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error deleting mood entry:", error);
       res.status(500).json({ message: "Failed to delete mood entry" });
     }
+  });
+
+  // Perplexity API route
+  app.post(`${apiRouter}/perplexity`, async (req, res) => {
+    handlePerplexityRequest(req, res);
   });
 
   const httpServer = createServer(app);

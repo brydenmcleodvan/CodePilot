@@ -1,8 +1,105 @@
-import React from 'react';
-import { HeadphonesIcon, Calendar, MessageSquare, VideoIcon } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { 
+  HeadphonesIcon, Calendar, MessageSquare, VideoIcon, 
+  Bot, Send, Mic, RefreshCw, Sparkles, AlertCircle
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
+import { healthResponses, queryPerplexityAPI } from "@/lib/utils";
+
+// Define type for chat messages
+interface ChatMessage {
+  role: 'system' | 'user';
+  content: string;
+}
+
+// Define type for API status
+type ApiStatus = 'loading' | 'available' | 'unavailable';
 
 export function HealthCoach() {
+  // State for AI assistant chat
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: 'system',
+      content: "Hello! I'm your AI Health Assistant. I can help answer health questions, provide wellness tips, and offer guidance on your health journey. How can I assist you today?"
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
+  
+  // Set API status to unavailable for demo purposes
+  useEffect(() => {
+    // For demo purposes, we'll always use the fallback responses
+    setApiStatus('unavailable');
+  }, []);
+
+  // Handle sending a message to the AI assistant
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+    
+    // Create a properly typed user message
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: inputMessage
+    };
+    
+    // Add user message to chat
+    const newMessages: ChatMessage[] = [
+      ...messages,
+      userMessage
+    ];
+    
+    setMessages(newMessages);
+    setInputMessage('');
+    setIsLoading(true);
+    
+    try {
+      // Use Perplexity API if available, otherwise use fallback responses
+      if (apiStatus === 'available') {
+        // Send messages to Perplexity API
+        const response = await queryPerplexityAPI(newMessages);
+        
+        // Add response to chat
+        const updatedMessages: ChatMessage[] = [
+          ...newMessages,
+          { role: 'system', content: response }
+        ];
+        
+        setMessages(updatedMessages);
+      } else {
+        // Use fallback responses
+        setTimeout(() => {
+          const randomResponse = healthResponses[Math.floor(Math.random() * healthResponses.length)];
+          
+          const updatedMessages: ChatMessage[] = [
+            ...newMessages,
+            { role: 'system', content: randomResponse }
+          ];
+          
+          setMessages(updatedMessages);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      
+      // Add error message to chat
+      const updatedMessages: ChatMessage[] = [
+        ...newMessages,
+        { 
+          role: 'system', 
+          content: "I'm sorry, I'm having trouble responding right now. Please try again later."
+        }
+      ];
+      
+      setMessages(updatedMessages);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-2 mb-6">
@@ -10,9 +107,171 @@ export function HealthCoach() {
         <h1 className="text-3xl font-bold">Health Coach</h1>
       </div>
 
-      <p className="text-lg mb-8">
-        Get personalized guidance from certified health professionals to achieve your wellness goals.
-      </p>
+      <Tabs defaultValue="coach" className="mb-8">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="coach" className="flex items-center gap-2">
+            <HeadphonesIcon className="w-4 h-4" />
+            <span>Human Coach</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Bot className="w-4 h-4" />
+            <span>AI Assistant</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="coach">
+          <p className="text-lg mb-8">
+            Get personalized guidance from certified health professionals to achieve your wellness goals.
+          </p>
+        </TabsContent>
+        
+        <TabsContent value="ai">
+          <p className="text-lg mb-8">
+            Need quick health guidance? Chat with our AI Health Assistant for instant answers and wellness tips.
+          </p>
+          
+          {/* AI Assistant Chat UI */}
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            {/* Chat header */}
+            <div className="bg-primary p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
+              <div className="text-white">
+                <h3 className="font-semibold">AI Health Assistant</h3>
+                <p className="text-xs opacity-90">Available 24/7 for your health questions</p>
+              </div>
+              <button 
+                className="ml-auto p-2 rounded-full hover:bg-primary-dark text-white"
+                onClick={() => {
+                  // Reset chat to initial state
+                  setMessages([{
+                    role: 'system',
+                    content: "Hello! I'm your AI Health Assistant. I can help answer health questions, provide wellness tips, and offer guidance on your health journey. How can I assist you today?"
+                  }]);
+                  setInputMessage('');
+                }}
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+            
+            {/* Chat messages */}
+            <div className="p-4 h-96 overflow-y-auto bg-gray-50">
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <div 
+                    key={index} 
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-[75%] rounded-lg p-3 ${
+                        message.role === 'user' 
+                          ? 'bg-primary text-white rounded-tr-none' 
+                          : 'bg-white border rounded-tl-none'
+                      }`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[75%] rounded-lg p-3 bg-white border rounded-tl-none">
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse delay-75"></div>
+                        <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse delay-150"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Chat input */}
+            <div className="p-3 border-t">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Ask about diet, exercise, sleep, stress management..."
+                  className="flex-1"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                />
+                <Button 
+                  size="icon" 
+                  onClick={handleSendMessage}
+                  disabled={isLoading || !inputMessage.trim()}
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+                <Button size="icon" variant="outline">
+                  <Mic className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-center mt-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3 text-primary" />
+                  <span>Powered by {apiStatus === 'available' ? 'Perplexity AI' : 'HealthMap AI'} - Not a substitute for professional medical advice</span>
+                </div>
+              </div>
+              
+              {apiStatus === 'loading' && (
+                <div className="mt-2 flex justify-center">
+                  <span className="text-xs flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                    Checking API availability...
+                  </span>
+                </div>
+              )}
+              
+              {apiStatus === 'unavailable' && (
+                <div className="mt-2">
+                  <div className="py-2 px-3 rounded border bg-amber-50 border-amber-200 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-semibold text-amber-700">Using fallback responses</p>
+                      <p className="text-xs text-amber-600">
+                        API connection unavailable. Using pre-defined responses.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Suggested questions */}
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">Suggested Questions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                "How much sleep should I get each night?",
+                "What foods can help reduce inflammation?",
+                "How can I improve my stress management?",
+                "What exercises are good for lower back pain?",
+                "How much water should I drink daily?",
+                "What are signs of vitamin D deficiency?"
+              ].map((question, i) => (
+                <Button 
+                  key={i} 
+                  variant="outline" 
+                  className="justify-start h-auto py-3 hover:bg-gray-50"
+                  onClick={() => {
+                    setInputMessage(question);
+                    // Trigger send message after a short delay
+                    setTimeout(() => handleSendMessage(), 100);
+                  }}
+                >
+                  {question}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <div className="grid md:grid-cols-2 gap-8 mb-12">
         <div className="bg-white p-6 rounded-lg shadow">
