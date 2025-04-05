@@ -198,6 +198,13 @@ const Profile = () => {
                 </ul>
               </div>
 
+              <div className="mb-8">
+                <h3 className="text-xl font-medium mb-4">Medication Schedule</h3>
+                <div className="bg-white rounded-lg border border-gray-200">
+                  <MedicationTracker />
+                </div>
+              </div>
+
               <div>
                 <h3 className="text-xl font-medium mb-4">Connected Data Sources</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -277,9 +284,8 @@ const Profile = () => {
                 <HealthStats userId={user.id} detailed={true} />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <GoalTracker />
-                <MedicationTracker />
               </div>
               
               <div className="grid grid-cols-1 gap-6">

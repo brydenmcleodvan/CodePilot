@@ -69,17 +69,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* User-specific Components - Only show if user is logged in */}
-        {user && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="md:col-span-2">
-              <HealthStats userId={user.id} />
-            </div>
-            <div>
-              <MedicationTracker />
-            </div>
-          </div>
-        )}
+        {/* We've removed the Health Overview section from here */}
 
         {/* News & Updates */}
         <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
