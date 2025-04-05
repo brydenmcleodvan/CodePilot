@@ -1,9 +1,17 @@
-import { MessageSquare, Search, Tag, Users, Filter, Plus } from "lucide-react";
+import { 
+  MessageSquare, Search, Tag, Users, Filter, Plus, 
+  ChevronUp, ChevronDown, MessageCircle, Share2, Award, 
+  BarChart4, Clock, Flame, TrendingUp
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 export default function ForumPage() {
+  const [activeTab, setActiveTab] = useState("hot");
+  
   // Define forum topics with more realistic health-related content
   const forumTopics = [
     {
@@ -11,199 +19,368 @@ export default function ForumPage() {
       title: "Has anyone tried the Mediterranean diet for heart health?",
       description: "My doctor recommended the Mediterranean diet to help with my cholesterol levels. I'm three weeks in and wanted to share some meal ideas and hear others' experiences.",
       author: "HeartHealthy50",
-      category: "Nutrition",
+      subreddit: "r/Nutrition",
+      upvotes: 247,
       comments: 24,
-      lastActive: "2 hours ago",
-      tags: ["diet", "heart-health", "nutrition"]
+      timePosted: "5 hours ago",
+      awards: 1,
+      image: null,
+      isUpvoted: true,
+      isDownvoted: false
     },
     {
       id: 2,
       title: "Tips for managing chronic back pain without medication?",
       description: "I've been dealing with lower back pain for years and trying to reduce my reliance on pain meds. Looking for alternative approaches that have worked for others.",
       author: "BackPainWarrior",
-      category: "Pain Management",
+      subreddit: "r/ChronicPain",
+      upvotes: 421,
       comments: 38,
-      lastActive: "5 hours ago",
-      tags: ["chronic-pain", "back-pain", "natural-remedies"]
+      timePosted: "12 hours ago",
+      awards: 2,
+      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1000&auto=format&fit=crop",
+      isUpvoted: false,
+      isDownvoted: false
     },
     {
       id: 3,
       title: "Mental health strategies during major life transitions",
       description: "Going through a career change and feeling anxious most days. What mental health practices have helped you stay grounded during big life changes?",
       author: "NewBeginnings",
-      category: "Mental Health",
-      comments: 16,
-      lastActive: "Yesterday",
-      tags: ["anxiety", "stress", "meditation"]
+      subreddit: "r/MentalHealth",
+      upvotes: 1024,
+      comments: 96,
+      timePosted: "1 day ago",
+      awards: 3,
+      image: null,
+      isUpvoted: false,
+      isDownvoted: false
     },
     {
       id: 4,
       title: "Best fitness trackers for seniors - recommendations?",
       description: "Looking for a simple fitness tracker for my 70-year-old mother who wants to monitor her daily steps and heart rate. Ease of use is the priority.",
       author: "ActiveSenior",
-      category: "Fitness Technology",
+      subreddit: "r/FitnessTech",
+      upvotes: 67,
       comments: 19,
-      lastActive: "2 days ago",
-      tags: ["seniors", "fitness-tech", "heart-monitoring"]
+      timePosted: "2 days ago",
+      awards: 0,
+      image: null,
+      isUpvoted: false,
+      isDownvoted: false
     },
     {
       id: 5,
       title: "Sleep apnea diagnosis journey - what to expect?",
       description: "Recently referred for a sleep study based on my symptoms. Would appreciate hearing from others about their diagnosis process and treatment experiences.",
       author: "SleepSeeker",
-      category: "Sleep Health",
+      subreddit: "r/SleepApnea",
+      upvotes: 312,
       comments: 31,
-      lastActive: "3 days ago",
-      tags: ["sleep-apnea", "sleep-study", "CPAP"]
+      timePosted: "3 days ago",
+      awards: 1,
+      image: null,
+      isUpvoted: false,
+      isDownvoted: false
     },
     {
       id: 6,
-      title: "Managing type 2 diabetes through lifestyle changes",
-      description: "Recently diagnosed with type 2 diabetes and determined to manage it through diet and exercise. Looking for success stories and practical advice.",
+      title: "Managing type 2 diabetes through lifestyle changes - My 6-month progress",
+      description: "Recently diagnosed with type 2 diabetes and determined to manage it through diet and exercise. Here's what's worked for me over the past 6 months...",
       author: "DiabetesNewbie",
-      category: "Chronic Conditions",
-      comments: 45,
-      lastActive: "3 days ago",
-      tags: ["diabetes", "nutrition", "exercise"]
+      subreddit: "r/diabetes",
+      upvotes: 1482,
+      comments: 145,
+      timePosted: "4 days ago",
+      awards: 5,
+      image: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=1000&auto=format&fit=crop",
+      isUpvoted: false,
+      isDownvoted: false
     }
   ];
 
-  // Popular categories for the filter section
-  const popularCategories = [
-    "Mental Health", "Nutrition", "Fitness", "Sleep Health", 
-    "Chronic Conditions", "Pain Management", "Preventive Care"
+  // Reddit-style trending communities
+  const trendingCommunities = [
+    { name: "r/Nutrition", members: "2.4m", online: "5.2k", trend: "+15%" },
+    { name: "r/MentalHealth", members: "1.8m", online: "3.9k", trend: "+22%" },
+    { name: "r/Fitness", members: "3.6m", online: "8.7k", trend: "+8%" },
+    { name: "r/ChronicPain", members: "567k", online: "1.2k", trend: "+19%" },
+    { name: "r/SleepHealth", members: "782k", online: "2.1k", trend: "+12%" }
   ];
 
+  // Format the upvote count in Reddit style (1.2k instead of 1200)
+  const formatCount = (count) => {
+    if (count < 1000) return count;
+    return (count / 1000).toFixed(1) + 'k';
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <MessageSquare className="w-6 h-6 text-primary" />
-        <h1 className="text-3xl font-bold">Health Forum</h1>
-      </div>
-
-      <p className="text-lg mb-8">
-        Join discussions about health trends, fitness tips, and preventive care with our community of health enthusiasts and professionals.
-      </p>
-
-      {/* Search and Filter Bar */}
-      <div className="bg-white p-4 rounded-lg shadow mb-8">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input 
-              type="text" 
-              placeholder="Search discussions..." 
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <span className="hidden sm:inline">Filter</span>
-            </Button>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              <span>New Topic</span>
-            </Button>
-          </div>
+    <div className="container mx-auto px-4 py-6 max-w-[1200px]">
+      {/* Reddit-style header with subreddit name */}
+      <div className="flex items-center gap-3 mb-4 bg-white p-3 rounded-md shadow-sm">
+        <MessageSquare className="w-8 h-8 text-primary" />
+        <div>
+          <h1 className="text-xl font-bold">HealthMap Forum</h1>
+          <p className="text-sm text-muted-foreground">health.reddit.com</p>
         </div>
+        <Button variant="outline" size="sm" className="ml-auto">Join</Button>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Forum Topics List */}
-        <div className="w-full md:w-3/4">
-          <h2 className="text-xl font-semibold mb-4">Recent Discussions</h2>
-          
-          <div className="space-y-6">
-            {forumTopics.map((topic) => (
-              <div key={topic.id} className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="flex justify-between mb-3">
-                  <h2 className="text-xl font-semibold mb-2 text-primary hover:underline cursor-pointer">{topic.title}</h2>
-                  <Badge variant="outline" className="h-fit">
-                    {topic.category}
-                  </Badge>
-                </div>
-                
-                <p className="text-muted-foreground mb-4">
-                  {topic.description}
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {topic.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      #{tag}
-                    </Badge>
-                  ))}
-                </div>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />
-                      {topic.author}
+      {/* Main Reddit-style grid layout */}
+      <div className="flex flex-col md:flex-row gap-5">
+        {/* Main content area - 2/3 width */}
+        <div className="w-full md:w-2/3">
+          {/* Search bar */}
+          <div className="bg-white rounded-md shadow-sm p-3 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input 
+                type="text" 
+                placeholder="Search HealthMap Forum" 
+                className="pl-10 bg-gray-50"
+              />
+            </div>
+          </div>
+
+          {/* Reddit-style sort tabs */}
+          <div className="bg-white rounded-md shadow-sm mb-4">
+            <Tabs defaultValue="hot" className="w-full" onValueChange={setActiveTab}>
+              <div className="p-1">
+                <TabsList className="grid grid-cols-5 h-9">
+                  <TabsTrigger value="hot" className="flex items-center gap-1.5 text-xs">
+                    <Flame className="h-3.5 w-3.5" />
+                    <span>Hot</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="new" className="flex items-center gap-1.5 text-xs">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>New</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="top" className="flex items-center gap-1.5 text-xs">
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    <span>Top</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="rising" className="flex items-center gap-1.5 text-xs">
+                    <BarChart4 className="h-3.5 w-3.5" />
+                    <span>Rising</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="create" className="flex items-center gap-1.5 text-xs">
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Create Post</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </Tabs>
+          </div>
+
+          {/* Reddit-style posts */}
+          <div className="space-y-3">
+            {forumTopics.map((post) => (
+              <div key={post.id} className="bg-white rounded-md shadow-sm hover:border hover:border-gray-300 transition-all">
+                <div className="flex">
+                  {/* Voting sidebar */}
+                  <div className="bg-gray-50 p-2 flex flex-col items-center rounded-l-md min-w-[40px]">
+                    <button 
+                      className={`p-1 rounded hover:bg-gray-200 ${post.isUpvoted ? "text-primary" : ""}`}
+                    >
+                      <ChevronUp className="h-5 w-5" />
+                    </button>
+                    <span className={`text-xs font-semibold my-1 ${
+                      post.isUpvoted ? "text-primary" : 
+                      post.isDownvoted ? "text-red-500" : "text-gray-600"
+                    }`}>
+                      {formatCount(post.upvotes)}
                     </span>
-                    <span>•</span>
-                    <span>{topic.comments} comments</span>
-                    <span>•</span>
-                    <span>Last active: {topic.lastActive}</span>
+                    <button 
+                      className={`p-1 rounded hover:bg-gray-200 ${post.isDownvoted ? "text-red-500" : ""}`}
+                    >
+                      <ChevronDown className="h-5 w-5" />
+                    </button>
                   </div>
-                  <Button variant="outline" size="sm">
-                    View
-                  </Button>
+
+                  {/* Post content */}
+                  <div className="p-3 flex-grow">
+                    {/* Post metadata */}
+                    <div className="flex items-center text-xs text-muted-foreground mb-2">
+                      <span className="font-medium text-primary hover:underline cursor-pointer">
+                        {post.subreddit}
+                      </span>
+                      <span className="mx-1">•</span>
+                      <span>Posted by</span>
+                      <span className="mx-1 hover:underline cursor-pointer">u/{post.author}</span>
+                      <span className="mx-1">•</span>
+                      <span>{post.timePosted}</span>
+                      {post.awards > 0 && (
+                        <>
+                          <span className="mx-1">•</span>
+                          <div className="flex items-center gap-1">
+                            <Award className="h-3.5 w-3.5 text-yellow-500" />
+                            <span>{post.awards}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Post title and content */}
+                    <h2 className="text-lg font-semibold mb-2 hover:text-primary cursor-pointer">
+                      {post.title}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {post.description.length > 180 
+                        ? post.description.substring(0, 180) + '...' 
+                        : post.description}
+                    </p>
+
+                    {/* Post image if available */}
+                    {post.image && (
+                      <div className="relative mb-3 rounded-md overflow-hidden bg-gray-100">
+                        <img 
+                          src={post.image} 
+                          alt={post.title} 
+                          className="max-h-80 object-cover mx-auto"
+                        />
+                      </div>
+                    )}
+
+                    {/* Post actions */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                        <MessageCircle className="h-4 w-4" />
+                        <span>{post.comments} Comments</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                        <Share2 className="h-4 w-4" />
+                        <span>Share</span>
+                      </button>
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                        <Award className="h-4 w-4" />
+                        <span>Award</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-          
-          <div className="flex justify-center mt-8">
-            <Button variant="outline">Load More Discussions</Button>
+
+          {/* Load more button */}
+          <div className="flex justify-center mt-5">
+            <Button variant="outline" className="w-full max-w-[300px]">
+              Load More
+            </Button>
           </div>
         </div>
-        
-        {/* Sidebar */}
-        <div className="w-full md:w-1/4">
-          {/* Popular Categories */}
-          <div className="bg-white p-5 rounded-lg shadow mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Tag className="h-4 w-4 text-primary" />
-              <h3 className="font-semibold">Popular Categories</h3>
+
+        {/* Sidebar - 1/3 width */}
+        <div className="w-full md:w-1/3 space-y-4">
+          {/* About Community Box */}
+          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+            <div className="bg-primary p-3">
+              <h2 className="text-white font-medium">About Community</h2>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {popularCategories.map((category, idx) => (
-                <Badge 
-                  key={idx} 
-                  variant="outline" 
-                  className="cursor-pointer hover:bg-primary/10"
-                >
-                  {category}
-                </Badge>
-              ))}
+            <div className="p-4">
+              <p className="text-sm mb-3">
+                A community for discussing health topics, sharing experiences, and getting support from others on similar health journeys.
+              </p>
+              
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-lg font-bold">8.2m</p>
+                  <p className="text-xs text-muted-foreground">Members</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold">12.4k</p>
+                  <p className="text-xs text-muted-foreground">Online</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold">2015</p>
+                  <p className="text-xs text-muted-foreground">Created</p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <Button className="w-full">Create Post</Button>
+                <Button variant="outline" className="w-full">Create Community</Button>
+              </div>
             </div>
           </div>
-          
-          {/* Community Guidelines */}
-          <div className="bg-white p-5 rounded-lg shadow">
-            <h3 className="font-semibold mb-3">Community Guidelines</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <div className="min-w-[6px] h-[6px] rounded-full bg-primary mt-1.5"></div>
-                <span>Be respectful and supportive of others</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="min-w-[6px] h-[6px] rounded-full bg-primary mt-1.5"></div>
-                <span>No medical advice - share experiences only</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="min-w-[6px] h-[6px] rounded-full bg-primary mt-1.5"></div>
-                <span>Respect privacy and confidentiality</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="min-w-[6px] h-[6px] rounded-full bg-primary mt-1.5"></div>
-                <span>Report inappropriate content to moderators</span>
-              </li>
-            </ul>
+
+          {/* Rules Box */}
+          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+            <div className="p-4">
+              <h3 className="font-semibold mb-3">Community Rules</h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[16px]">1.</span>
+                  <span>Be respectful and supportive of others</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[16px]">2.</span>
+                  <span>No medical advice - share experiences only</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[16px]">3.</span>
+                  <span>Respect privacy and confidentiality</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[16px]">4.</span>
+                  <span>No promotion of unapproved treatments</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="font-semibold min-w-[16px]">5.</span>
+                  <span>No misinformation or unverified claims</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Trending Communities */}
+          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold">Trending Health Communities</h3>
+              </div>
+              <ul className="space-y-3">
+                {trendingCommunities.map((community, idx) => (
+                  <li key={idx} className="flex items-center justify-between hover:bg-gray-50 p-1.5 rounded-md cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
+                        r/
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{community.name}</p>
+                        <p className="text-xs text-muted-foreground">{community.members} members</p>
+                      </div>
+                    </div>
+                    <div className="text-xs font-medium text-green-600">
+                      {community.trend}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <Button variant="link" className="text-xs w-full mt-2">
+                View All Health Communities
+              </Button>
+            </div>
+          </div>
+
+          {/* Moderators Box */}
+          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+            <div className="p-4">
+              <h3 className="font-semibold mb-2">Moderators</h3>
+              <Button variant="link" className="text-xs p-0 h-auto">
+                Message the mods
+              </Button>
+              <ul className="mt-2 space-y-1">
+                <li className="text-xs text-primary hover:underline cursor-pointer">u/HealthMapAdmin</li>
+                <li className="text-xs text-primary hover:underline cursor-pointer">u/NutritionMod</li>
+                <li className="text-xs text-primary hover:underline cursor-pointer">u/FitnessCoach22</li>
+              </ul>
+              <Button variant="link" className="text-xs p-0 h-auto mt-2">
+                View All Moderators
+              </Button>
+            </div>
           </div>
         </div>
       </div>
