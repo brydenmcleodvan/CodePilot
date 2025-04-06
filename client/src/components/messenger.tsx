@@ -69,7 +69,7 @@ const users: User[] = [
     status: "online", 
     type: "Friend",
     lastSeen: "5 min ago",
-    unreadCount: 0
+    unreadCount: 2
   },
   { 
     id: 5, 
@@ -176,6 +176,23 @@ const sampleMessages: Message[] = [
         name: "Updated Supplement Plan.pdf"
       }
     ]
+  },
+  // Mike Johnson messages
+  {
+    id: 8,
+    sender: 2, // Mike Johnson
+    recipient: 0, // Current user
+    content: "Hey I goat a Two for One Discount on Whoop Bands, want to go in?",
+    timestamp: "Today, 1:15 PM",
+    isRead: false
+  },
+  {
+    id: 9,
+    sender: 2, // Mike Johnson
+    recipient: 0, // Current user
+    content: "They're having a special promotion this week. Let me know if you're interested!",
+    timestamp: "Today, 1:17 PM",
+    isRead: false
   }
 ];
 
