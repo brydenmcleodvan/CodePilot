@@ -62,10 +62,10 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
         <h2 className="text-2xl font-heading font-semibold">
           {user ? "Personalized Recommendations" : "Health Products"}
         </h2>
-        <button className="text-primary hover:text-secondary flex items-center space-x-1">
+        <Link href="/shop" className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>
-        </button>
+        </Link>
       </div>
 
       <div className="relative bg-white rounded-xl shadow-lg p-8 mb-6">
