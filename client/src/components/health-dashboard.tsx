@@ -214,7 +214,26 @@ const generateHeatMapData = () => {
 const heatMapData = generateHeatMapData();
 
 // Color scale for the heat map
-const getHeatMapColor = (value: number) => {
+const getHeatMapColor = (value: number, date: string) => {
+  // Add a few specific yellow and red days
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  // Make a specific day red (simulating a day with very poor health metrics)
+  if (date === format(subDays(new Date(), 5), 'yyyy-MM-dd')) {
+    return 'bg-red-500';
+  }
+  
+  // Make some specific days yellow (moderate concern days)
+  if (
+    date === format(subDays(new Date(), 12), 'yyyy-MM-dd') ||
+    date === format(subDays(new Date(), 25), 'yyyy-MM-dd') ||
+    date === format(subDays(new Date(), 38), 'yyyy-MM-dd') ||
+    date === format(subDays(new Date(), 47), 'yyyy-MM-dd')
+  ) {
+    return 'bg-yellow-400';
+  }
+  
+  // Regular color scale based on value
   if (value >= 8) return 'bg-green-500';
   if (value >= 6) return 'bg-green-400';
   if (value >= 4) return 'bg-green-300';
@@ -282,7 +301,7 @@ const HealthHeatMap = () => {
           return (
             <div 
               key={date.toISOString()} 
-              className={`aspect-square rounded-md flex items-center justify-center cursor-pointer hover:border hover:border-primary transition-all ${getHeatMapColor(activityValue)}`}
+              className={`aspect-square rounded-md flex items-center justify-center cursor-pointer hover:border hover:border-primary transition-all ${getHeatMapColor(activityValue, format(date, 'yyyy-MM-dd'))}`}
               title={`${format(date, 'MMM d, yyyy')}: Activity level ${activityValue}/10`}
             >
               <span className="text-xs font-medium text-gray-700">
@@ -299,20 +318,20 @@ const HealthHeatMap = () => {
           <span className="text-xs">Low</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-green-200 rounded"></div>
-          <span className="text-xs">Medium-Low</span>
-        </div>
-        <div className="flex items-center space-x-1">
           <div className="w-3 h-3 bg-green-300 rounded"></div>
           <span className="text-xs">Medium</span>
         </div>
         <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-green-400 rounded"></div>
-          <span className="text-xs">Medium-High</span>
-        </div>
-        <div className="flex items-center space-x-1">
           <div className="w-3 h-3 bg-green-500 rounded"></div>
           <span className="text-xs">High</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <div className="w-3 h-3 bg-yellow-400 rounded"></div>
+          <span className="text-xs">Warning</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <div className="w-3 h-3 bg-red-500 rounded"></div>
+          <span className="text-xs">Alert</span>
         </div>
       </div>
     </div>
