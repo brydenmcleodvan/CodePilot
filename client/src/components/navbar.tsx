@@ -104,6 +104,11 @@ const Navbar = () => {
                       Forum
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/messenger" className={`cursor-pointer w-full ${location === "/messenger" ? "text-primary" : ""}`}>
+                      Messenger
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -142,6 +147,9 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/family" className="cursor-pointer">Family Health</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/messenger" className="cursor-pointer">Messenger</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
@@ -240,6 +248,14 @@ const Navbar = () => {
                 }`}
               >
                 Forum
+              </Link>
+              <Link
+                href="/messenger"
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/messenger" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                Messenger
               </Link>
             </nav>
           </div>
