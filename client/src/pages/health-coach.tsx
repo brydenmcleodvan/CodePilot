@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { 
   HeadphonesIcon, Calendar, MessageSquare, VideoIcon, 
-  Bot, Send, Mic, RefreshCw, Sparkles, AlertCircle
+  Bot, Send, Mic, RefreshCw, Sparkles, AlertCircle,
+  ChevronUp, ChevronDown, LineChart, Users, Award,
+  Utensils, FileText, Play, BookOpen, Target, ScrollText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { healthResponses, queryPerplexityAPI } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // Define type for chat messages
 interface ChatMessage {
@@ -29,6 +32,7 @@ export function HealthCoach() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Set API status to unavailable for demo purposes
   useEffect(() => {
@@ -381,6 +385,346 @@ export function HealthCoach() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Additional features in collapsible section */}
+      <div className="mt-12">
+        <Collapsible 
+          className="border rounded-lg bg-white shadow overflow-hidden"
+          open={isExpanded}
+          onOpenChange={setIsExpanded}
+        >
+          <CollapsibleTrigger className="w-full flex justify-between items-center p-4 hover:bg-gray-50">
+            <h2 className="text-xl font-semibold">Coaching Resources & Tools</h2>
+            <div className="text-primary">
+              {/* Animated icon */}
+              <motion.div
+                animate={{ rotate: isExpanded ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="h-5 w-5" />
+              </motion.div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-4 border-t">
+              <Tabs defaultValue="analytics">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-4">
+                  <TabsTrigger value="analytics" className="flex items-center gap-1.5">
+                    <LineChart className="w-4 h-4" />
+                    <span>Analytics</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="community" className="flex items-center gap-1.5">
+                    <Users className="w-4 h-4" />
+                    <span>Community</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="content" className="flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Resources</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="challenges" className="flex items-center gap-1.5">
+                    <Award className="w-4 h-4" />
+                    <span>Challenges</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="assessments" className="flex items-center gap-1.5">
+                    <ScrollText className="w-4 h-4" />
+                    <span>Assessments</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Analytics Tab */}
+                <TabsContent value="analytics">
+                  <h3 className="text-lg font-medium mb-4">Health Progress Analytics</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <LineChart className="h-4 w-4 text-primary" />
+                        Progress Charts
+                      </h4>
+                      <div className="h-40 bg-gray-100 rounded-md flex items-center justify-center">
+                        <p className="text-muted-foreground text-sm">Interactive progress charts will appear here</p>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <Button size="sm" variant="outline" className="text-xs">Sleep</Button>
+                        <Button size="sm" variant="outline" className="text-xs">Nutrition</Button>
+                        <Button size="sm" variant="outline" className="text-xs">Activity</Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-primary" />
+                        Health Insights
+                      </h4>
+                      <ul className="space-y-2">
+                        <li className="border-l-2 border-green-500 pl-3 py-1 text-sm">
+                          Sleep quality improved by 15% this month
+                        </li>
+                        <li className="border-l-2 border-amber-500 pl-3 py-1 text-sm">
+                          Stress levels increased during work days
+                        </li>
+                        <li className="border-l-2 border-blue-500 pl-3 py-1 text-sm">
+                          Water intake consistently below target
+                        </li>
+                        <li className="border-l-2 border-purple-500 pl-3 py-1 text-sm">
+                          Exercise consistency improved on weekends
+                        </li>
+                      </ul>
+                      <Button size="sm" variant="outline" className="w-full mt-4 text-xs">
+                        View all insights
+                      </Button>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Community Tab */}
+                <TabsContent value="community">
+                  <h3 className="text-lg font-medium mb-4">Community & Support</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Users className="h-4 w-4 text-primary" />
+                        Group Coaching
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <div className="flex justify-between mb-1">
+                            <p className="font-medium text-sm">Plant-Based Nutrition</p>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 rounded-full">8 members</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Next session: Wednesday, 6PM</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <div className="flex justify-between mb-1">
+                            <p className="font-medium text-sm">Stress Management</p>
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 rounded-full">12 members</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Next session: Friday, 5PM</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="w-full text-xs">
+                          Browse all groups
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Award className="h-4 w-4 text-primary" />
+                        Success Stories
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Sarah J.</p>
+                          <p className="text-xs text-muted-foreground mb-2">"Lost 15 lbs and improved sleep quality in 3 months"</p>
+                          <div className="flex">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className="text-yellow-400 text-xs">★</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Michael T.</p>
+                          <p className="text-xs text-muted-foreground mb-2">"Lowered blood pressure through diet changes and stress management"</p>
+                          <div className="flex">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className="text-yellow-400 text-xs">★</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Content Tab */}
+                <TabsContent value="content">
+                  <h3 className="text-lg font-medium mb-4">Health Resources</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        Articles
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">The Science of Sleep</p>
+                          <p className="text-xs text-muted-foreground">5 min read • Sleep</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Anti-inflammatory Foods</p>
+                          <p className="text-xs text-muted-foreground">8 min read • Nutrition</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Mindfulness for Beginners</p>
+                          <p className="text-xs text-muted-foreground">6 min read • Mental Health</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="w-full text-xs">
+                          View all articles
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Play className="h-4 w-4 text-primary" />
+                        Videos
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">5-Minute Desk Stretches</p>
+                          <p className="text-xs text-muted-foreground">5:23 • Exercise</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Guided Meditation for Stress</p>
+                          <p className="text-xs text-muted-foreground">10:15 • Mental Health</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Meal Prep Basics</p>
+                          <p className="text-xs text-muted-foreground">8:47 • Nutrition</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="w-full text-xs">
+                          View all videos
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Utensils className="h-4 w-4 text-primary" />
+                        Recipes
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Mediterranean Bowl</p>
+                          <p className="text-xs text-muted-foreground">25 min • 420 cal</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Green Smoothie</p>
+                          <p className="text-xs text-muted-foreground">5 min • 180 cal</p>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <p className="font-medium text-sm">Overnight Oats</p>
+                          <p className="text-xs text-muted-foreground">10 min • 350 cal</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="w-full text-xs">
+                          View all recipes
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Challenges Tab */}
+                <TabsContent value="challenges">
+                  <h3 className="text-lg font-medium mb-4">Wellness Challenges</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="border border-primary/40 rounded-md p-4 relative bg-primary/5">
+                      <div className="absolute top-0 right-0 bg-primary text-white text-xs font-medium py-1 px-2 rounded-bl-md">Active</div>
+                      <h4 className="font-medium mb-3">7-Day Hydration Challenge</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Drink 8 glasses of water daily for one week to build better hydration habits.</p>
+                      <div className="mb-3">
+                        <p className="text-xs mb-1">Progress: 4/7 days</p>
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div className="h-full bg-primary rounded-full w-[57%]" />
+                        </div>
+                      </div>
+                      <Button size="sm" className="w-full text-xs">
+                        Log today
+                      </Button>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3">21-Day Meditation</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Practice meditation for 10 minutes daily to reduce stress and improve focus.</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs">
+                        Start challenge
+                      </Button>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3">Step Challenge</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Reach 8,000 steps daily for 14 days to boost your cardiovascular health.</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs">
+                        Start challenge
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Button variant="outline" size="sm" className="w-full">
+                      Browse all challenges
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                {/* Assessments Tab */}
+                <TabsContent value="assessments">
+                  <h3 className="text-lg font-medium mb-4">Health Assessments</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3">Available Assessments</h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-sm">Sleep Quality Assessment</p>
+                            <p className="text-xs text-muted-foreground">5 minutes • 10 questions</p>
+                          </div>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Start
+                          </Button>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-sm">Stress & Mood Evaluation</p>
+                            <p className="text-xs text-muted-foreground">7 minutes • 15 questions</p>
+                          </div>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Start
+                          </Button>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                          <div>
+                            <p className="font-medium text-sm">Nutrition Habits Assessment</p>
+                            <p className="text-xs text-muted-foreground">10 minutes • 20 questions</p>
+                          </div>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Start
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border rounded-md p-4">
+                      <h4 className="font-medium mb-3">Previous Results</h4>
+                      <div className="space-y-3">
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <div className="flex justify-between mb-1">
+                            <p className="font-medium text-sm">Sleep Quality Assessment</p>
+                            <span className="text-xs">Apr 15, 2025</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs text-muted-foreground">Score: 72/100</p>
+                            <Button size="sm" variant="ghost" className="text-xs h-7">
+                              View details
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="border rounded-md p-3 bg-gray-50">
+                          <div className="flex justify-between mb-1">
+                            <p className="font-medium text-sm">Stress & Mood Evaluation</p>
+                            <span className="text-xs">Mar 22, 2025</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <p className="text-xs text-muted-foreground">Score: 65/100</p>
+                            <Button size="sm" variant="ghost" className="text-xs h-7">
+                              View details
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );
