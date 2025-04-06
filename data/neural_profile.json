@@ -1,46 +1,64 @@
 {
   "profile": {
     "personal_info": {
-      "display_name": "Patient X",
-      "age_at_record": 17,
-      "physical_description": "Tall and slim",
-      "record_date": "2002-11-28"
+      "display_name": "John Doe",
+      "age_at_record": 42,
+      "physical_description": "Average build, 5'11", 180 lbs",
+      "record_date": "2025-04-01"
     },
     "medical_history": {
       "neurological_history": {
-        "neonatal_brain_injury": true,
-        "seizure_history": {
-          "type": "Partial complex epilepsy",
-          "frequency": "Frequent partial seizures, some progressing to generalized"
+        "zinc_deficiency": true,
+        "sleep_quality": {
+          "type": "Good but suboptimal",
+          "frequency": "7.8 hours average per night, occasional disruptions"
         },
-        "migraines": true,
-        "headaches": "Fluctuating, occasional"
+        "migraines": false,
+        "headaches": "Occasional, related to stress"
       },
       "diagnostic_tests": {
-        "EEG": "No consistent epileptiform activity; noted slowing in frontotemporal region",
-        "MRI": "Images provided (axial and sagittal views show brain structure and ventricles)"
+        "Blood Work": "Low zinc levels (65 μg/dL, normal range: 70-120 μg/dL)",
+        "Sleep Study": "Normal sleep architecture, minor disruptions during REM cycles"
       }
     },
     "treatment_plan": {
       "medications": [
         {
-          "name": "Naprosyn",
-          "purpose": "Migraine treatment"
+          "name": "Zinc Supplement",
+          "purpose": "Treat zinc deficiency",
+          "dosage": "50mg daily"
         },
         {
-          "name": "Tylenol with codeine",
-          "purpose": "Pain management"
+          "name": "Vitamin D3",
+          "purpose": "Support immune function",
+          "dosage": "2000 IU daily"
+        },
+        {
+          "name": "Magnesium Glycinate",
+          "purpose": "Improve sleep quality",
+          "dosage": "200mg before bedtime"
         }
       ],
       "referrals": [
-        "Headache clinic",
-        "Counseling services"
+        "Nutritional counseling",
+        "Sleep optimization program"
       ]
     },
     "social_health": {
-      "impact_on_daily_life": "Seizure and migraine activity may affect social interactions and routines",
-      "support_network": "Family, friends, and healthcare providers",
-      "self_management": "Regular follow-ups and supportive counseling recommended"
+      "impact_on_daily_life": "Mild fatigue and reduced immune function affect work productivity and exercise capacity",
+      "support_network": "Family, health coach, online health communities",
+      "self_management": "Regular nutritional tracking, sleep monitoring with Whoop strap, Apple Watch health metrics tracking"
+    },
+    "wearable_data": {
+      "devices": ["Apple Watch Series 9", "Whoop Strap 4.0"],
+      "metrics_tracked": [
+        "Heart rate variability",
+        "Sleep quality and stages",
+        "Recovery scores",
+        "Activity levels",
+        "Respiration rate"
+      ],
+      "integration_status": "Fully connected and synchronized daily"
     }
   }
 }

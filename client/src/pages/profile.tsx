@@ -369,53 +369,53 @@ const Profile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">Patient X</p>
+                      <p className="font-medium">John Doe</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Age at Record</p>
-                      <p className="font-medium">17</p>
+                      <p className="font-medium">42</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Record Date</p>
-                      <p className="font-medium">November 28, 2002</p>
+                      <p className="font-medium">April 1, 2025</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Neurological History</h3>
+                  <h3 className="text-xl font-medium mb-4">Health Status</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Brain Injury</Badge>
-                        <span className="text-red-500 font-medium">Positive</span>
+                        <Badge variant="secondary" className="mr-2">Zinc Deficiency</Badge>
+                        <span className="text-red-500 font-medium">Present</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Neonatal brain injury documented</p>
+                      <p className="text-gray-600 text-sm">Confirmed by blood tests</p>
                     </div>
                     
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Seizures</Badge>
-                        <span className="text-red-500 font-medium">Present</span>
+                        <Badge variant="secondary" className="mr-2">Sleep Quality</Badge>
+                        <span className="text-amber-500 font-medium">Suboptimal</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Type: Partial complex epilepsy</p>
-                      <p className="text-gray-600 text-sm">Frequency: Frequent partial seizures, some progressing to generalized</p>
+                      <p className="text-gray-600 text-sm">Type: Good but suboptimal</p>
+                      <p className="text-gray-600 text-sm">Average: 7.8 hours per night, occasional disruptions</p>
                     </div>
                     
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <Badge variant="secondary" className="mr-2">Migraines</Badge>
-                        <span className="text-red-500 font-medium">Present</span>
+                        <span className="text-green-500 font-medium">Not Present</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Documented migraine history</p>
+                      <p className="text-gray-600 text-sm">No history of migraines</p>
                     </div>
                     
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
                         <Badge variant="secondary" className="mr-2">Headaches</Badge>
-                        <span className="text-amber-500 font-medium">Fluctuating</span>
+                        <span className="text-amber-500 font-medium">Occasional</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Headaches: Fluctuating, occasional</p>
+                      <p className="text-gray-600 text-sm">Occasional headaches related to stress</p>
                     </div>
                   </div>
                 </div>
@@ -425,16 +425,16 @@ const Profile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">EEG</Badge>
+                        <Badge variant="secondary" className="mr-2">Blood Work</Badge>
                       </div>
-                      <p className="text-gray-600 text-sm">No consistent epileptiform activity; noted slowing in frontotemporal region</p>
+                      <p className="text-gray-600 text-sm">Low zinc levels (65 μg/dL, normal range: 70-120 μg/dL)</p>
                     </div>
                     
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">MRI</Badge>
+                        <Badge variant="secondary" className="mr-2">Sleep Study</Badge>
                       </div>
-                      <p className="text-gray-600 text-sm">Images provided (axial and sagittal views show brain structure and ventricles)</p>
+                      <p className="text-gray-600 text-sm">Normal sleep architecture, minor disruptions during REM cycles</p>
                     </div>
                   </div>
                 </div>
@@ -446,12 +446,16 @@ const Profile = () => {
                       <h4 className="font-medium mb-2">Medications</h4>
                       <ul className="space-y-2">
                         <li className="flex items-center">
-                          <span className="w-1/3 text-gray-600">Naprosyn</span>
-                          <span className="text-gray-800">Migraine treatment</span>
+                          <span className="w-1/3 text-gray-600">Zinc Supplement</span>
+                          <span className="text-gray-800">50mg daily - Treat zinc deficiency</span>
                         </li>
                         <li className="flex items-center">
-                          <span className="w-1/3 text-gray-600">Tylenol with codeine</span>
-                          <span className="text-gray-800">Pain management</span>
+                          <span className="w-1/3 text-gray-600">Vitamin D3</span>
+                          <span className="text-gray-800">2000 IU daily - Support immune function</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="w-1/3 text-gray-600">Magnesium Glycinate</span>
+                          <span className="text-gray-800">200mg before bedtime - Improve sleep quality</span>
                         </li>
                       </ul>
                     </div>
@@ -461,11 +465,11 @@ const Profile = () => {
                       <ul className="space-y-1">
                         <li className="flex items-center">
                           <i className="ri-arrow-right-line text-primary mr-2"></i>
-                          <span>Headache clinic</span>
+                          <span>Nutritional counseling</span>
                         </li>
                         <li className="flex items-center">
                           <i className="ri-arrow-right-line text-primary mr-2"></i>
-                          <span>Counseling services</span>
+                          <span>Sleep optimization program</span>
                         </li>
                       </ul>
                     </div>
@@ -478,17 +482,49 @@ const Profile = () => {
                     <div className="grid grid-cols-1 gap-4">
                       <div>
                         <h4 className="font-medium mb-1">Impact on Daily Life</h4>
-                        <p className="text-gray-600">Seizure and migraine activity may affect social interactions and routines</p>
+                        <p className="text-gray-600">Mild fatigue and reduced immune function affect work productivity and exercise capacity</p>
                       </div>
                       <Separator />
                       <div>
                         <h4 className="font-medium mb-1">Support Network</h4>
-                        <p className="text-gray-600">Family, friends, and healthcare providers</p>
+                        <p className="text-gray-600">Family, health coach, online health communities</p>
                       </div>
                       <Separator />
                       <div>
                         <h4 className="font-medium mb-1">Self Management</h4>
-                        <p className="text-gray-600">Regular follow-ups and supportive counseling recommended</p>
+                        <p className="text-gray-600">Regular nutritional tracking, sleep monitoring with Whoop strap, Apple Watch health metrics tracking</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-medium mb-4">Wearable Device Integration</h3>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Connected Devices</h4>
+                        <ul className="space-y-1 list-disc list-inside">
+                          <li className="text-gray-600">Apple Watch Series 9</li>
+                          <li className="text-gray-600">Whoop Strap 4.0</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Metrics Tracked</h4>
+                        <ul className="space-y-1 list-disc list-inside">
+                          <li className="text-gray-600">Heart rate variability</li>
+                          <li className="text-gray-600">Sleep quality and stages</li>
+                          <li className="text-gray-600">Recovery scores</li>
+                          <li className="text-gray-600">Activity levels</li>
+                          <li className="text-gray-600">Respiration rate</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h4 className="font-medium mb-2">Integration Status</h4>
+                      <div className="flex items-center">
+                        <span className="text-gray-600 mr-2">Fully connected and synchronized daily</span>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
                       </div>
                     </div>
                   </div>
