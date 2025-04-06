@@ -37,6 +37,21 @@ interface FamilyMember {
     time: string;
     provider: string;
   }>;
+  geneticHealth?: {
+    inheritedConditions?: Array<{
+      name: string;
+      description: string;
+      riskLevel: 'low' | 'moderate' | 'high';
+      recommendedAction: string;
+    }>;
+    geneticTesting?: {
+      lastUpdated: string;
+      findings: Array<{
+        type: 'positive' | 'negative' | 'warning';
+        description: string;
+      }>;
+    };
+  };
 }
 
 interface FamilyMemberProfileProps {
@@ -94,8 +109,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
         </DialogHeader>
         
         <Tabs defaultValue="overview" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="genetic-health">Genetic Health</TabsTrigger>
             <TabsTrigger value="health-data">Health Data</TabsTrigger>
             <TabsTrigger value="medications">Medications</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
@@ -219,6 +235,277 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+          
+          {/* Genetic Health Tab */}
+          <TabsContent value="genetic-health" className="mt-4">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-xl font-medium mb-6">Genetic Health Profile</h3>
+              
+              {member.relation === "Parent" && (
+                <div className="mb-8">
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <i className="ri-information-line text-blue-500 text-xl"></i>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-blue-700">Parent Health Information</h3>
+                        <p className="text-blue-700 mt-2">
+                          Health conditions in parents may impact your own genetic risk factors. Monitoring these conditions can help with early detection and preventive care.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium text-lg mb-4">Hereditary Conditions You May Have Passed Down</h4>
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-amber-100 rounded-full p-2 mr-3">
+                          <i className="ri-heart-pulse-line text-amber-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Hypertension</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Your history of hypertension has a genetic component that may have been passed to your children. Regular blood pressure monitoring is recommended for the whole family.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-amber-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Your children have a 40-60% chance of developing this condition</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-blue-100 rounded-full p-2 mr-3">
+                          <i className="ri-psychotherapy-line text-blue-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Cholesterol Management</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Your family history of elevated cholesterol levels may affect your children. Regular screening starting at age 20 is recommended to monitor lipid profiles.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-blue-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Your children should begin testing by age 20</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {member.relation === "Spouse" && (
+                <div className="mb-8">
+                  <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <i className="ri-information-line text-purple-500 text-xl"></i>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-purple-700">Spouse Health Information</h3>
+                        <p className="text-purple-700 mt-2">
+                          Combined genetic factors from both parents affect your children's health risks. Understanding these shared risks can help with proactive healthcare planning.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium text-lg mb-4">Shared Genetic Influences on Children</h4>
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-green-100 rounded-full p-2 mr-3">
+                          <i className="ri-mental-health-line text-green-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Vitamin D Metabolism</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Both you and your spouse show genetic markers for vitamin D deficiency, which has been passed to your children. Supplementation and monitoring may be beneficial.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-green-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Regular vitamin D level testing recommended for all children</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-pink-100 rounded-full p-2 mr-3">
+                          <i className="ri-hand-heart-line text-pink-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Allergy Predisposition</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Combined family history shows elevated risk for environmental allergies. Early exposure protocols and monitoring may help reduce severity in children.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-pink-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Your children have a 65% higher risk of developing allergies</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {member.relation === "Child" && (
+                <div className="mb-8">
+                  <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <i className="ri-information-line text-green-500 text-xl"></i>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-lg font-medium text-green-700">Child Genetic Profile</h3>
+                        <p className="text-green-700 mt-2">
+                          Understanding inherited health risks allows for personalized preventive care and early interventions. Regular screening for these conditions is recommended.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium text-lg mb-4">Inherited Risk Factors to Monitor</h4>
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-amber-100 rounded-full p-2 mr-3">
+                          <i className="ri-heart-pulse-line text-amber-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Cardiovascular Health</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Inherited risk from paternal grandfather's history of early heart disease. Proactive monitoring of cholesterol and blood pressure beginning in early adulthood is recommended.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-amber-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Begin regular screening at age 25</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {member.name === "Emma Doe" && (
+                      <div className="border rounded-md p-4">
+                        <div className="flex items-start">
+                          <div className="bg-blue-100 rounded-full p-2 mr-3">
+                            <i className="ri-lungs-line text-blue-600"></i>
+                          </div>
+                          <div>
+                            <h5 className="font-medium">Asthma & Respiratory Health</h5>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Maternal family history of asthma has manifested in your respiratory health. Continue monitoring lung function and maintain current treatment plan.
+                            </p>
+                            <div className="mt-3 flex items-center text-sm text-blue-700">
+                              <i className="ri-user-heart-line mr-2"></i>
+                              <span>Annual pulmonary function tests recommended</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {member.name === "Tommy Doe" && (
+                      <div className="border rounded-md p-4">
+                        <div className="flex items-start">
+                          <div className="bg-blue-100 rounded-full p-2 mr-3">
+                            <i className="ri-microscope-line text-blue-600"></i>
+                          </div>
+                          <div>
+                            <h5 className="font-medium">Allergy Sensitivity</h5>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Inherited from both parents, showing moderate environmental allergies with seasonal patterns. Monitor for potential development of asthma as a complication.
+                            </p>
+                            <div className="mt-3 flex items-center text-sm text-blue-700">
+                              <i className="ri-user-heart-line mr-2"></i>
+                              <span>Allergy panel testing recommended annually</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="border rounded-md p-4">
+                      <div className="flex items-start">
+                        <div className="bg-purple-100 rounded-full p-2 mr-3">
+                          <i className="ri-capsule-line text-purple-600"></i>
+                        </div>
+                        <div>
+                          <h5 className="font-medium">Vitamin D Metabolism</h5>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Family history on both sides shows tendency toward vitamin D deficiency. Regular supplementation and blood level monitoring recommended.
+                          </p>
+                          <div className="mt-3 flex items-center text-sm text-purple-700">
+                            <i className="ri-user-heart-line mr-2"></i>
+                            <span>Test vitamin D levels every 6 months</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div>
+                <h4 className="font-medium text-lg mb-4">Genetic Testing Status</h4>
+                <div className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="bg-primary/10 rounded-full p-2 mr-3">
+                        <i className="ri-dna-line text-primary"></i>
+                      </div>
+                      <div>
+                        <h5 className="font-medium">Comprehensive Genetic Panel</h5>
+                        <p className="text-sm text-gray-600">Last updated: January 15, 2025</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline">View Report</Button>
+                  </div>
+                  
+                  <div className="border-t pt-4 mt-2">
+                    <h6 className="font-medium mb-3">Key Findings:</h6>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start">
+                        <i className="ri-checkbox-circle-line text-primary mt-0.5 mr-2"></i>
+                        <span>No high-risk variants detected for major inherited disorders</span>
+                      </li>
+                      <li className="flex items-start">
+                        <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
+                        <span>Moderate risk factors for cardiovascular conditions</span>
+                      </li>
+                      <li className="flex items-start">
+                        <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
+                        <span>Genetic markers for enhanced inflammatory response</span>
+                      </li>
+                      {member.relation === "Child" && (
+                        <li className="flex items-start">
+                          <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
+                          <span>Carries one copy of MTHFR variant affecting B vitamin metabolism</span>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center mt-6">
+                  <Button variant="outline" className="mr-3">
+                    <i className="ri-file-list-3-line mr-2"></i>
+                    Update Genetic History
+                  </Button>
+                  <Button>
+                    <i className="ri-calendar-check-line mr-2"></i>
+                    Schedule Genetic Counseling
+                  </Button>
+                </div>
+              </div>
+            </div>
           </TabsContent>
           
           {/* Health Data Tab */}

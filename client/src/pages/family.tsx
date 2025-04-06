@@ -18,6 +18,39 @@ const familyMembers = [
         { type: "success" as const, content: 'Vitamin D levels have improved with supplementation' }
       ]
     },
+    geneticHealth: {
+      inheritedConditions: [
+        {
+          name: "Vitamin D Deficiency",
+          description: "Genetic predisposition to lower vitamin D absorption and metabolism",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Regular supplementation and quarterly blood level monitoring"
+        },
+        {
+          name: "Allergy Sensitivity",
+          description: "Hereditary hypersensitivity to environmental allergens",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Annual allergy testing and proactive management"
+        }
+      ],
+      geneticTesting: {
+        lastUpdated: "January 15, 2025",
+        findings: [
+          {
+            type: "warning" as const,
+            description: "Carries genetic markers for vitamin D metabolism inefficiency"
+          },
+          {
+            type: "warning" as const,
+            description: "Moderate predisposition to environmental allergies"
+          },
+          {
+            type: "negative" as const,
+            description: "No significant genetic risk factors for major health conditions"
+          }
+        ]
+      }
+    },
     healthStats: [
       { statType: "heart_rate", value: "72", unit: "bpm", colorScheme: "primary" },
       { statType: "blood_pressure", value: "120/80", unit: "mmHg", colorScheme: "blue" },
@@ -54,6 +87,45 @@ const familyMembers = [
         { type: "info" as const, content: 'Seasonal allergies may require monitoring' }
       ]
     },
+    geneticHealth: {
+      inheritedConditions: [
+        {
+          name: "Environmental Allergies",
+          description: "Inherited from both parents, particularly pollen and dust sensitivity",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Annual allergy panel tests and preventive measures during peak seasons"
+        },
+        {
+          name: "Cardiovascular Risk",
+          description: "Inherited risk factor from paternal grandfather's history of early heart disease",
+          riskLevel: "low" as const,
+          recommendedAction: "Begin regular cardiovascular screenings at age 25"
+        },
+        {
+          name: "Vitamin D Metabolism",
+          description: "Inherited trait affecting vitamin D absorption efficiency",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Regular vitamin D level testing and potential supplementation"
+        }
+      ],
+      geneticTesting: {
+        lastUpdated: "December 5, 2024",
+        findings: [
+          {
+            type: "warning" as const,
+            description: "Carries gene variants associated with increased environmental allergy risk"
+          },
+          {
+            type: "warning" as const,
+            description: "One copy of MTHFR variant affecting B vitamin metabolism"
+          },
+          {
+            type: "negative" as const,
+            description: "No high-risk genetic variants for major health conditions detected"
+          }
+        ]
+      }
+    },
     healthStats: [
       { statType: "height", value: "4'2\"", unit: "", colorScheme: "primary" },
       { statType: "weight", value: "65", unit: "lbs", colorScheme: "blue" },
@@ -80,6 +152,45 @@ const familyMembers = [
         { type: "alert" as const, content: 'Missed last dental appointment' },
         { type: "success" as const, content: 'Physical activity exceeds recommended levels' }
       ]
+    },
+    geneticHealth: {
+      inheritedConditions: [
+        {
+          name: "Asthma & Respiratory Sensitivity",
+          description: "Inherited from maternal family history with manifestation in childhood",
+          riskLevel: "high" as const,
+          recommendedAction: "Regular pulmonary function testing and maintenance of treatment plan"
+        },
+        {
+          name: "Cardiovascular Risk",
+          description: "Inherited risk factor from paternal grandfather's history of early heart disease",
+          riskLevel: "low" as const,
+          recommendedAction: "Begin regular cardiovascular screenings at age 25"
+        },
+        {
+          name: "Vitamin D Metabolism",
+          description: "Inherited trait affecting vitamin D absorption efficiency",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Semi-annual vitamin D level testing and supplementation"
+        }
+      ],
+      geneticTesting: {
+        lastUpdated: "January 5, 2025",
+        findings: [
+          {
+            type: "warning" as const,
+            description: "Genetic markers associated with increased asthma risk"
+          },
+          {
+            type: "warning" as const,
+            description: "One copy of MTHFR variant affecting B vitamin metabolism"
+          },
+          {
+            type: "positive" as const,
+            description: "Enhanced genetic markers for athletic performance and endurance"
+          }
+        ]
+      }
     },
     healthStats: [
       { statType: "height", value: "4'5\"", unit: "", colorScheme: "primary" },
@@ -122,6 +233,45 @@ const familyMembers = [
         { type: "info" as const, content: 'Cholesterol levels borderline high' },
         { type: "success" as const, content: 'Exercise routine consistent' }
       ]
+    },
+    geneticHealth: {
+      inheritedConditions: [
+        {
+          name: "Hypertension",
+          description: "Family history of hypertension that has manifested in adulthood",
+          riskLevel: "high" as const,
+          recommendedAction: "Regular blood pressure monitoring and medication adherence"
+        },
+        {
+          name: "Elevated Cholesterol",
+          description: "Inherited predisposition to higher LDL cholesterol levels",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Regular lipid panel screening and dietary management"
+        },
+        {
+          name: "Early Heart Disease",
+          description: "Family history of early cardiovascular disease in paternal line",
+          riskLevel: "moderate" as const,
+          recommendedAction: "Preventive cardiology visits and lifestyle modifications"
+        }
+      ],
+      geneticTesting: {
+        lastUpdated: "October 10, 2024",
+        findings: [
+          {
+            type: "warning" as const,
+            description: "Genetic markers for salt sensitivity affecting blood pressure regulation"
+          },
+          {
+            type: "warning" as const,
+            description: "Variants associated with impaired cholesterol metabolism"
+          },
+          {
+            type: "positive" as const,
+            description: "Favorable response to physical exercise for cardiovascular health"
+          }
+        ]
+      }
     },
     healthStats: [
       { statType: "heart_rate", value: "76", unit: "bpm", colorScheme: "primary" },
