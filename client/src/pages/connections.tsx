@@ -104,6 +104,57 @@ const connectionsData = [
     }
   },
   { 
+    id: 5,
+    name: "Sarah Williams", 
+    type: "Friend", 
+    joinedDate: "5 months ago",
+    bio: "Yoga instructor and wellness advocate. I believe in a holistic approach to health that nurtures both body and mind.",
+    healthInterests: ["Yoga", "Meditation", "Plant-based Nutrition", "Mental Health"],
+    healthChoices: [
+      {
+        title: "Daily Meditation Practice",
+        category: "Mental Health",
+        description: "30-minute morning meditation ritual to reduce stress and improve mindfulness throughout the day.",
+        effectiveness: "high" as "high" | "moderate" | "low",
+        date: "January 2022"
+      },
+      {
+        title: "Plant-Based Diet",
+        category: "Nutrition",
+        description: "Primarily whole-food plant-based diet with occasional sustainably sourced fish for omega-3s.",
+        effectiveness: "high" as "high" | "moderate" | "low",
+        date: "March 2021"
+      }
+    ],
+    healthMetrics: [
+      { name: "Meditation", value: "30", unit: "min/day", trend: "stable" as "up" | "down" | "stable", isPublic: false },
+      { name: "Sleep", value: "8.2", unit: "hours", trend: "up" as "up" | "down" | "stable", isPublic: false },
+      { name: "Resting HR", value: "58", unit: "bpm", trend: "down" as "up" | "down" | "stable", isPublic: false }
+    ],
+    healthGoals: [
+      {
+        title: "Advanced Yoga Certification",
+        description: "Complete 500-hour yoga teacher training to deepen practice and teaching methods",
+        progress: 65,
+        targetDate: "August 2025",
+        isPublic: false
+      },
+      {
+        title: "Mental Health Awareness",
+        description: "Lead 3 community workshops on mindfulness and stress reduction techniques",
+        progress: 33,
+        targetDate: "December 2025",
+        isPublic: false
+      }
+    ],
+    privacySettings: {
+      profileVisibility: "private" as "public" | "connections" | "private",
+      healthMetricsVisibility: "private" as "public" | "connections" | "private",
+      healthChoicesVisibility: "private" as "public" | "connections" | "private",
+      healthGoalsVisibility: "private" as "public" | "connections" | "private"
+    }
+  },
+  { 
     id: 3,
     name: "Health Club SF", 
     type: "Organization", 
