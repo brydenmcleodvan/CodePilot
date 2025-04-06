@@ -307,108 +307,108 @@ export function Connections() {
           <TabsTrigger value="personal">Friends & Family</TabsTrigger>
           <TabsTrigger value="your-profile">Your Profile</TabsTrigger>
         </TabsList>
-      </Tabs>
-      
-      <TabsContent value="all" className="mt-0">
-        <div className="grid md:grid-cols-2 gap-6">
-          {connectionsData.map((connection) => (
-            <ConnectionProfile 
-              key={connection.id} 
-              connection={connection}
-            />
-          ))}
-          
-          <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
-            <Button variant="ghost" className="w-full h-full flex flex-col items-center gap-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <Plus className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold mb-2">Add Connection</h2>
-                <p className="text-sm text-muted-foreground">Connect with health professionals and like-minded individuals</p>
-              </div>
-            </Button>
-          </div>
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="professionals" className="mt-0">
-        <div className="grid md:grid-cols-2 gap-6">
-          {connectionsData
-            .filter(conn => conn.type === "Health Professional" || conn.type === "Health Coach")
-            .map((connection) => (
+        
+        <TabsContent value="all" className="mt-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            {connectionsData.map((connection) => (
               <ConnectionProfile 
                 key={connection.id} 
                 connection={connection}
               />
             ))}
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="communities" className="mt-0">
-        <div className="grid md:grid-cols-2 gap-6">
-          {connectionsData
-            .filter(conn => conn.type === "Organization")
-            .map((connection) => (
-              <ConnectionProfile 
-                key={connection.id} 
-                connection={connection}
-              />
-            ))}
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="personal" className="mt-0">
-        <div className="grid md:grid-cols-2 gap-6">
-          {connectionsData
-            .filter(conn => conn.type === "Friend" || conn.type === "Family")
-            .map((connection) => (
-              <ConnectionProfile 
-                key={connection.id} 
-                connection={connection}
-              />
-            ))}
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="your-profile" className="mt-0">
-        <div className="max-w-3xl mx-auto">
-          <ConnectionProfile 
-            connection={{
-              ...currentUserConnection,
-              privacySettings: updatedPrivacySettings
-            }}
-            onUpdatePrivacy={handleUpdatePrivacy}
-            isOwnProfile={true}
-          />
-          
-          <div className="mt-8 bg-primary/5 border border-primary/20 rounded-lg p-6">
-            <h3 className="text-lg font-semibold mb-4">About Your Connection Profile</h3>
-            <p className="text-sm mb-4">
-              Your connection profile allows you to share selected health information with your connections while maintaining privacy control. Here's how it works:
-            </p>
             
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">1</div>
-                <p>Choose what health information you want to share: metrics, choices, and goals</p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">2</div>
-                <p>Set privacy levels for each category: Public, Connections Only, or Private</p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">3</div>
-                <p>Share your health journey while protecting sensitive information</p>
-              </li>
-              <li className="flex items-start gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">4</div>
-                <p>Learn from others' health choices while respecting their privacy preferences</p>
-              </li>
-            </ul>
+            <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+              <Button variant="ghost" className="w-full h-full flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">Add Connection</h2>
+                  <p className="text-sm text-muted-foreground">Connect with health professionals and like-minded individuals</p>
+                </div>
+              </Button>
+            </div>
           </div>
-        </div>
-      </TabsContent>
+        </TabsContent>
+        
+        <TabsContent value="professionals" className="mt-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            {connectionsData
+              .filter(conn => conn.type === "Health Professional" || conn.type === "Health Coach")
+              .map((connection) => (
+                <ConnectionProfile 
+                  key={connection.id} 
+                  connection={connection}
+                />
+              ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="communities" className="mt-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            {connectionsData
+              .filter(conn => conn.type === "Organization")
+              .map((connection) => (
+                <ConnectionProfile 
+                  key={connection.id} 
+                  connection={connection}
+                />
+              ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="personal" className="mt-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            {connectionsData
+              .filter(conn => conn.type === "Friend" || conn.type === "Family")
+              .map((connection) => (
+                <ConnectionProfile 
+                  key={connection.id} 
+                  connection={connection}
+                />
+              ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="your-profile" className="mt-4">
+          <div className="max-w-3xl mx-auto">
+            <ConnectionProfile 
+              connection={{
+                ...currentUserConnection,
+                privacySettings: updatedPrivacySettings
+              }}
+              onUpdatePrivacy={handleUpdatePrivacy}
+              isOwnProfile={true}
+            />
+            
+            <div className="mt-8 bg-primary/5 border border-primary/20 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">About Your Connection Profile</h3>
+              <p className="text-sm mb-4">
+                Your connection profile allows you to share selected health information with your connections while maintaining privacy control. Here's how it works:
+              </p>
+              
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">1</div>
+                  <p>Choose what health information you want to share: metrics, choices, and goals</p>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">2</div>
+                  <p>Set privacy levels for each category: Public, Connections Only, or Private</p>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">3</div>
+                  <p>Share your health journey while protecting sensitive information</p>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">4</div>
+                  <p>Learn from others' health choices while respecting their privacy preferences</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
