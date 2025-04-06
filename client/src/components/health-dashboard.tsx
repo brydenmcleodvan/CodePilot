@@ -738,6 +738,424 @@ const AppointmentsDashboard = () => {
   );
 };
 
+// Nutrition component
+const NutritionDashboard = () => {
+  // Simulated nutrition data
+  const nutritionData = [
+    { date: "2025-04-01", calories: 2145, protein: 112, carbs: 205, fats: 72, fiber: 28, hydration: 2800 },
+    { date: "2025-04-02", calories: 2320, protein: 126, carbs: 225, fats: 77, fiber: 32, hydration: 3100 },
+    { date: "2025-04-03", calories: 1980, protein: 98, carbs: 185, fats: 68, fiber: 25, hydration: 2600 },
+    { date: "2025-04-04", calories: 2250, protein: 118, carbs: 215, fats: 74, fiber: 30, hydration: 2900 },
+    { date: "2025-04-05", calories: 2410, protein: 132, carbs: 235, fats: 82, fiber: 35, hydration: 3200 },
+    { date: "2025-04-06", calories: 2180, protein: 108, carbs: 210, fats: 75, fiber: 29, hydration: 2850 },
+  ];
+  
+  const todayData = nutritionData[nutritionData.length - 1];
+  
+  // Macronutrient percentages
+  const proteinPct = Math.round((todayData.protein * 4) / todayData.calories * 100);
+  const carbsPct = Math.round((todayData.carbs * 4) / todayData.calories * 100);
+  const fatsPct = Math.round((todayData.fats * 9) / todayData.calories * 100);
+  
+  // Goal progress
+  const calorieGoal = 2200;
+  const proteinGoal = 120;
+  const waterGoal = 3000;
+  
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium">Nutrition</CardTitle>
+          <i className="ri-restaurant-line text-orange-500 text-lg"></i>
+        </div>
+        <CardDescription>Today's nutrition data from your food tracking</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <h4 className="text-sm text-gray-500 mb-1">Calories</h4>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-bold">{todayData.calories}</span>
+              <span className="text-sm text-gray-500">/ {calorieGoal} kcal</span>
+            </div>
+            <Progress 
+              value={(todayData.calories / calorieGoal) * 100} 
+              className="h-2 mt-2" 
+            />
+          </div>
+          <div>
+            <h4 className="text-sm text-gray-500 mb-1">Protein</h4>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-2xl font-bold">{todayData.protein}g</span>
+              <span className="text-sm text-gray-500">/ {proteinGoal}g</span>
+            </div>
+            <Progress 
+              value={(todayData.protein / proteinGoal) * 100} 
+              className="h-2 mt-2" 
+            />
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h4 className="text-sm text-gray-500 mb-2">Macronutrient Breakdown</h4>
+          <div className="h-8 flex rounded-md overflow-hidden">
+            <div 
+              className="bg-blue-500" 
+              style={{ width: `${proteinPct}%` }}
+              title={`Protein: ${proteinPct}%, ${todayData.protein}g`}
+            ></div>
+            <div 
+              className="bg-yellow-500" 
+              style={{ width: `${carbsPct}%` }}
+              title={`Carbs: ${carbsPct}%, ${todayData.carbs}g`}
+            ></div>
+            <div 
+              className="bg-green-500" 
+              style={{ width: `${fatsPct}%` }}
+              title={`Fats: ${fatsPct}%, ${todayData.fats}g`}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-sm mr-1"></div>
+              <span>Protein {proteinPct}%</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-yellow-500 rounded-sm mr-1"></div>
+              <span>Carbs {carbsPct}%</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-green-500 rounded-sm mr-1"></div>
+              <span>Fats {fatsPct}%</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <h4 className="text-sm text-gray-500 mb-1">Fiber</h4>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-xl font-bold">{todayData.fiber}g</span>
+              <span className="text-sm text-gray-500">/ 30g</span>
+            </div>
+            <Progress 
+              value={(todayData.fiber / 30) * 100} 
+              className="h-2 mt-2" 
+            />
+          </div>
+          <div>
+            <h4 className="text-sm text-gray-500 mb-1">Hydration</h4>
+            <div className="flex items-baseline space-x-2">
+              <span className="text-xl font-bold">{todayData.hydration}ml</span>
+              <span className="text-sm text-gray-500">/ {waterGoal}ml</span>
+            </div>
+            <Progress 
+              value={(todayData.hydration / waterGoal) * 100} 
+              className="h-2 mt-2" 
+            />
+          </div>
+        </div>
+        
+        <Button variant="outline" className="w-full">
+          <i className="ri-add-line mr-1"></i> Log Meal
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Medication Adherence component
+const MedicationAdherenceDashboard = () => {
+  // Simulated medication adherence data
+  const medicationSchedule = [
+    { 
+      id: 1,
+      name: "Zinc Supplement",
+      dosage: "50mg",
+      schedule: "1x daily (morning)",
+      timeOfDay: "morning",
+      taken: true,
+      nextDose: "Tomorrow, 8:00 AM"
+    },
+    { 
+      id: 2,
+      name: "Vitamin D Supplement",
+      dosage: "2000 IU",
+      schedule: "1x daily (morning)",
+      timeOfDay: "morning",
+      taken: true,
+      nextDose: "Tomorrow, 8:00 AM"
+    },
+    { 
+      id: 3,
+      name: "Multivitamin",
+      dosage: "1 tablet",
+      schedule: "1x daily (with meal)",
+      timeOfDay: "afternoon",
+      taken: false,
+      nextDose: "Today, 12:30 PM"
+    },
+    { 
+      id: 4,
+      name: "Probiotic",
+      dosage: "1 capsule",
+      schedule: "1x daily (evening)",
+      timeOfDay: "evening",
+      taken: false,
+      nextDose: "Today, 8:00 PM"
+    }
+  ];
+  
+  // Medication adherence stats
+  const adherenceStats = {
+    weeklyAdherence: 92,
+    monthlyAdherence: 88,
+    streakDays: 12
+  };
+  
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium">Medication Adherence</CardTitle>
+          <Badge variant={adherenceStats.weeklyAdherence > 90 ? "outline" : "secondary"}>
+            {adherenceStats.weeklyAdherence}% Adherence
+          </Badge>
+        </div>
+        <CardDescription>Track your medication schedule and adherence</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <h4 className="text-sm font-medium">Today's Schedule</h4>
+            <span className="text-xs text-gray-500">{format(new Date(), 'EEEE, MMMM d')}</span>
+          </div>
+          
+          <div className="space-y-3">
+            {medicationSchedule.map(med => (
+              <div key={med.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    med.taken ? 'bg-green-500' : 
+                    med.timeOfDay === 'morning' ? 'bg-amber-500' : 
+                    med.timeOfDay === 'afternoon' ? 'bg-orange-500' : 'bg-blue-500'
+                  }`}></div>
+                  <div>
+                    <p className="font-medium">{med.name}</p>
+                    <p className="text-xs text-gray-500">{med.dosage} • {med.schedule}</p>
+                  </div>
+                </div>
+                {med.taken ? (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Taken
+                  </Badge>
+                ) : (
+                  <Button size="sm" variant="outline">Take Now</Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="bg-gray-50 p-3 rounded-lg text-center">
+            <p className="text-xs text-gray-500 mb-1">Weekly</p>
+            <p className="text-xl font-bold text-primary">{adherenceStats.weeklyAdherence}%</p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg text-center">
+            <p className="text-xs text-gray-500 mb-1">Monthly</p>
+            <p className="text-xl font-bold text-primary">{adherenceStats.monthlyAdherence}%</p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg text-center">
+            <p className="text-xs text-gray-500 mb-1">Streak</p>
+            <p className="text-xl font-bold text-primary">{adherenceStats.streakDays} days</p>
+          </div>
+        </div>
+        
+        <Button variant="outline" className="w-full">
+          <i className="ri-calendar-line mr-1"></i> Medication Schedule
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Enhanced Fitness Metrics component
+const FitnessMetricsDashboard = () => {
+  // Simulated fitness data
+  const fitnessData = {
+    vo2Max: 48.2,
+    restingHeartRate: 62,
+    hrv: 48,
+    trainingLoad: {
+      current: 680,
+      optimal: [550, 750],
+      status: "optimal" // "low", "optimal", "high"
+    },
+    workouts: [
+      {
+        date: "2025-04-06",
+        type: "Running",
+        duration: 45,
+        distance: 6.2,
+        calories: 520,
+        avgHeartRate: 162
+      },
+      {
+        date: "2025-04-04",
+        type: "Strength Training",
+        duration: 60,
+        calories: 450,
+        avgHeartRate: 145
+      },
+      {
+        date: "2025-04-03",
+        type: "Cycling",
+        duration: 75,
+        distance: 25.8,
+        calories: 690,
+        avgHeartRate: 158
+      }
+    ]
+  };
+  
+  // Training readiness calculation (simplified example)
+  const calculateReadiness = (hrv: number, rhr: number) => {
+    const score = 100 - (rhr - 45) + (hrv - 30) / 2;
+    return Math.min(Math.max(Math.round(score), 0), 100);
+  };
+  
+  const readinessScore = calculateReadiness(fitnessData.hrv, fitnessData.restingHeartRate);
+  
+  const getReadinessColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-amber-600';
+    return 'text-red-600';
+  };
+  
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg font-medium">Fitness Metrics</CardTitle>
+          <Dumbbell className="h-5 w-5 text-violet-500" />
+        </div>
+        <CardDescription>Advanced fitness and training metrics</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <h4 className="text-sm text-gray-500 mb-1">Training Readiness</h4>
+            <p className={`text-3xl font-bold ${getReadinessColor(readinessScore)}`}>
+              {readinessScore}%
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {readinessScore >= 80 ? 'Ready for intense training' :
+               readinessScore >= 60 ? 'Moderate training advised' : 'Recovery day recommended'}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <h4 className="text-sm text-gray-500 mb-1">VO₂ Max</h4>
+            <p className="text-3xl font-bold text-primary">{fitnessData.vo2Max}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {fitnessData.vo2Max >= 50 ? 'Excellent' : 
+               fitnessData.vo2Max >= 45 ? 'Good' : 
+               fitnessData.vo2Max >= 40 ? 'Above Average' : 'Average'} cardio fitness
+            </p>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h4 className="text-sm text-gray-500 mb-2">7-Day Training Load</h4>
+          <div className="relative pt-6 pb-2">
+            <div className="h-3 bg-gray-200 rounded-full">
+              <div 
+                className={`h-3 rounded-full ${
+                  fitnessData.trainingLoad.status === 'optimal' ? 'bg-green-500' :
+                  fitnessData.trainingLoad.status === 'low' ? 'bg-amber-500' : 'bg-red-500'
+                }`}
+                style={{ 
+                  width: `${(fitnessData.trainingLoad.current / 1000) * 100}%`
+                }}
+              ></div>
+            </div>
+            <div 
+              className="absolute h-full border-l border-dashed border-green-600"
+              style={{ 
+                left: `${(fitnessData.trainingLoad.optimal[0] / 1000) * 100}%`,
+                top: 0
+              }}
+            ></div>
+            <div 
+              className="absolute h-full border-l border-dashed border-green-600"
+              style={{ 
+                left: `${(fitnessData.trainingLoad.optimal[1] / 1000) * 100}%`,
+                top: 0
+              }}
+            ></div>
+            <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <span>0</span>
+              <span>250</span>
+              <span>500</span>
+              <span>750</span>
+              <span>1000</span>
+            </div>
+          </div>
+          <div className="flex justify-center mt-2">
+            <span className={`text-sm ${
+              fitnessData.trainingLoad.status === 'optimal' ? 'text-green-600' :
+              fitnessData.trainingLoad.status === 'low' ? 'text-amber-600' : 'text-red-600'
+            }`}>
+              {fitnessData.trainingLoad.current} - {
+                fitnessData.trainingLoad.status === 'optimal' ? 'Optimal Load' :
+                fitnessData.trainingLoad.status === 'low' ? 'Underconditioned' : 'Overreaching'
+              }
+            </span>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <h4 className="text-sm text-gray-500 mb-2">Recent Workouts</h4>
+          <div className="space-y-3">
+            {fitnessData.workouts.map((workout, i) => (
+              <div key={i} className="border rounded-lg p-3 flex justify-between">
+                <div>
+                  <div className="flex items-center">
+                    <i className={`mr-2 ${
+                      workout.type === 'Running' ? 'ri-run-line text-blue-500' :
+                      workout.type === 'Cycling' ? 'ri-bike-line text-green-500' :
+                      'ri-fitness-line text-orange-500'
+                    }`}></i>
+                    <span className="font-medium">{workout.type}</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {workout.duration} min • {workout.calories} kcal
+                    {workout.distance && ` • ${workout.distance} ${workout.type === 'Running' ? 'mi' : 'km'}`}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">
+                    {format(parseISO(workout.date), 'MMM d')}
+                  </div>
+                  <div className="flex items-center text-xs mt-1">
+                    <Heart className="h-3 w-3 text-red-500 mr-1" />
+                    <span>{workout.avgHeartRate} bpm</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <Button variant="outline" className="w-full">
+          <i className="ri-calendar-event-line mr-1"></i> All Workouts
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 // Main Health Dashboard Component
 const HealthDashboard = () => {
   return (
@@ -750,10 +1168,12 @@ const HealthDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="col-span-2">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="wearables">Wearables</TabsTrigger>
               <TabsTrigger value="medical">Medical</TabsTrigger>
+              <TabsTrigger value="fitness">Fitness</TabsTrigger>
+              <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4">
@@ -787,6 +1207,24 @@ const HealthDashboard = () => {
                         <p className="text-sm text-gray-500">Connected • Last sync: 25 minutes ago</p>
                       </div>
                     </div>
+                    <div className="border rounded-lg p-4 flex items-center space-x-4">
+                      <div className="bg-gray-100 p-3 rounded-full">
+                        <i className="ri-scales-line text-primary text-2xl"></i>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">Smart Scale</h4>
+                        <p className="text-sm text-gray-500">Connected • Last sync: 2 days ago</p>
+                      </div>
+                    </div>
+                    <div className="border border-dashed rounded-lg p-4 flex items-center space-x-4">
+                      <div className="bg-gray-100 p-3 rounded-full">
+                        <i className="ri-add-line text-gray-400 text-2xl"></i>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-700">Add New Device</h4>
+                        <p className="text-sm text-gray-500">Connect additional health trackers</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
@@ -802,6 +1240,432 @@ const HealthDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <LabResultsDashboard />
                 <AppointmentsDashboard />
+                <MedicationAdherenceDashboard />
+                <div className="bg-white p-4 rounded-lg shadow">
+                  <h3 className="text-lg font-medium mb-4">Medical Records</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 border rounded-lg flex justify-between">
+                      <div className="flex items-center">
+                        <i className="ri-file-text-line text-primary mr-2"></i>
+                        <div>
+                          <p className="font-medium">Annual Physical</p>
+                          <p className="text-xs text-gray-500">Dr. Jane Smith • Primary Care</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Jan 15, 2025</p>
+                        <Button variant="link" className="p-0 h-auto text-xs">View</Button>
+                      </div>
+                    </div>
+                    <div className="p-3 border rounded-lg flex justify-between">
+                      <div className="flex items-center">
+                        <i className="ri-heart-pulse-line text-primary mr-2"></i>
+                        <div>
+                          <p className="font-medium">Cardiology Checkup</p>
+                          <p className="text-xs text-gray-500">Dr. Michael Chen • Cardiology</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Oct 10, 2024</p>
+                        <Button variant="link" className="p-0 h-auto text-xs">View</Button>
+                      </div>
+                    </div>
+                    <div className="p-3 border rounded-lg flex justify-between">
+                      <div className="flex items-center">
+                        <i className="ri-test-tube-line text-primary mr-2"></i>
+                        <div>
+                          <p className="font-medium">Blood Work</p>
+                          <p className="text-xs text-gray-500">MedPath Labs</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Sep 22, 2024</p>
+                        <Button variant="link" className="p-0 h-auto text-xs">View</Button>
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="w-full mt-4">View All Records</Button>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="fitness" className="mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FitnessMetricsDashboard />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Heart Rate Zones</CardTitle>
+                    <CardDescription>Training distribution by heart rate zone</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Zone 5 (Maximum: 181-200 bpm)</span>
+                          <span className="text-sm text-gray-500">12 min</span>
+                        </div>
+                        <Progress value={8} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Zone 4 (Hard: 162-180 bpm)</span>
+                          <span className="text-sm text-gray-500">48 min</span>
+                        </div>
+                        <Progress value={32} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Zone 3 (Moderate: 143-161 bpm)</span>
+                          <span className="text-sm text-gray-500">85 min</span>
+                        </div>
+                        <Progress value={56} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Zone 2 (Light: 124-142 bpm)</span>
+                          <span className="text-sm text-gray-500">135 min</span>
+                        </div>
+                        <Progress value={90} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Zone 1 (Very Light: 105-123 bpm)</span>
+                          <span className="text-sm text-gray-500">80 min</span>
+                        </div>
+                        <Progress value={54} className="h-2" />
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-2">Weekly Training Distribution</h4>
+                      <ResponsiveContainer width="100%" height={180}>
+                        <BarChart
+                          data={[
+                            { day: 'Mon', zone1: 15, zone2: 25, zone3: 10, zone4: 5, zone5: 0 },
+                            { day: 'Tue', zone1: 10, zone2: 20, zone3: 15, zone4: 10, zone5: 5 },
+                            { day: 'Wed', zone1: 5, zone2: 10, zone3: 5, zone4: 0, zone5: 0 },
+                            { day: 'Thu', zone1: 20, zone2: 30, zone3: 25, zone4: 15, zone5: 0 },
+                            { day: 'Fri', zone1: 10, zone2: 15, zone3: 10, zone4: 8, zone5: 2 },
+                            { day: 'Sat', zone1: 15, zone2: 25, zone3: 15, zone4: 5, zone5: 5 },
+                            { day: 'Sun', zone1: 5, zone2: 10, zone3: 5, zone4: 5, zone5: 0 }
+                          ]}
+                          margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis dataKey="day" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="zone5" stackId="a" fill="#ef4444" name="Zone 5" />
+                          <Bar dataKey="zone4" stackId="a" fill="#f97316" name="Zone 4" />
+                          <Bar dataKey="zone3" stackId="a" fill="#eab308" name="Zone 3" />
+                          <Bar dataKey="zone2" stackId="a" fill="#84cc16" name="Zone 2" />
+                          <Bar dataKey="zone1" stackId="a" fill="#22c55e" name="Zone 1" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Body Composition</CardTitle>
+                    <CardDescription>Data from smart scale measurements</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500">Weight</p>
+                        <p className="text-2xl font-bold">172.5 lbs</p>
+                        <div className="flex items-center justify-center text-xs text-green-600 mt-1">
+                          <i className="ri-arrow-down-line"></i>
+                          <span>1.5 lbs (30d)</span>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-500">Body Fat</p>
+                        <p className="text-2xl font-bold">16.8%</p>
+                        <div className="flex items-center justify-center text-xs text-green-600 mt-1">
+                          <i className="ri-arrow-down-line"></i>
+                          <span>0.5% (30d)</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm">Muscle Mass</span>
+                          <span className="text-sm font-medium">68.3 lbs</span>
+                        </div>
+                        <Progress value={78} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm">Bone Mass</span>
+                          <span className="text-sm font-medium">7.8 lbs</span>
+                        </div>
+                        <Progress value={82} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm">Water</span>
+                          <span className="text-sm font-medium">60.2%</span>
+                        </div>
+                        <Progress value={75} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm">BMI</span>
+                          <span className="text-sm font-medium">23.4</span>
+                        </div>
+                        <Progress value={68} className="h-2" />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full">View Detailed History</Button>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Activity Goals</CardTitle>
+                    <CardDescription>Track your progress toward fitness goals</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <div>
+                            <h4 className="font-medium">Weekly Active Minutes</h4>
+                            <p className="text-sm text-gray-500">Target: 300 minutes</p>
+                          </div>
+                          <span className="text-lg font-medium">276/300</span>
+                        </div>
+                        <Progress value={92} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <div>
+                            <h4 className="font-medium">10K Steps Daily</h4>
+                            <p className="text-sm text-gray-500">Days reached: 5/7 this week</p>
+                          </div>
+                          <span className="text-lg font-medium">5/7</span>
+                        </div>
+                        <Progress value={71} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <div>
+                            <h4 className="font-medium">Strength Training</h4>
+                            <p className="text-sm text-gray-500">Target: 3 sessions/week</p>
+                          </div>
+                          <span className="text-lg font-medium">2/3</span>
+                        </div>
+                        <Progress value={67} className="h-2" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <div>
+                            <h4 className="font-medium">Running Distance</h4>
+                            <p className="text-sm text-gray-500">Target: 20 miles/week</p>
+                          </div>
+                          <span className="text-lg font-medium">16.8/20</span>
+                        </div>
+                        <Progress value={84} className="h-2" />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full mt-6">
+                      <i className="ri-settings-line mr-1"></i> Adjust Goals
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            <TabsContent value="nutrition" className="mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <NutritionDashboard />
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Meal History</CardTitle>
+                    <CardDescription>Recent meals and nutritional information</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="border rounded-lg p-3">
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Breakfast</h4>
+                          <span className="text-sm text-gray-500">8:15 AM</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge variant="outline">Greek Yogurt</Badge>
+                          <Badge variant="outline">Granola</Badge>
+                          <Badge variant="outline">Blueberries</Badge>
+                          <Badge variant="outline">Honey</Badge>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>380 kcal</span>
+                          <span>28g protein</span>
+                          <span>48g carbs</span>
+                          <span>9g fat</span>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg p-3">
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Lunch</h4>
+                          <span className="text-sm text-gray-500">12:30 PM</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge variant="outline">Grilled Chicken</Badge>
+                          <Badge variant="outline">Quinoa</Badge>
+                          <Badge variant="outline">Avocado</Badge>
+                          <Badge variant="outline">Mixed Greens</Badge>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>620 kcal</span>
+                          <span>42g protein</span>
+                          <span>58g carbs</span>
+                          <span>24g fat</span>
+                        </div>
+                      </div>
+                      <div className="border rounded-lg p-3">
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Snack</h4>
+                          <span className="text-sm text-gray-500">3:45 PM</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <Badge variant="outline">Protein Shake</Badge>
+                          <Badge variant="outline">Banana</Badge>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500">
+                          <span>280 kcal</span>
+                          <span>24g protein</span>
+                          <span>32g carbs</span>
+                          <span>4g fat</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full mt-4">View Full Log</Button>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Nutrition Goals</CardTitle>
+                    <CardDescription>Your personalized nutrition targets</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Daily Protein Target</h4>
+                          <span className="text-green-600 font-medium">On Track</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Current: 108g</span>
+                          <span>Target: 120g</span>
+                        </div>
+                        <Progress value={90} className="h-2" />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Aim for 1.6-2.2g per kg of bodyweight to support muscle maintenance and recovery.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Hydration</h4>
+                          <span className="text-amber-600 font-medium">Needs Attention</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Current: 1850ml</span>
+                          <span>Target: 3000ml</span>
+                        </div>
+                        <Progress value={62} className="h-2" />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Proper hydration supports exercise recovery, nutrient transport, and overall health.
+                        </p>
+                      </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <h4 className="font-medium">Fiber Intake</h4>
+                          <span className="text-amber-600 font-medium">Needs Attention</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Current: 22g</span>
+                          <span>Target: 30g</span>
+                        </div>
+                        <Progress value={73} className="h-2" />
+                        <p className="text-xs text-gray-500 mt-2">
+                          Adequate fiber promotes digestive health and may help manage hunger and blood sugar.
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full mt-6">
+                      <i className="ri-settings-line mr-1"></i> Adjust Nutrition Targets
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Supplements</CardTitle>
+                    <CardDescription>Your current supplement regimen</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex justify-between items-start p-3 border rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="bg-blue-100 p-2 rounded-full text-blue-600 mt-1">
+                            <i className="ri-capsule-line"></i>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Zinc Supplement</h4>
+                            <p className="text-sm text-gray-500">50mg once daily</p>
+                            <p className="text-xs text-gray-500 mt-1">For immune support and addressing deficiency</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">Prescribed</Badge>
+                      </div>
+                      <div className="flex justify-between items-start p-3 border rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="bg-amber-100 p-2 rounded-full text-amber-600 mt-1">
+                            <i className="ri-sun-line"></i>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Vitamin D</h4>
+                            <p className="text-sm text-gray-500">2000 IU once daily</p>
+                            <p className="text-xs text-gray-500 mt-1">For bone health and immune function</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">Prescribed</Badge>
+                      </div>
+                      <div className="flex justify-between items-start p-3 border rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="bg-green-100 p-2 rounded-full text-green-600 mt-1">
+                            <i className="ri-medicine-bottle-line"></i>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Multivitamin</h4>
+                            <p className="text-sm text-gray-500">1 tablet daily with meal</p>
+                            <p className="text-xs text-gray-500 mt-1">General nutritional support</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">Self-added</Badge>
+                      </div>
+                      <div className="flex justify-between items-start p-3 border rounded-lg">
+                        <div className="flex items-start space-x-3">
+                          <div className="bg-purple-100 p-2 rounded-full text-purple-600 mt-1">
+                            <i className="ri-test-tube-line"></i>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Probiotic</h4>
+                            <p className="text-sm text-gray-500">1 capsule daily</p>
+                            <p className="text-xs text-gray-500 mt-1">For gut health and digestion</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline">Self-added</Badge>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <Button variant="outline">
+                        <i className="ri-information-line mr-1"></i> Supplement Info
+                      </Button>
+                      <Button>
+                        <i className="ri-add-line mr-1"></i> Add Supplement
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
             <TabsContent value="trends" className="mt-4">
@@ -826,6 +1690,8 @@ const HealthDashboard = () => {
                           <SelectItem value="steps">Daily Steps</SelectItem>
                           <SelectItem value="recovery">Recovery Score</SelectItem>
                           <SelectItem value="hrv">Heart Rate Variability</SelectItem>
+                          <SelectItem value="weight">Body Weight</SelectItem>
+                          <SelectItem value="bodyFat">Body Fat Percentage</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -868,6 +1734,58 @@ const HealthDashboard = () => {
                         />
                       </LineChart>
                     </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg font-medium">Correlations</CardTitle>
+                    <CardDescription>Relationships between different health metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Sleep Quality vs Recovery Score</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center text-sm mb-3">
+                            <i className="ri-information-line text-primary mr-2"></i>
+                            <span>Strong positive correlation (r = 0.78)</span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Better sleep quality consistently leads to higher recovery scores the following day.
+                            Your deep sleep duration shows the strongest correlation with recovery metrics.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Activity Level vs Resting Heart Rate</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center text-sm mb-3">
+                            <i className="ri-information-line text-primary mr-2"></i>
+                            <span>Moderate negative correlation (r = -0.52)</span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Periods of higher regular activity correlate with lower resting heart rate,
+                            suggesting improved cardiovascular fitness during active periods.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="text-sm font-medium mb-2">Nutrition Quality vs Energy Levels</h4>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <div className="flex items-center text-sm mb-3">
+                            <i className="ri-information-line text-primary mr-2"></i>
+                            <span>Positive correlation (r = 0.62)</span>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Days with balanced nutrition (adequate protein, complex carbs, and healthy fats)
+                            show improved energy levels and workout performance.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -925,7 +1843,45 @@ const HealthDashboard = () => {
             </CardContent>
           </Card>
           
-          <AppointmentsDashboard />
+          <MedicationAdherenceDashboard />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Healthmap AI Analysis</CardTitle>
+              <CardDescription>Personalized health insights</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 mb-2">Sleep-Activity Relationship</h4>
+                  <p className="text-sm text-blue-700">
+                    Our AI has detected a pattern where your sleep quality improves significantly when you exercise before 6pm. 
+                    Consider scheduling your workouts earlier in the day for optimal recovery.
+                  </p>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 mb-2">Nutrition Insight</h4>
+                  <p className="text-sm text-blue-700">
+                    Your energy levels show significant improvement on days with higher protein intake (over 25g) at breakfast.
+                    This pattern is especially strong on workout days.
+                  </p>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-800 mb-2">Stress Management</h4>
+                  <p className="text-sm text-blue-700">
+                    Your HRV patterns indicate potential stress accumulation in mid-week. Consider implementing mindfulness
+                    practices on Wednesday and Thursday to prevent recovery decline.
+                  </p>
+                </div>
+              </div>
+              
+              <Button className="w-full mt-4">
+                <i className="ri-ai-generate mr-1"></i> Get Full AI Health Analysis
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
