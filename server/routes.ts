@@ -133,6 +133,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error fetching health stats' });
     }
   });
+  
+  // Consolidated dashboard data endpoint
+  app.get(`${apiRouter}/dashboard`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Fetch all data in parallel using Promise.all
+      const [user, healthStats, medications, connections] = await Promise.all([
+        storage.getUser(userId),
+        storage.getUserHealthStats(userId),
+        storage.getUserMedications(userId),
+        storage.getUserConnections(userId)
+      ]);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove password from user data
+      const { password, ...userWithoutPassword } = user;
+      
+      // Get product recommendations if available
+      let recommendations = [];
+      try {
+        recommendations = await storage.getProductRecommendations(userId);
+      } catch (error) {
+        console.error('Error fetching product recommendations:', error);
+        // Continue even if recommendations fail
+      }
+      
+      // Return consolidated data
+      res.json({
+        profile: userWithoutPassword,
+        healthStats,
+        medications,
+        connections,
+        recommendations
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      res.status(500).json({ message: 'Server error fetching dashboard data' });
+    }
+  });
 
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {

@@ -32,7 +32,23 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-
+  
+  // Use consolidated dashboard API endpoint instead of multiple requests
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ["/api/dashboard"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user,
+    staleTime: 60000, // Cache data for 1 minute
+  });
+  
+  // Individual data entities - extracted from the consolidated endpoint
+  const profile = dashboardData?.profile || {};
+  const healthStats = dashboardData?.healthStats || [];
+  const medications = dashboardData?.medications || [];
+  const connections = dashboardData?.connections || [];
+  const productRecommendations = dashboardData?.recommendations || [];
+  
+  // Legacy API endpoints for features not yet in the consolidated endpoint
   // Fetch health journey entries
   const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
     queryKey: ["/api/health-journey"],

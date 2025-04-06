@@ -110,6 +110,7 @@ export interface IStorage {
   getProducts(category?: string, recommendedFor?: string[]): Promise<Product[]>;
   getProductById(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
+  getProductRecommendations(userId: number): Promise<Product[]>;
   
   // Symptom Checker
   getSymptoms(bodyArea?: string, severity?: string): Promise<Symptom[]>;
@@ -1044,6 +1045,30 @@ export class MemStorage implements IStorage {
 
   async getProductById(id: number): Promise<Product | undefined> {
     return this.products.get(id);
+  }
+  
+  async getProductRecommendations(userId: number): Promise<Product[]> {
+    // Get user health stats to determine recommendations
+    const healthStats = await this.getUserHealthStats(userId);
+    
+    // Extract health conditions that need recommendations
+    const recommendationTags = healthStats.map(stat => {
+      if (stat.statType === 'nutrient_status' && stat.value === 'Zinc Deficient') {
+        return 'zinc_deficiency';
+      }
+      if (stat.statType === 'sleep_quality' && parseFloat(stat.value) < 7) {
+        return 'sleep_quality';
+      }
+      return null;
+    }).filter(Boolean) as string[];
+    
+    if (recommendationTags.length === 0) {
+      // Default recommendations if no specific health conditions
+      recommendationTags.push('general_health');
+    }
+    
+    // Filter products based on tags
+    return this.getProducts(undefined, recommendationTags);
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
