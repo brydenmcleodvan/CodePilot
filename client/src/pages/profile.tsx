@@ -16,6 +16,7 @@ import { FamilyTree } from "@/components/family-tree";
 import StreamlitEmbed from "@/components/streamlit-embed";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import HealthDashboard from "@/components/health-dashboard";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -277,19 +278,27 @@ const Profile = () => {
           {activeTab === "health-data" && (
             <div className="space-y-6">
               <div className="bg-white rounded-xl shadow-md p-6">
-                <h2 className="text-2xl font-heading font-semibold mb-6">Health Data</h2>
-                <p className="text-gray-600 mb-4">
-                  Connect and manage your health data from various sources.
-                </p>
-                <HealthStats userId={user.id} detailed={true} />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-6">
-                <GoalTracker />
-              </div>
-              
-              <div className="grid grid-cols-1 gap-6">
-                <FamilyTree />
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-2xl font-heading font-semibold">Health Data</h2>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <i className="ri-refresh-line mr-1"></i> Sync Devices
+                      </Button>
+                      <Button size="sm">
+                        <i className="ri-add-line mr-1"></i> Connect Device
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600">
+                    Your comprehensive health dashboard with data from Apple Watch, Whoop Strap, and medical records.
+                  </p>
+                </div>
+                
+                {/* Enhanced Dashboard Component */}
+                <div className="mt-8">
+                  <HealthDashboard />
+                </div>
               </div>
             </div>
           )}

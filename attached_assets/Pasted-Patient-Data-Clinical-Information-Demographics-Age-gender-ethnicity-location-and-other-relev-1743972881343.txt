@@ -1,0 +1,41 @@
+Patient Data & Clinical Information:
+Demographics: Age, gender, ethnicity, location, and other relevant characteristics. 
+Medical History: Previous diagnoses, treatments, allergies, and medications. 
+Lab Results: Blood tests, imaging scans, and other diagnostic data. 
+Vital Signs: Blood pressure, heart rate, temperature, and other physiological measurements. 
+Patient Satisfaction Scores: Surveys and feedback to gauge patient experience. 
+Wait Times: Time spent waiting for appointments, tests, or procedures. 
+Readmission Rates: How often patients are readmitted to the hospital after discharge. 
+Mortality Rate: The rate of deaths within a specific population or setting. 
+Average Length of Stay: The average time patients spend in a hospital or facility. 
+Infection Rates: The prevalence of hospital-acquired infections. 
+Patient Outcomes: Recovery rates, complications, and other measures of treatment effectiveness. 
+Medication Adherence: How well patients follow their prescribed medication regimens. 
+Telehealth Data: Data related to virtual visits, appointment reminders, and digital patient intake forms. 
+Operational Metrics:
+Bed Occupancy Rate: The percentage of beds that are occupied at any given time. 
+Staff-to-Patient Ratio: The number of staff members per patient. 
+Staff Attendance and Punctuality: Metrics related to staff performance and efficiency. 
+Appointment Scheduling: Number of appointments, cancellations, and no-shows. 
+Surgery Cancellations: The number of surgeries that are canceled. 
+Staff Training Completion Rates: The percentage of staff members who have completed required training. 
+Overtime Hours: The amount of overtime worked by staff members. 
+Average Time per Procedure: The average time it takes to perform a specific procedure. 
+Supply Chain Data: Inventory levels, costs, and other supply chain metrics. 
+Financial Data:
+Charges and Payments: Total charges, payments received, and outstanding balances. 
+Cost per Treatment: The cost of providing a specific treatment or service. 
+Average Days in A/R: The average number of days it takes to collect payments. 
+Collectability Percentage: The percentage of charges that are actually collected. 
+Total Charges and Payments: Overall revenue and expenses. 
+Quality Indicators:
+Patient Safety Events: Incidents that could potentially harm patients. 
+Adverse Events: Unforeseen negative outcomes that occur during treatment. 
+Readmission Rates: The frequency of patients being readmitted to the hospital. 
+Infection Rates: The prevalence of hospital-acquired infections. 
+Mortality Rates: The rate of deaths within a specific population or setting. 
+Staff Satisfaction: Surveys and feedback to gauge staff morale and satisfaction. 
+Patient Satisfaction: Surveys and feedback to gauge patient experience. 
+Transitional Care Management (TCM) Data: Data related to coordinating care transitions between different healthcare settings. 
+Skilled Nursing Facilities (SNFs) Performance: Performance metrics for skilled nursing facilities. 
+Contract Summary Data: Data related to contracts with insurance companies and other providers. 
