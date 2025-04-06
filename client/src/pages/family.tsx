@@ -1,7 +1,8 @@
 import React from 'react';
-import { Heart, User, Plus } from "lucide-react";
+import { Heart, User, Plus, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FamilyMemberProfile from '@/components/family-member-profile';
+import { Link } from "wouter";
 
 // Sample data for family members with extended details for profile
 const familyMembers = [
@@ -308,9 +309,18 @@ const familyMembers = [
 export function Family() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center gap-2 mb-6">
-        <Heart className="w-6 h-6" />
-        <h1 className="text-3xl font-bold">Family Health</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Heart className="w-6 h-6" />
+          <h1 className="text-3xl font-bold">Family Health</h1>
+        </div>
+        
+        <Link href="/family-tree">
+          <Button variant="outline" className="flex items-center gap-2">
+            <GitBranch className="w-4 h-4" />
+            View Family Tree
+          </Button>
+        </Link>
       </div>
 
       <p className="text-lg mb-8">
