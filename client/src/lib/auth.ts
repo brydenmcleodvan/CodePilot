@@ -13,6 +13,7 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<User>;
   register: (userData: InsertUser) => Promise<User>;
+  updateUser: (userData: Partial<User>) => Promise<User>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -111,6 +112,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const updateUser = async (userData: Partial<User>): Promise<User> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiRequest("PATCH", "/api/user/profile", userData);
+      const updatedUser = await response.json();
+      
+      // Update the user state with the new information
+      setUser(prev => prev ? { ...prev, ...updatedUser } : updatedUser);
+      
+      // Invalidate user profile query to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+      
+      return updatedUser;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update user";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("auth_token");
     setUser(null);
@@ -122,6 +147,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     login,
     register,
+    updateUser,
     logout,
     isLoading,
     error,

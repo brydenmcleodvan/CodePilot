@@ -123,6 +123,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update user profile
+  app.patch(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get update data from request body
+      const { gender, preferences, ...otherUpdateData } = req.body;
+      
+      // Create update object
+      const updateData: any = { ...otherUpdateData };
+      
+      // Only update specified fields
+      if (gender !== undefined) {
+        updateData.gender = gender;
+      }
+      
+      if (preferences !== undefined) {
+        updateData.preferences = preferences;
+      }
+      
+      // Update user in database
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ message: 'Server error updating profile' });
+    }
+  });
+  
+  // User preferences endpoint
+  app.post(`${apiRouter}/user/preferences`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get preferences and gender from request body
+      const { preferences, gender } = req.body;
+      
+      // Create update object
+      const updateData: any = {};
+      
+      if (preferences !== undefined) {
+        updateData.preferences = preferences;
+      }
+      
+      if (gender !== undefined) {
+        updateData.gender = gender;
+      }
+      
+      // Update user in database
+      const updatedUser = await storage.updateUser(userId, updateData);
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      res.status(500).json({ message: 'Server error updating preferences' });
+    }
+  });
+  
   // Health stats routes
   app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {
