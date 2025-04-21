@@ -41,7 +41,7 @@ const MobileNavLink = ({ href, active, children }: NavLinkProps) => {
   return (
     <Link
       href={href}
-      className={`py-3 px-3 rounded-md text-body-text dark:text-gray-300 hover:bg-light-blue-bg dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
+      className={`py-2.5 px-4 rounded-md text-body-text dark:text-gray-300 hover:bg-light-blue-bg dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
         active ? "text-primary bg-light-blue-bg/60 dark:bg-gray-800 font-semibold" : ""
       }`}
     >
@@ -229,8 +229,8 @@ const Navbar = () => {
 
         {/* Mobile menu - cleaner organization */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-light-blue-border dark:border-gray-700">
-            <nav className="flex flex-col space-y-1">
+          <div className="md:hidden py-3 px-2 border-t border-light-blue-border dark:border-gray-700">
+            <nav className="flex flex-col space-y-0.5">
               <MobileNavLink href="/" active={location === "/"}>
                 Home
               </MobileNavLink>
