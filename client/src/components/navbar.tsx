@@ -210,6 +210,9 @@ const Navbar = () => {
                     <Link href="/longevity" className="cursor-pointer text-body-text dark:text-gray-200">Longevity</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/metabolic" className="cursor-pointer text-body-text dark:text-gray-200">Metabolic Health</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile#neural-profile" className="cursor-pointer text-body-text dark:text-gray-200">Neural Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
@@ -281,6 +284,9 @@ const Navbar = () => {
               </MobileNavLink>
               <MobileNavLink href="/longevity" active={location === "/longevity"}>
                 Longevity
+              </MobileNavLink>
+              <MobileNavLink href="/metabolic" active={location === "/metabolic"}>
+                Metabolic Health
               </MobileNavLink>
             </nav>
           </div>

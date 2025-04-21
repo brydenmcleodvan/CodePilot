@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
+import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import {
   HealthJourneyEntry,
   HealthCoachingPlan,
@@ -234,6 +235,21 @@ export default function Dashboard() {
                 chronologicalAge={43}
                 score={82}
                 trend={4}
+                isLoading={false}
+              />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="md:col-span-1"
+            >
+              <GlucoseWidget 
+                currentValue={104}
+                previousValue={110}
+                lastUpdated="1 hour ago"
+                trend={-5.5}
                 isLoading={false}
               />
             </motion.div>
