@@ -68,10 +68,10 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
         </Link>
       </div>
 
-      <div className="relative bg-white rounded-xl shadow-lg p-8 mb-6">
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-6">
         <div className="lg:w-2/3">
-          <h3 className="text-xl font-medium mb-3">Personalized Health Store</h3>
-          <p className="text-gray-600 mb-6">
+          <h3 className="text-xl font-medium mb-3 dark:text-white">Personalized Health Store</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
             {user 
               ? "Based on your nutrient status, we've curated products that may help address your specific health needs."
               : "Connect your health data to receive personalized product recommendations tailored to your needs."}
@@ -115,7 +115,7 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
               >
                 <img
                   src={imageUrl}
@@ -126,9 +126,9 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
                   <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
                     {isRecommended ? "Recommended" : "Popular"}
                   </span>
-                  <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
+                  <h3 className="mt-3 text-lg font-medium dark:text-white">{product.name}</h3>
                   <p className="text-primary font-bold">{product.price}</p>
-                  <p className="mt-2 text-gray-600 text-sm">{product.description}</p>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">{product.description}</p>
                   <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
                     Add to Cart
                   </button>

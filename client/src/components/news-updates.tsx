@@ -54,10 +54,10 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
         {newsItems.map((news, index) => (
           <article 
             key={news.id} 
-            className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
           >
             <img
-              src={news.thumbnail}
+              src={news.thumbnail || ''}
               alt={news.title}
               className="w-full h-48 object-cover"
             />
@@ -65,10 +65,10 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
               <span className={`text-xs font-medium ${getCategoryStyles(news.category)}`}>
                 {news.category}
               </span>
-              <h3 className="mt-3 text-lg font-medium">{news.title}</h3>
-              <p className="mt-2 text-gray-600 line-clamp-2">{news.content}</p>
+              <h3 className="mt-3 text-lg font-medium dark:text-white">{news.title}</h3>
+              <p className="mt-2 text-gray-600 dark:text-gray-300 line-clamp-2">{news.content}</p>
               <div className="mt-4 flex justify-between items-center">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {new Date(news.timestamp).toLocaleDateString('en-US', { 
                     month: 'short', 
                     day: 'numeric', 
