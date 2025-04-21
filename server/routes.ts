@@ -398,24 +398,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health stats routes
   app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {
+      console.log('GET health/stats - user:', req.body.user);
       const userId = req.body.user.id;
+      console.log('GET health/stats - userId:', userId);
+      
       const stats = await storage.getUserHealthStats(userId);
+      console.log('GET health/stats - result:', stats);
+      
+      // Ensure we're sending JSON response
+      res.setHeader('Content-Type', 'application/json');
       res.json(stats);
     } catch (error) {
+      console.error('Error fetching health stats:', error);
       res.status(500).json({ message: 'Server error fetching health stats' });
     }
   });
   
   app.post(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {
+      console.log('POST health/stats - user:', req.body.user);
+      console.log('POST health/stats - body:', req.body);
+      
       const userId = req.body.user.id;
+      
+      // Remove user from the body to avoid conflicts
+      const { user, ...requestData } = req.body;
+      
       const statData = {
-        ...req.body,
+        ...requestData,
         userId,
-        timestamp: req.body.timestamp || new Date()
+        timestamp: requestData.timestamp ? new Date(requestData.timestamp) : new Date()
       };
       
+      console.log('POST health/stats - processed data:', statData);
+      
       const newStat = await storage.addHealthStat(statData);
+      console.log('POST health/stats - result:', newStat);
+      
+      // Ensure we're sending JSON response
+      res.setHeader('Content-Type', 'application/json');
       res.json(newStat);
     } catch (error) {
       console.error('Error adding health stat:', error);
