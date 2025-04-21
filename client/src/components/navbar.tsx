@@ -43,7 +43,7 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-border-light">
+    <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-border-light dark:border-gray-700">
       <div className="clean-container">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3 h-full">
@@ -51,7 +51,7 @@ const Navbar = () => {
               <i className="ri-heart-pulse-line text-primary text-2xl"></i>
             </div>
             <div className="flex items-center justify-center h-full">
-              <Link href="/" className="text-xl font-heading font-bold text-dark-text">
+              <Link href="/" className="text-xl font-heading font-bold text-dark-text dark:text-white">
                 Healthmap
               </Link>
             </div>
@@ -62,7 +62,7 @@ const Navbar = () => {
             <div className="flex items-center justify-center h-full">
               <Link
                 href="/"
-                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
                   location === "/" ? "text-primary font-semibold" : ""
                 }`}
               >
@@ -72,7 +72,7 @@ const Navbar = () => {
             <div className="flex items-center justify-center h-full">
               <Link
                 href="/profile"
-                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
+                className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
                   location === "/profile" ? "text-primary font-semibold" : ""
                 }`}
               >
@@ -193,7 +193,7 @@ const Navbar = () => {
               <div className="flex items-center gap-3">
                 <Link
                   href="/auth/login"
-                  className="px-4 py-2 rounded-lg bg-white text-primary border border-light-blue-border text-sm font-medium hover:bg-light-blue-bg transition-colors duration-200"
+                  className="px-4 py-2 rounded-lg bg-white dark:bg-gray-800 text-primary border border-light-blue-border dark:border-gray-700 text-sm font-medium hover:bg-light-blue-bg dark:hover:bg-gray-700 transition-colors duration-200"
                 >
                   Login
                 </Link>
@@ -217,12 +217,12 @@ const Navbar = () => {
 
         {/* Mobile menu - cleaner organization */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-light-blue-border">
+          <div className="md:hidden py-4 border-t border-light-blue-border dark:border-gray-700">
             <nav className="flex flex-col">
               <Link
                 href="/"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                className={`py-3 px-2 text-body-text dark:text-gray-300 hover:bg-light-blue-bg dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/" ? "text-primary bg-light-blue-bg dark:bg-gray-800 font-semibold" : ""
                 }`}
               >
                 Home
