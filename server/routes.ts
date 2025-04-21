@@ -118,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User profile routes
   app.get(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile
   app.patch(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User preferences endpoint
   app.post(`${apiRouter}/user/preferences`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -233,9 +233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get specific cycle entry
-  app.get(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+  app.get(`${apiRouter}/women-health/cycles/:id`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const entryId = parseInt(req.params.id);
       
       const entry = await storage.getCycleEntryById(entryId);
@@ -257,9 +257,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create new cycle entry
-  app.post(`${apiRouter}/cycle/entries`, authenticateToken, async (req, res) => {
+  app.post(`${apiRouter}/women-health/cycles`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Create entry data
       const entryData = {
@@ -281,9 +281,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Update cycle entry
-  app.patch(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+  app.patch(`${apiRouter}/women-health/cycles/:id`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const entryId = parseInt(req.params.id);
       
       // Verify entry belongs to current user
@@ -307,9 +307,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Delete cycle entry
-  app.delete(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+  app.delete(`${apiRouter}/women-health/cycles/:id`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const entryId = parseInt(req.params.id);
       
       // Verify entry belongs to current user
@@ -425,10 +425,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {
-      console.log('POST health/stats - user:', req.body.user);
+      console.log('POST health/stats - user:', req.user);
       console.log('POST health/stats - body:', req.body);
       
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Remove user from the body to avoid conflicts
       const { user, ...requestData } = req.body;
@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Consolidated dashboard data endpoint
   app.get(`${apiRouter}/dashboard`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Fetch all data in parallel using Promise.all
       const [user, healthStats, medications, connections] = await Promise.all([
