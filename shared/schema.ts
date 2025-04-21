@@ -11,6 +11,9 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   profilePicture: text("profile_picture"),
   healthData: text("health_data"), // Stored as JSON string
+  gender: text("gender"), // e.g. "male", "female", "non-binary", "prefer-not-to-say"
+  birthDate: timestamp("birth_date"),
+  preferences: text("preferences"), // Stored as JSON string for user preferences
 });
 
 // Health Stats
@@ -266,6 +269,40 @@ export const mealPlanEntries = pgTable("meal_plan_entries", {
   imageUrl: text("image_url")
 });
 
+// Menstrual Cycle Tracking
+export const cycleEntries = pgTable("cycle_entries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  date: timestamp("date").notNull(),
+  entryType: text("entry_type").notNull(), // e.g. "period", "ovulation", "symptom", "prediction"
+  flow: text("flow"), // e.g. "light", "medium", "heavy", "spotting"
+  symptoms: text("symptoms").array(), // e.g. ["cramps", "headache", "fatigue", "mood swings"]
+  mood: text("mood"), // e.g. "happy", "sad", "irritable", "anxious"
+  notes: text("notes"),
+  basal_temp: real("basal_temp"), // Basal body temperature in Celsius
+  cervical_fluid: text("cervical_fluid"), // e.g. "dry", "sticky", "creamy", "watery", "egg white"
+  ovulation_test: text("ovulation_test"), // e.g. "negative", "positive", "peak"
+  intimate: boolean("intimate").default(false), // Intimate relations occurred
+  medications: text("medications").array() // Medications taken on this day
+});
+
+// Cycle Analysis
+export const cycleAnalysis = pgTable("cycle_analysis", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  cycleStartDate: timestamp("cycle_start_date").notNull(),
+  cycleEndDate: timestamp("cycle_end_date"),
+  cycleDuration: integer("cycle_duration"), // In days
+  periodDuration: integer("period_duration"), // In days
+  ovulationDate: timestamp("ovulation_date"),
+  nextPeriodPrediction: timestamp("next_period_prediction"),
+  fertileWindowStart: timestamp("fertile_window_start"),
+  fertileWindowEnd: timestamp("fertile_window_end"),
+  notes: text("notes"),
+  regularity: text("regularity"), // e.g. "regular", "irregular", "very irregular"
+  lutealPhaseLength: integer("luteal_phase_length") // In days
+});
+
 // Insert Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
@@ -288,6 +325,8 @@ export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({ id: 
 export const insertHealthArticleSchema = createInsertSchema(healthArticles).omit({ id: true });
 export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({ id: true });
 export const insertMealPlanEntrySchema = createInsertSchema(mealPlanEntries).omit({ id: true });
+export const insertCycleEntrySchema = createInsertSchema(cycleEntries).omit({ id: true });
+export const insertCycleAnalysisSchema = createInsertSchema(cycleAnalysis).omit({ id: true });
 
 // Auth Schemas
 export const loginSchema = z.object({
@@ -358,5 +397,11 @@ export type MealPlan = typeof mealPlans.$inferSelect;
 
 export type InsertMealPlanEntry = z.infer<typeof insertMealPlanEntrySchema>;
 export type MealPlanEntry = typeof mealPlanEntries.$inferSelect;
+
+export type InsertCycleEntry = z.infer<typeof insertCycleEntrySchema>;
+export type CycleEntry = typeof cycleEntries.$inferSelect;
+
+export type InsertCycleAnalysis = z.infer<typeof insertCycleAnalysisSchema>;
+export type CycleAnalysis = typeof cycleAnalysis.$inferSelect;
 
 export type Login = z.infer<typeof loginSchema>;
