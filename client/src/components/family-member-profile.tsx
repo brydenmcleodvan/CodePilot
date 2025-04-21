@@ -204,16 +204,16 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
             
             {/* Upcoming Appointments */}
             {member.upcomingAppointments && member.upcomingAppointments.length > 0 ? (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-xl font-medium mb-4">Upcoming Appointments</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 dark:border dark:border-gray-700">
+                <h3 className="text-xl font-medium mb-4 dark:text-white">Upcoming Appointments</h3>
                 <div className="space-y-4">
                   {member.upcomingAppointments.map((appointment, idx) => (
-                    <div key={idx} className="p-4 border rounded-md">
+                    <div key={idx} className="p-4 border dark:border-gray-700 rounded-md dark:bg-gray-800">
                       <div className="flex justify-between mb-2">
-                        <h4 className="font-semibold">{appointment.type}</h4>
-                        <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">{appointment.date}</span>
+                        <h4 className="font-semibold dark:text-white">{appointment.type}</h4>
+                        <span className="text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400 px-2 py-1 rounded">{appointment.date}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{appointment.time} with Dr. {appointment.provider}</p>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">{appointment.time} with Dr. {appointment.provider}</p>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline">Reschedule</Button>
                         <Button size="sm" variant="outline">Cancel</Button>
@@ -223,12 +223,12 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                 </div>
               </div>
             ) : (
-              <Card>
+              <Card className="dark:border-gray-700 dark:bg-gray-800">
                 <CardHeader>
-                  <CardTitle>No Upcoming Appointments</CardTitle>
+                  <CardTitle className="dark:text-white">No Upcoming Appointments</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">No appointments scheduled at this time.</p>
+                  <p className="text-gray-600 dark:text-gray-300">No appointments scheduled at this time.</p>
                   <div className="mt-4">
                     <Button>Schedule Appointment</Button>
                   </div>
@@ -239,8 +239,8 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
           
           {/* Genetic Health Tab */}
           <TabsContent value="genetic-health" className="mt-4">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-medium mb-6">Genetic Health Profile</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 dark:border dark:border-gray-700">
+              <h3 className="text-xl font-medium mb-6 dark:text-white">Genetic Health Profile</h3>
               
               {member.relation === "Parent" && (
                 <div className="mb-8">
@@ -258,19 +258,19 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                     </div>
                   </div>
                   
-                  <h4 className="font-medium text-lg mb-4">Hereditary Conditions You May Have Passed Down</h4>
+                  <h4 className="font-medium text-lg mb-4 dark:text-white">Hereditary Conditions You May Have Passed Down</h4>
                   <div className="space-y-4">
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-amber-100 rounded-full p-2 mr-3">
-                          <i className="ri-heart-pulse-line text-amber-600"></i>
+                        <div className="bg-amber-100 dark:bg-amber-900/30 rounded-full p-2 mr-3">
+                          <i className="ri-heart-pulse-line text-amber-600 dark:text-amber-400"></i>
                         </div>
                         <div>
-                          <h5 className="font-medium">Hypertension</h5>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <h5 className="font-medium dark:text-white">Hypertension</h5>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Your history of hypertension has a genetic component that may have been passed to your children. Regular blood pressure monitoring is recommended for the whole family.
                           </p>
-                          <div className="mt-3 flex items-center text-sm text-amber-700">
+                          <div className="mt-3 flex items-center text-sm text-amber-700 dark:text-amber-400">
                             <i className="ri-user-heart-line mr-2"></i>
                             <span>Your children have a 40-60% chance of developing this condition</span>
                           </div>
@@ -315,7 +315,7 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                     </div>
                   </div>
                   
-                  <h4 className="font-medium text-lg mb-4">Shared Genetic Influences on Children</h4>
+                  <h4 className="font-medium text-lg mb-4 dark:text-white">Shared Genetic Influences on Children</h4>
                   <div className="space-y-4">
                     <div className="border rounded-md p-4">
                       <div className="flex items-start">
