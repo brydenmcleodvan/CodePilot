@@ -141,6 +141,11 @@ const Navbar = () => {
                       Messenger
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/nutrition" className={`cursor-pointer w-full ${location === "/nutrition" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                      Nutrition
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -187,6 +192,9 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/messenger" className="cursor-pointer text-body-text dark:text-gray-200">Messenger</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/nutrition" className="cursor-pointer text-body-text dark:text-gray-200">Nutrition</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile#neural-profile" className="cursor-pointer text-body-text dark:text-gray-200">Neural Profile</Link>
