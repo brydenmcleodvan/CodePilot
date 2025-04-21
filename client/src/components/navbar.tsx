@@ -146,6 +146,11 @@ const Navbar = () => {
                       Nutrition
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/longevity" className={`cursor-pointer w-full ${location === "/longevity" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                      Longevity
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -195,6 +200,9 @@ const Navbar = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/nutrition" className="cursor-pointer text-body-text dark:text-gray-200">Nutrition</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/longevity" className="cursor-pointer text-body-text dark:text-gray-200">Longevity</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile#neural-profile" className="cursor-pointer text-body-text dark:text-gray-200">Neural Profile</Link>
@@ -265,6 +273,9 @@ const Navbar = () => {
               </MobileNavLink>
               <MobileNavLink href="/nutrition" active={location === "/nutrition"}>
                 Nutrition
+              </MobileNavLink>
+              <MobileNavLink href="/longevity" active={location === "/longevity"}>
+                Longevity
               </MobileNavLink>
             </nav>
           </div>

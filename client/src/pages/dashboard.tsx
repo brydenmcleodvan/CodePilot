@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
 import { motion } from "framer-motion";
+import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import {
   HealthJourneyEntry,
   HealthCoachingPlan,
@@ -217,12 +218,27 @@ export default function Dashboard() {
           </div>
 
           <motion.div
-            className="mt-8 grid md:grid-cols-2 gap-6"
+            className="mt-8 grid md:grid-cols-3 gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="md:col-span-1"
+            >
+              <LongevityScoreCard
+                biologicalAge={39.2}
+                chronologicalAge={43}
+                score={82}
+                trend={4}
+                isLoading={false}
+              />
+            </motion.div>
+            
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sun className="h-6 w-6 text-primary" />

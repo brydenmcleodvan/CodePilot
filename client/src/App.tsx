@@ -21,6 +21,7 @@ import FamilyTreePage from "@/pages/family-tree";
 import NutritionPage from "@/pages/nutrition";
 import MessengerPage from "@/pages/messenger";
 import Shop from "@/pages/shop";
+import LongevityPage from "@/pages/longevity";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -55,6 +56,7 @@ function Router() {
             <Route path="/messenger" component={MessengerPage} />
             <Route path="/shop" component={Shop} />
             <Route path="/nutrition" component={NutritionPage} />
+            <Route path="/longevity" component={LongevityPage} />
             <Route component={NotFound} />
           </Switch>
         </div>
