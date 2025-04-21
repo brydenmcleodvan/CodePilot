@@ -157,8 +157,8 @@ const Profile = () => {
         {/* Profile Content */}
         <div className="md:w-2/3 lg:w-3/4">
           {activeTab === "overview" && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Profile Overview</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Profile Overview</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {healthStats && healthStats.map((stat, index) => (
@@ -179,54 +179,54 @@ const Profile = () => {
               </div>
 
               <div className="mb-8">
-                <h3 className="text-xl font-medium mb-4">Health Summary</h3>
-                <p className="text-gray-600">
+                <h3 className="text-xl font-medium mb-4 text-dark-text dark:text-gray-100">Health Summary</h3>
+                <p className="text-gray-600 dark:text-gray-300">
                   Based on your connected health data, genetic profile, and family history, we've identified several key health insights:
                 </p>
                 <ul className="mt-4 space-y-2">
                   <li className="flex items-start space-x-2">
                     <i className="ri-alert-line text-danger mt-1"></i>
-                    <span>Zinc deficiency detected - may impact immune function and wound healing</span>
+                    <span className="dark:text-gray-200">Zinc deficiency detected - may impact immune function and wound healing</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <i className="ri-information-line text-blue-500 mt-1"></i>
-                    <span>Sleep quality is good but could be optimized for better recovery</span>
+                    <span className="dark:text-gray-200">Sleep quality is good but could be optimized for better recovery</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <i className="ri-checkbox-circle-line text-primary mt-1"></i>
-                    <span>Heart rate and cardiovascular metrics within healthy range</span>
+                    <span className="dark:text-gray-200">Heart rate and cardiovascular metrics within healthy range</span>
                   </li>
                 </ul>
               </div>
 
               <div className="mb-8">
-                <h3 className="text-xl font-medium mb-4">Medication Schedule</h3>
-                <div className="bg-white rounded-lg border border-gray-200">
+                <h3 className="text-xl font-medium mb-4 text-dark-text dark:text-gray-100">Medication Schedule</h3>
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                   <MedicationTracker />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xl font-medium mb-4">Connected Data Sources</h3>
-                <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-xl font-medium mb-4 text-dark-text dark:text-gray-100">Connected Data Sources</h3>
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border dark:border-gray-700">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center space-x-2">
                       <i className="ri-heart-pulse-line text-primary"></i>
-                      <span className="font-medium">Health App</span>
+                      <span className="font-medium dark:text-gray-200">Health App</span>
                     </div>
-                    <span className="text-sm text-green-600">Connected</span>
+                    <span className="text-sm text-green-600 dark:text-green-400">Connected</span>
                   </div>
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center space-x-2">
                       <i className="ri-dna-line text-blue-500"></i>
-                      <span className="font-medium">DNA Testing Service</span>
+                      <span className="font-medium dark:text-gray-200">DNA Testing Service</span>
                     </div>
-                    <span className="text-sm text-green-600">Connected</span>
+                    <span className="text-sm text-green-600 dark:text-green-400">Connected</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center space-x-2">
                       <i className="ri-parent-line text-amber-500"></i>
-                      <span className="font-medium">Family Tree Service</span>
+                      <span className="font-medium dark:text-gray-200">Family Tree Service</span>
                     </div>
                     <button className="text-sm text-primary hover:text-secondary">Connect</button>
                   </div>
@@ -236,9 +236,9 @@ const Profile = () => {
           )}
 
           {activeTab === "family-connections" && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-heading font-semibold">Family & Friends</h2>
+                <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Family & Friends</h2>
                 <button className="text-primary hover:text-secondary flex items-center space-x-1">
                   <i className="ri-user-add-line"></i>
                   <span>Add Connection</span>
@@ -277,10 +277,10 @@ const Profile = () => {
 
           {activeTab === "health-data" && (
             <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-heading font-semibold">Health Data</h2>
+                    <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Health Data</h2>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
                         <i className="ri-refresh-line mr-1"></i> Sync Devices
@@ -290,7 +290,7 @@ const Profile = () => {
                       </Button>
                     </div>
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-300">
                     Your comprehensive health dashboard with data from Apple Watch, Whoop Strap, and medical records.
                   </p>
                 </div>
@@ -304,9 +304,9 @@ const Profile = () => {
           )}
 
           {activeTab === "genetic-profile" && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Genetic Profile</h2>
-              <p className="text-gray-600 mb-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Genetic Profile</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Connect your genetic testing data to gain insights into your health.
               </p>
               
@@ -354,12 +354,12 @@ const Profile = () => {
 
           {activeTab === "neural-profile" && (
             <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-md p-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-heading font-semibold">Neural Profile</h2>
-                  <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">Medical Record</Badge>
+                  <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Neural Profile</h2>
+                  <Badge variant="outline" className="bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-600">Medical Record</Badge>
                 </div>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
                   Your comprehensive neurological profile provides insights into brain activity patterns, 
                   seizure history, cognitive assessments, and personalized treatment recommendations.
                 </p>
@@ -542,36 +542,36 @@ const Profile = () => {
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Settings</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Settings</h2>
               
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <h3 className="text-lg font-medium mb-4">Account Information</h3>
+              <div className="border-b border-gray-200 dark:border-gray-700 pb-6 mb-6">
+                <h3 className="text-lg font-medium mb-4 text-dark-text dark:text-gray-100">Account Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
                     <input
                       type="text"
                       value={user.name}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       readOnly
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                     <input
                       type="email"
                       value={user.email}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       readOnly
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                     <input
                       type="text"
                       value={user.username}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                       readOnly
                     />
                   </div>
@@ -581,22 +581,22 @@ const Profile = () => {
                 </button>
               </div>
               
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <h3 className="text-lg font-medium mb-4">Privacy Settings</h3>
+              <div className="border-b border-gray-200 dark:border-gray-700 pb-6 mb-6">
+                <h3 className="text-lg font-medium mb-4 text-dark-text dark:text-gray-100">Privacy Settings</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Share Health Data with Family</h4>
-                      <p className="text-sm text-gray-600">Allow family members to see your basic health data</p>
+                      <h4 className="font-medium dark:text-gray-200">Share Health Data with Family</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Allow family members to see your basic health data</p>
                     </div>
-                    <button className="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                    <button className="bg-gray-200 dark:bg-gray-600 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white transition" />
                     </button>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Public Profile</h4>
-                      <p className="text-sm text-gray-600">Make your profile visible to other users</p>
+                      <h4 className="font-medium dark:text-gray-200">Public Profile</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Make your profile visible to other users</p>
                     </div>
                     <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white transition" />
@@ -604,8 +604,8 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Email Notifications</h4>
-                      <p className="text-sm text-gray-600">Receive email updates about health insights</p>
+                      <h4 className="font-medium dark:text-gray-200">Email Notifications</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Receive email updates about health insights</p>
                     </div>
                     <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                       <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white transition" />
@@ -615,13 +615,13 @@ const Profile = () => {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium mb-4">Danger Zone</h3>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <h4 className="font-medium text-red-800 mb-2">Delete Account</h4>
-                  <p className="text-sm text-red-700 mb-4">
+                <h3 className="text-lg font-medium mb-4 text-dark-text dark:text-gray-100">Danger Zone</h3>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 dark:text-red-300 mb-2">Delete Account</h4>
+                  <p className="text-sm text-red-700 dark:text-red-400 mb-4">
                     Once you delete your account, there is no going back. Please be certain.
                   </p>
-                  <button className="bg-white text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition-colors duration-200">
+                  <button className="bg-white dark:bg-transparent text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors duration-200">
                     Delete Account
                   </button>
                 </div>
