@@ -155,47 +155,47 @@ const Navbar = () => {
                 open={isUserDropdownOpen} 
                 onOpenChange={setIsUserDropdownOpen}
               >
-                <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
+                <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-light-blue-bg dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none">
                   <div className="flex items-center h-8">
                     <div className="flex items-center justify-center h-full">
                       <img
                         src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                         alt="User profile"
-                        className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
+                        className="w-8 h-8 rounded-full border border-light-blue-border dark:border-gray-700 shadow-sm"
                       />
                     </div>
                     <div className="hidden md:flex items-center justify-center h-full ml-2">
-                      <span className="text-sm font-medium text-dark-text">
+                      <span className="text-sm font-medium text-dark-text dark:text-gray-200">
                         {user.name ? user.name.split(" ")[0] : user.username}
                       </span>
-                      <ChevronDown className="h-3.5 w-3.5 text-gray-500 ml-1" />
+                      <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 ml-1" />
                     </div>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">Profile</Link>
+                <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border dark:border-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/profile" className="cursor-pointer text-body-text dark:text-gray-200">Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/health-coach" className="cursor-pointer">Health Coach</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/health-coach" className="cursor-pointer text-body-text dark:text-gray-200">Health Coach</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/connections" className="cursor-pointer">Connections</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/connections" className="cursor-pointer text-body-text dark:text-gray-200">Connections</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/family" className="cursor-pointer">Family Health</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/family" className="cursor-pointer text-body-text dark:text-gray-200">Family Health</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/messenger" className="cursor-pointer">Messenger</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/messenger" className="cursor-pointer text-body-text dark:text-gray-200">Messenger</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile#neural-profile" className="cursor-pointer">Neural Profile</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/profile#neural-profile" className="cursor-pointer text-body-text dark:text-gray-200">Neural Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                    <Link href="/profile#settings" className="cursor-pointer text-body-text dark:text-gray-200">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700"/>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400 focus:bg-light-blue-bg dark:focus:bg-gray-700">
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -219,7 +219,8 @@ const Navbar = () => {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-700 hover:text-primary focus:outline-none"
+              className="md:hidden text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary focus:outline-none"
+              aria-label="Toggle mobile menu"
             >
               <Menu className="h-6 w-6" />
             </button>
