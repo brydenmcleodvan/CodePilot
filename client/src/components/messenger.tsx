@@ -304,7 +304,7 @@ export function Messenger() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <h3 className="font-medium truncate">{user.name}</h3>
+                      <h3 className="font-medium truncate dark:text-white">{user.name}</h3>
                       <span className="text-xs text-muted-foreground whitespace-nowrap">{user.lastSeen}</span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
@@ -322,7 +322,7 @@ export function Messenger() {
           </div>
         </ScrollArea>
         
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <Button className="w-full" size="sm">
             <PlusCircle className="w-4 h-4 mr-2" />
             New Message
@@ -334,7 +334,7 @@ export function Messenger() {
       {activeContact ? (
         <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
           {/* Chat header */}
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <Avatar>
                 <AvatarImage src={activeContact.avatar} />
@@ -343,7 +343,7 @@ export function Messenger() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="font-semibold">{activeContact.name}</h3>
+                <h3 className="font-semibold dark:text-white">{activeContact.name}</h3>
                 <p className="text-xs text-muted-foreground">
                   {activeContact.status === "online" ? (
                     <span className="text-green-500">● Online</span>
@@ -469,7 +469,7 @@ export function Messenger() {
           </ScrollArea>
           
           {/* Compose area */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex gap-2 items-end">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -533,8 +533,8 @@ export function Messenger() {
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <MessageSquare className="w-12 h-12 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Your Messages</h2>
-            <p className="text-muted-foreground mb-6">
+            <h2 className="text-2xl font-bold mb-2 dark:text-white">Your Messages</h2>
+            <p className="text-muted-foreground mb-6 dark:text-gray-400">
               Connect with your healthcare providers, friends, and wellness communities securely.
             </p>
             <Button>
