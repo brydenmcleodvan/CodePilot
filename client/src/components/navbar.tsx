@@ -11,6 +11,45 @@ import {
 import { ChevronDown, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+// NavLink component for consistent link styling
+interface NavLinkProps {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}
+
+const NavLink = ({ href, active, children }: NavLinkProps) => {
+  return (
+    <div className="relative h-full flex items-center">
+      <Link
+        href={href}
+        className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium py-2 ${
+          active ? "text-primary font-semibold" : ""
+        }`}
+      >
+        {children}
+      </Link>
+      {active && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+      )}
+    </div>
+  );
+};
+
+// Mobile navigation link component
+const MobileNavLink = ({ href, active, children }: NavLinkProps) => {
+  return (
+    <Link
+      href={href}
+      className={`py-3 px-3 rounded-md text-body-text dark:text-gray-300 hover:bg-light-blue-bg dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
+        active ? "text-primary bg-light-blue-bg/60 dark:bg-gray-800 font-semibold" : ""
+      }`}
+    >
+      {children}
+    </Link>
+  );
+};
+
 const Navbar = () => {
   const [location] = useLocation();
   const { user, logout } = useAuth();
@@ -47,58 +86,30 @@ const Navbar = () => {
       <div className="clean-container">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-3 h-full">
-            <div className="flex items-center justify-center h-full">
-              <i className="ri-heart-pulse-line text-primary text-2xl"></i>
-            </div>
-            <div className="flex items-center justify-center h-full">
-              <Link href="/" className="text-xl font-heading font-bold text-dark-text dark:text-white">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex items-center justify-center p-1.5 bg-primary/10 dark:bg-primary/20 rounded-full">
+                <i className="ri-heart-pulse-line text-primary text-xl"></i>
+              </div>
+              <span className="text-xl font-heading font-bold text-dark-text dark:text-white transition-colors duration-200">
                 Healthmap
-              </Link>
-            </div>
+              </span>
+            </Link>
           </div>
 
           {/* Main navigation - better spacing and reduced visual noise */}
-          <nav className="hidden md:flex items-center space-x-8 h-full">
-            <div className="flex items-center justify-center h-full">
-              <Link
-                href="/"
-                className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                  location === "/" ? "text-primary font-semibold" : ""
-                }`}
-              >
-                Home
-              </Link>
-            </div>
-            <div className="flex items-center justify-center h-full">
-              <Link
-                href="/profile"
-                className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                  location === "/profile" ? "text-primary font-semibold" : ""
-                }`}
-              >
-                Profile
-              </Link>
-            </div>
-            <div className="flex items-center justify-center h-full">
-              <Link
-                href="/dashboard"
-                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                  location === "/dashboard" ? "text-primary font-semibold" : ""
-                }`}
-              >
-                Dashboard
-              </Link>
-            </div>
-            <div className="flex items-center justify-center h-full">
-              <Link
-                href="/family"
-                className={`text-body-text hover:text-primary transition-colors duration-200 text-sm font-medium ${
-                  location === "/family" ? "text-primary font-semibold" : ""
-                }`}
-              >
-                Family Health
-              </Link>
-            </div>
+          <nav className="hidden md:flex items-center space-x-6 h-full">
+            <NavLink href="/" active={location === "/"}>
+              Home
+            </NavLink>
+            <NavLink href="/profile" active={location === "/profile"}>
+              Profile
+            </NavLink>
+            <NavLink href="/dashboard" active={location === "/dashboard"}>
+              Dashboard
+            </NavLink>
+            <NavLink href="/family" active={location === "/family"}>
+              Family Health
+            </NavLink>
             
             {/* Dropdown for additional pages to reduce visual clutter */}
             <div className="flex items-center justify-center h-full">
@@ -106,26 +117,26 @@ const Navbar = () => {
                 open={isMoreDropdownOpen} 
                 onOpenChange={setIsMoreDropdownOpen}
               >
-                <DropdownMenuTrigger className="text-body-text hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
+                <DropdownMenuTrigger className="text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
                   More <ChevronDown className="h-3 w-3" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem asChild>
+                <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
                     <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""}`}>
                       Health Coach
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
                     <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""}`}>
                       Connections
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
                     <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""}`}>
                       Forum
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
                     <Link href="/messenger" className={`cursor-pointer w-full ${location === "/messenger" ? "text-primary" : ""}`}>
                       Messenger
                     </Link>
@@ -218,71 +229,31 @@ const Navbar = () => {
         {/* Mobile menu - cleaner organization */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-light-blue-border dark:border-gray-700">
-            <nav className="flex flex-col">
-              <Link
-                href="/"
-                className={`py-3 px-2 text-body-text dark:text-gray-300 hover:bg-light-blue-bg dark:hover:bg-gray-800 hover:text-primary dark:hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/" ? "text-primary bg-light-blue-bg dark:bg-gray-800 font-semibold" : ""
-                }`}
-              >
+            <nav className="flex flex-col space-y-1">
+              <MobileNavLink href="/" active={location === "/"}>
                 Home
-              </Link>
-              <Link
-                href="/profile"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/profile" active={location === "/profile"}>
                 Profile
-              </Link>
-              <Link
-                href="/dashboard"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/dashboard" active={location === "/dashboard"}>
                 Dashboard
-              </Link>
-              <Link
-                href="/health-coach"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/health-coach" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/health-coach" active={location === "/health-coach"}>
                 Health Coach
-              </Link>
-              <Link
-                href="/connections"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/connections" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/connections" active={location === "/connections"}>
                 Connections
-              </Link>
-              <Link
-                href="/family"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/family" active={location === "/family"}>
                 Family Health
-              </Link>
-              <Link
-                href="/forum"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/forum" active={location.startsWith("/forum")}>
                 Forum
-              </Link>
-              <Link
-                href="/messenger"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/messenger" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
+              </MobileNavLink>
+              <MobileNavLink href="/messenger" active={location === "/messenger"}>
                 Messenger
-              </Link>
+              </MobileNavLink>
             </nav>
           </div>
         )}
