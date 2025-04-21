@@ -42,15 +42,15 @@ const ConnectionCard = ({ connection, relationship, specific }: ConnectionCardPr
   };
 
   return (
-    <div className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 hover:border-primary transition-colors duration-200">
+    <div className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary/70 transition-colors duration-200 dark:bg-gray-800/50">
       <img
         src={connection.profilePicture || "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
         alt={connection.name}
         className="w-12 h-12 rounded-full"
       />
       <div>
-        <h3 className="font-medium">{connection.name}</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="font-medium dark:text-white">{connection.name}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {relationship} {specific && `- ${specific}`}
         </p>
       </div>

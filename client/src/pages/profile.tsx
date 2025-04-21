@@ -82,8 +82,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("overview")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "overview"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-user-line"></i>
@@ -94,8 +94,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("health-data")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "health-data"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-heart-line"></i>
@@ -106,8 +106,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("genetic-profile")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "genetic-profile"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-dna-line"></i>
@@ -118,8 +118,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("family-connections")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "family-connections"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-group-line"></i>
@@ -130,8 +130,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("neural-profile")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "neural-profile"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-brain-line"></i>
@@ -142,8 +142,8 @@ const Profile = () => {
                   onClick={() => setActiveTab("settings")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "settings"
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   }`}
                 >
                   <i className="ri-settings-line"></i>
