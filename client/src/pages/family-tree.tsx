@@ -165,55 +165,55 @@ export default function FamilyTreePage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* This would render the family members from the original Family component */}
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow dark:shadow-gray-900 dark:border dark:border-gray-700">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <span className="text-xl text-primary font-bold">JD</span>
+                <div className="w-16 h-16 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center">
+                  <span className="text-xl text-primary dark:text-primary-400 font-bold">JD</span>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">John Doe</h2>
-                  <p className="text-sm text-muted-foreground">Self</p>
+                  <h2 className="text-lg font-semibold dark:text-white">John Doe</h2>
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">Self</p>
                 </div>
               </div>
-              <div className="border-t pt-4">
-                <p className="text-sm mb-2"><strong>Last Active:</strong> Today</p>
-                <p className="text-sm mb-2">
+              <div className="border-t dark:border-gray-700 pt-4">
+                <p className="text-sm mb-2 dark:text-gray-300"><strong>Last Active:</strong> Today</p>
+                <p className="text-sm mb-2 dark:text-gray-300">
                   <strong>Health Status:</strong>{' '}
-                  <span className="text-green-600">Good</span>
+                  <span className="text-green-600 dark:text-green-400">Good</span>
                 </p>
-                <p className="text-sm"><strong>Upcoming:</strong> Annual checkup in 3 weeks</p>
+                <p className="text-sm dark:text-gray-300"><strong>Upcoming:</strong> Annual checkup in 3 weeks</p>
               </div>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow dark:shadow-gray-900 dark:border dark:border-gray-700">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                  <span className="text-xl text-primary font-bold">SD</span>
+                <div className="w-16 h-16 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center">
+                  <span className="text-xl text-primary dark:text-primary-400 font-bold">SD</span>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">Sarah Doe</h2>
-                  <p className="text-sm text-muted-foreground">Spouse</p>
+                  <h2 className="text-lg font-semibold dark:text-white">Sarah Doe</h2>
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">Spouse</p>
                 </div>
               </div>
-              <div className="border-t pt-4">
-                <p className="text-sm mb-2"><strong>Last Active:</strong> Today</p>
-                <p className="text-sm mb-2">
+              <div className="border-t dark:border-gray-700 pt-4">
+                <p className="text-sm mb-2 dark:text-gray-300"><strong>Last Active:</strong> Today</p>
+                <p className="text-sm mb-2 dark:text-gray-300">
                   <strong>Health Status:</strong>{' '}
-                  <span className="text-green-600">Good</span>
+                  <span className="text-green-600 dark:text-green-400">Good</span>
                 </p>
-                <p className="text-sm"><strong>Upcoming:</strong> Annual physical in 2 weeks</p>
+                <p className="text-sm dark:text-gray-300"><strong>Upcoming:</strong> Annual physical in 2 weeks</p>
               </div>
             </div>
             
             {/* Add Family Member card */}
-            <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-2 border-dashed border-primary/30 dark:border-primary/20 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <Button variant="ghost" className="w-full h-full flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                  <UserPlus className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                  <UserPlus className="w-8 h-8 text-primary dark:text-primary-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold mb-2">Add Family Member</h2>
-                  <p className="text-sm text-muted-foreground">Invite a family member to connect and share health information</p>
+                  <h2 className="text-lg font-semibold mb-2 dark:text-white">Add Family Member</h2>
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">Invite a family member to connect and share health information</p>
                 </div>
               </Button>
             </div>
