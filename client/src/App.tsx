@@ -22,6 +22,7 @@ import NutritionPage from "@/pages/nutrition";
 import MessengerPage from "@/pages/messenger";
 import Shop from "@/pages/shop";
 import LongevityPage from "@/pages/longevity";
+import MetabolicHealthPage from "@/pages/metabolic";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -57,6 +58,7 @@ function Router() {
             <Route path="/shop" component={Shop} />
             <Route path="/nutrition" component={NutritionPage} />
             <Route path="/longevity" component={LongevityPage} />
+            <Route path="/metabolic" component={MetabolicHealthPage} />
             <Route component={NotFound} />
           </Switch>
         </div>

@@ -151,6 +151,11 @@ const Navbar = () => {
                       Longevity
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/metabolic" className={`cursor-pointer w-full ${location === "/metabolic" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                      Metabolic Health
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
