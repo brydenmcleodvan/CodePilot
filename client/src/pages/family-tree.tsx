@@ -230,59 +230,59 @@ export default function FamilyTreePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="p-6 bg-primary/5 rounded-lg border border-primary/20">
-                  <h3 className="text-lg font-medium mb-4">Top Inherited Conditions in Your Family</h3>
+                <div className="p-6 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20 dark:border-primary/30">
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Top Inherited Conditions in Your Family</h3>
                   
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <div className="bg-amber-100 rounded-full p-2">
-                        <Heart className="w-5 h-5 text-amber-600" />
+                      <div className="bg-amber-100 dark:bg-amber-900/30 rounded-full p-2">
+                        <Heart className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <h4 className="font-medium">Hypertension</h4>
-                          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">Moderate Risk</span>
+                          <h4 className="font-medium dark:text-white">Hypertension</h4>
+                          <span className="text-xs bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-full">Moderate Risk</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-muted-foreground dark:text-gray-300 mb-1">
                           Present in 3 family members across 2 generations
                         </p>
-                        <div className="flex items-center text-xs text-primary">
+                        <div className="flex items-center text-xs text-primary dark:text-primary-400">
                           <span>You have a 40-60% chance of developing this condition</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 rounded-full p-2">
-                        <Heart className="w-5 h-5 text-blue-600" />
+                      <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-2">
+                        <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <h4 className="font-medium">Vitamin D Deficiency</h4>
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Moderate Risk</span>
+                          <h4 className="font-medium dark:text-white">Vitamin D Deficiency</h4>
+                          <span className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full">Moderate Risk</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-muted-foreground dark:text-gray-300 mb-1">
                           Present in 4 family members across 3 generations
                         </p>
-                        <div className="flex items-center text-xs text-primary">
+                        <div className="flex items-center text-xs text-primary dark:text-primary-400">
                           <span>Regular testing and supplementation recommended</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <div className="bg-red-100 rounded-full p-2">
-                        <Heart className="w-5 h-5 text-red-600" />
+                      <div className="bg-red-100 dark:bg-red-900/30 rounded-full p-2">
+                        <Heart className="w-5 h-5 text-red-600 dark:text-red-400" />
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <h4 className="font-medium">Early Heart Disease</h4>
-                          <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">High Risk</span>
+                          <h4 className="font-medium dark:text-white">Early Heart Disease</h4>
+                          <span className="text-xs bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 px-2 py-0.5 rounded-full">High Risk</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">
+                        <p className="text-sm text-muted-foreground dark:text-gray-300 mb-1">
                           Present in 2 family members in previous generations
                         </p>
-                        <div className="flex items-center text-xs text-primary">
+                        <div className="flex items-center text-xs text-primary dark:text-primary-400">
                           <span>Early preventive screening recommended starting at age 40</span>
                         </div>
                       </div>
@@ -298,17 +298,17 @@ export default function FamilyTreePage() {
                     <CardContent>
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-primary font-semibold">2/6</span>
+                          <div className="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                            <span className="text-primary dark:text-primary-400 font-semibold">2/6</span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium">Family Members Tested</p>
-                            <p className="text-xs text-muted-foreground">33% of your family</p>
+                            <p className="text-sm font-medium dark:text-white">Family Members Tested</p>
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">33% of your family</p>
                           </div>
                         </div>
                         <Button size="sm">Schedule Test</Button>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground dark:text-gray-400">
                         Genetic testing can provide more accurate insights about inherited conditions. Consider testing more family members.
                       </p>
                     </CardContent>
@@ -321,16 +321,16 @@ export default function FamilyTreePage() {
                     <CardContent>
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">1</div>
-                          <span>Complete genetic testing for all immediate family members</span>
+                          <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs text-primary dark:text-primary-400 mt-0.5">1</div>
+                          <span className="dark:text-white">Complete genetic testing for all immediate family members</span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">2</div>
-                          <span>Schedule a consultation with a genetic counselor</span>
+                          <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs text-primary dark:text-primary-400 mt-0.5">2</div>
+                          <span className="dark:text-white">Schedule a consultation with a genetic counselor</span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">3</div>
-                          <span>Update your preventive care plan based on family risk factors</span>
+                          <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs text-primary dark:text-primary-400 mt-0.5">3</div>
+                          <span className="dark:text-white">Update your preventive care plan based on family risk factors</span>
                         </li>
                       </ul>
                     </CardContent>
