@@ -307,8 +307,8 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                         <i className="ri-information-line text-purple-500 text-xl"></i>
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-lg font-medium text-purple-700">Spouse Health Information</h3>
-                        <p className="text-purple-700 mt-2">
+                        <h3 className="text-lg font-medium text-purple-700 dark:text-purple-300">Spouse Health Information</h3>
+                        <p className="text-purple-700 dark:text-purple-200 mt-2">
                           Combined genetic factors from both parents affect your children's health risks. Understanding these shared risks can help with proactive healthcare planning.
                         </p>
                       </div>
@@ -324,10 +324,10 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                         </div>
                         <div>
                           <h5 className="font-medium">Vitamin D Metabolism</h5>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Both you and your spouse show genetic markers for vitamin D deficiency, which has been passed to your children. Supplementation and monitoring may be beneficial.
                           </p>
-                          <div className="mt-3 flex items-center text-sm text-green-700">
+                          <div className="mt-3 flex items-center text-sm text-green-700 dark:text-green-400">
                             <i className="ri-user-heart-line mr-2"></i>
                             <span>Regular vitamin D level testing recommended for all children</span>
                           </div>
@@ -342,10 +342,10 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                         </div>
                         <div>
                           <h5 className="font-medium">Allergy Predisposition</h5>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Combined family history shows elevated risk for environmental allergies. Early exposure protocols and monitoring may help reduce severity in children.
                           </p>
-                          <div className="mt-3 flex items-center text-sm text-pink-700">
+                          <div className="mt-3 flex items-center text-sm text-pink-700 dark:text-pink-400">
                             <i className="ri-user-heart-line mr-2"></i>
                             <span>Your children have a 65% higher risk of developing allergies</span>
                           </div>
@@ -364,15 +364,15 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                         <i className="ri-information-line text-green-500 text-xl"></i>
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-lg font-medium text-green-700">Child Genetic Profile</h3>
-                        <p className="text-green-700 mt-2">
+                        <h3 className="text-lg font-medium text-green-700 dark:text-green-300">Child Genetic Profile</h3>
+                        <p className="text-green-700 dark:text-green-200 mt-2">
                           Understanding inherited health risks allows for personalized preventive care and early interventions. Regular screening for these conditions is recommended.
                         </p>
                       </div>
                     </div>
                   </div>
                   
-                  <h4 className="font-medium text-lg mb-4">Inherited Risk Factors to Monitor</h4>
+                  <h4 className="font-medium text-lg mb-4 dark:text-white">Inherited Risk Factors to Monitor</h4>
                   <div className="space-y-4">
                     <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
@@ -380,11 +380,11 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                           <i className="ri-heart-pulse-line text-amber-600"></i>
                         </div>
                         <div>
-                          <h5 className="font-medium">Cardiovascular Health</h5>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <h5 className="font-medium dark:text-white">Cardiovascular Health</h5>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Inherited risk from paternal grandfather's history of early heart disease. Proactive monitoring of cholesterol and blood pressure beginning in early adulthood is recommended.
                           </p>
-                          <div className="mt-3 flex items-center text-sm text-amber-700">
+                          <div className="mt-3 flex items-center text-sm text-amber-700 dark:text-amber-400">
                             <i className="ri-user-heart-line mr-2"></i>
                             <span>Begin regular screening at age 25</span>
                           </div>
@@ -399,11 +399,11 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                             <i className="ri-lungs-line text-blue-600"></i>
                           </div>
                           <div>
-                            <h5 className="font-medium">Asthma & Respiratory Health</h5>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <h5 className="font-medium dark:text-white">Asthma & Respiratory Health</h5>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                               Maternal family history of asthma has manifested in your respiratory health. Continue monitoring lung function and maintain current treatment plan.
                             </p>
-                            <div className="mt-3 flex items-center text-sm text-blue-700">
+                            <div className="mt-3 flex items-center text-sm text-blue-700 dark:text-blue-400">
                               <i className="ri-user-heart-line mr-2"></i>
                               <span>Annual pulmonary function tests recommended</span>
                             </div>
@@ -442,7 +442,7 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                           <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Family history on both sides shows tendency toward vitamin D deficiency. Regular supplementation and blood level monitoring recommended.
                           </p>
-                          <div className="mt-3 flex items-center text-sm text-purple-700">
+                          <div className="mt-3 flex items-center text-sm text-purple-700 dark:text-purple-400">
                             <i className="ri-user-heart-line mr-2"></i>
                             <span>Test vitamin D levels every 6 months</span>
                           </div>
@@ -454,7 +454,7 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               )}
               
               <div>
-                <h4 className="font-medium text-lg mb-4">Genetic Testing Status</h4>
+                <h4 className="font-medium text-lg mb-4 dark:text-white">Genetic Testing Status</h4>
                 <div className="border dark:border-gray-700 rounded-lg p-4 dark:bg-gray-800/50">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
@@ -473,21 +473,21 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                     <h6 className="font-medium mb-3 dark:text-white">Key Findings:</h6>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start">
-                        <i className="ri-checkbox-circle-line text-primary mt-0.5 mr-2"></i>
-                        <span>No high-risk variants detected for major inherited disorders</span>
+                        <i className="ri-checkbox-circle-line text-primary dark:text-primary-400 mt-0.5 mr-2"></i>
+                        <span className="dark:text-gray-200">No high-risk variants detected for major inherited disorders</span>
                       </li>
                       <li className="flex items-start">
-                        <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
-                        <span>Moderate risk factors for cardiovascular conditions</span>
+                        <i className="ri-information-line text-amber-500 dark:text-amber-400 mt-0.5 mr-2"></i>
+                        <span className="dark:text-gray-200">Moderate risk factors for cardiovascular conditions</span>
                       </li>
                       <li className="flex items-start">
-                        <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
-                        <span>Genetic markers for enhanced inflammatory response</span>
+                        <i className="ri-information-line text-amber-500 dark:text-amber-400 mt-0.5 mr-2"></i>
+                        <span className="dark:text-gray-200">Genetic markers for enhanced inflammatory response</span>
                       </li>
                       {member.relation === "Child" && (
                         <li className="flex items-start">
-                          <i className="ri-information-line text-amber-500 mt-0.5 mr-2"></i>
-                          <span>Carries one copy of MTHFR variant affecting B vitamin metabolism</span>
+                          <i className="ri-information-line text-amber-500 dark:text-amber-400 mt-0.5 mr-2"></i>
+                          <span className="dark:text-gray-200">Carries one copy of MTHFR variant affecting B vitamin metabolism</span>
                         </li>
                       )}
                     </ul>
