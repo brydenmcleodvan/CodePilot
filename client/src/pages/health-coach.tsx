@@ -407,7 +407,7 @@ export function HealthCoach() {
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t dark:border-gray-700">
               <Tabs defaultValue="analytics">
                 <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-4">
                   <TabsTrigger value="analytics" className="flex items-center gap-1.5">
@@ -434,15 +434,15 @@ export function HealthCoach() {
 
                 {/* Analytics Tab */}
                 <TabsContent value="analytics">
-                  <h3 className="text-lg font-medium mb-4">Health Progress Analytics</h3>
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Health Progress Analytics</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <LineChart className="h-4 w-4 text-primary" />
                         Progress Charts
                       </h4>
-                      <div className="h-40 bg-gray-100 rounded-md flex items-center justify-center">
-                        <p className="text-muted-foreground text-sm">Interactive progress charts will appear here</p>
+                      <div className="h-40 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
+                        <p className="text-muted-foreground dark:text-gray-400 text-sm">Interactive progress charts will appear here</p>
                       </div>
                       <div className="mt-3 grid grid-cols-3 gap-2">
                         <Button size="sm" variant="outline" className="text-xs">Sleep</Button>
@@ -450,22 +450,22 @@ export function HealthCoach() {
                         <Button size="sm" variant="outline" className="text-xs">Activity</Button>
                       </div>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <Target className="h-4 w-4 text-primary" />
                         Health Insights
                       </h4>
                       <ul className="space-y-2">
-                        <li className="border-l-2 border-green-500 pl-3 py-1 text-sm">
+                        <li className="border-l-2 border-green-500 pl-3 py-1 text-sm dark:text-gray-300">
                           Sleep quality improved by 15% this month
                         </li>
-                        <li className="border-l-2 border-amber-500 pl-3 py-1 text-sm">
+                        <li className="border-l-2 border-amber-500 pl-3 py-1 text-sm dark:text-gray-300">
                           Stress levels increased during work days
                         </li>
-                        <li className="border-l-2 border-blue-500 pl-3 py-1 text-sm">
+                        <li className="border-l-2 border-blue-500 pl-3 py-1 text-sm dark:text-gray-300">
                           Water intake consistently below target
                         </li>
-                        <li className="border-l-2 border-purple-500 pl-3 py-1 text-sm">
+                        <li className="border-l-2 border-purple-500 pl-3 py-1 text-sm dark:text-gray-300">
                           Exercise consistency improved on weekends
                         </li>
                       </ul>
@@ -478,42 +478,42 @@ export function HealthCoach() {
 
                 {/* Community Tab */}
                 <TabsContent value="community">
-                  <h3 className="text-lg font-medium mb-4">Community & Support</h3>
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Community & Support</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <Users className="h-4 w-4 text-primary" />
                         Group Coaching
                       </h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
                           <div className="flex justify-between mb-1">
-                            <p className="font-medium text-sm">Plant-Based Nutrition</p>
-                            <span className="text-xs bg-green-100 text-green-800 px-2 rounded-full">8 members</span>
+                            <p className="font-medium text-sm dark:text-white">Plant-Based Nutrition</p>
+                            <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 rounded-full">8 members</span>
                           </div>
-                          <p className="text-xs text-muted-foreground">Next session: Wednesday, 6PM</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">Next session: Wednesday, 6PM</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
                           <div className="flex justify-between mb-1">
-                            <p className="font-medium text-sm">Stress Management</p>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 rounded-full">12 members</span>
+                            <p className="font-medium text-sm dark:text-white">Stress Management</p>
+                            <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 rounded-full">12 members</span>
                           </div>
-                          <p className="text-xs text-muted-foreground">Next session: Friday, 5PM</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">Next session: Friday, 5PM</p>
                         </div>
-                        <Button size="sm" variant="outline" className="w-full text-xs">
+                        <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                           Browse all groups
                         </Button>
                       </div>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <Award className="h-4 w-4 text-primary" />
                         Success Stories
                       </h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Sarah J.</p>
-                          <p className="text-xs text-muted-foreground mb-2">"Lost 15 lbs and improved sleep quality in 3 months"</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Sarah J.</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400 mb-2">"Lost 15 lbs and improved sleep quality in 3 months"</p>
                           <div className="flex">
                             <div className="flex">
                               {[1, 2, 3, 4, 5].map((star) => (
@@ -522,9 +522,9 @@ export function HealthCoach() {
                             </div>
                           </div>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Michael T.</p>
-                          <p className="text-xs text-muted-foreground mb-2">"Lowered blood pressure through diet changes and stress management"</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Michael T.</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400 mb-2">"Lowered blood pressure through diet changes and stress management"</p>
                           <div className="flex">
                             <div className="flex">
                               {[1, 2, 3, 4, 5].map((star) => (
@@ -540,73 +540,73 @@ export function HealthCoach() {
 
                 {/* Content Tab */}
                 <TabsContent value="content">
-                  <h3 className="text-lg font-medium mb-4">Health Resources</h3>
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Health Resources</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <FileText className="h-4 w-4 text-primary" />
                         Articles
                       </h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">The Science of Sleep</p>
-                          <p className="text-xs text-muted-foreground">5 min read • Sleep</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">The Science of Sleep</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">5 min read • Sleep</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Anti-inflammatory Foods</p>
-                          <p className="text-xs text-muted-foreground">8 min read • Nutrition</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Anti-inflammatory Foods</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">8 min read • Nutrition</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Mindfulness for Beginners</p>
-                          <p className="text-xs text-muted-foreground">6 min read • Mental Health</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Mindfulness for Beginners</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">6 min read • Mental Health</p>
                         </div>
-                        <Button size="sm" variant="outline" className="w-full text-xs">
+                        <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                           View all articles
                         </Button>
                       </div>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <Play className="h-4 w-4 text-primary" />
                         Videos
                       </h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">5-Minute Desk Stretches</p>
-                          <p className="text-xs text-muted-foreground">5:23 • Exercise</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">5-Minute Desk Stretches</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">5:23 • Exercise</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Guided Meditation for Stress</p>
-                          <p className="text-xs text-muted-foreground">10:15 • Mental Health</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Guided Meditation for Stress</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">10:15 • Mental Health</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Meal Prep Basics</p>
-                          <p className="text-xs text-muted-foreground">8:47 • Nutrition</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Meal Prep Basics</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">8:47 • Nutrition</p>
                         </div>
-                        <Button size="sm" variant="outline" className="w-full text-xs">
+                        <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                           View all videos
                         </Button>
                       </div>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 flex items-center gap-2 dark:text-white">
                         <Utensils className="h-4 w-4 text-primary" />
                         Recipes
                       </h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Mediterranean Bowl</p>
-                          <p className="text-xs text-muted-foreground">25 min • 420 cal</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Mediterranean Bowl</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">25 min • 420 cal</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Green Smoothie</p>
-                          <p className="text-xs text-muted-foreground">5 min • 180 cal</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Green Smoothie</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">5 min • 180 cal</p>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
-                          <p className="font-medium text-sm">Overnight Oats</p>
-                          <p className="text-xs text-muted-foreground">10 min • 350 cal</p>
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+                          <p className="font-medium text-sm dark:text-white">Overnight Oats</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-400">10 min • 350 cal</p>
                         </div>
-                        <Button size="sm" variant="outline" className="w-full text-xs">
+                        <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                           View all recipes
                         </Button>
                       </div>
@@ -616,15 +616,15 @@ export function HealthCoach() {
 
                 {/* Challenges Tab */}
                 <TabsContent value="challenges">
-                  <h3 className="text-lg font-medium mb-4">Wellness Challenges</h3>
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Wellness Challenges</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="border border-primary/40 rounded-md p-4 relative bg-primary/5">
+                    <div className="border border-primary/40 dark:border-primary/60 rounded-md p-4 relative bg-primary/5 dark:bg-primary/10">
                       <div className="absolute top-0 right-0 bg-primary text-white text-xs font-medium py-1 px-2 rounded-bl-md">Active</div>
-                      <h4 className="font-medium mb-3">7-Day Hydration Challenge</h4>
-                      <p className="text-sm text-muted-foreground mb-3">Drink 8 glasses of water daily for one week to build better hydration habits.</p>
+                      <h4 className="font-medium mb-3 dark:text-white">7-Day Hydration Challenge</h4>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">Drink 8 glasses of water daily for one week to build better hydration habits.</p>
                       <div className="mb-3">
-                        <p className="text-xs mb-1">Progress: 4/7 days</p>
-                        <div className="h-2 bg-gray-200 rounded-full">
+                        <p className="text-xs mb-1 dark:text-gray-300">Progress: 4/7 days</p>
+                        <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
                           <div className="h-full bg-primary rounded-full w-[57%]" />
                         </div>
                       </div>
@@ -632,23 +632,23 @@ export function HealthCoach() {
                         Log today
                       </Button>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3">21-Day Meditation</h4>
-                      <p className="text-sm text-muted-foreground mb-3">Practice meditation for 10 minutes daily to reduce stress and improve focus.</p>
-                      <Button size="sm" variant="outline" className="w-full text-xs">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 dark:text-white">21-Day Meditation</h4>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">Practice meditation for 10 minutes daily to reduce stress and improve focus.</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                         Start challenge
                       </Button>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3">Step Challenge</h4>
-                      <p className="text-sm text-muted-foreground mb-3">Reach 8,000 steps daily for 14 days to boost your cardiovascular health.</p>
-                      <Button size="sm" variant="outline" className="w-full text-xs">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 dark:text-white">Step Challenge</h4>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">Reach 8,000 steps daily for 14 days to boost your cardiovascular health.</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs dark:text-gray-300">
                         Start challenge
                       </Button>
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full dark:text-gray-300">
                       Browse all challenges
                     </Button>
                   </div>
@@ -656,33 +656,33 @@ export function HealthCoach() {
 
                 {/* Assessments Tab */}
                 <TabsContent value="assessments">
-                  <h3 className="text-lg font-medium mb-4">Health Assessments</h3>
+                  <h3 className="text-lg font-medium mb-4 dark:text-white">Health Assessments</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3">Available Assessments</h4>
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 dark:text-white">Available Assessments</h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700 flex justify-between items-center">
                           <div>
-                            <p className="font-medium text-sm">Sleep Quality Assessment</p>
-                            <p className="text-xs text-muted-foreground">5 minutes • 10 questions</p>
+                            <p className="font-medium text-sm dark:text-white">Sleep Quality Assessment</p>
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">5 minutes • 10 questions</p>
                           </div>
                           <Button size="sm" variant="outline" className="text-xs">
                             Start
                           </Button>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700 flex justify-between items-center">
                           <div>
-                            <p className="font-medium text-sm">Stress & Mood Evaluation</p>
-                            <p className="text-xs text-muted-foreground">7 minutes • 15 questions</p>
+                            <p className="font-medium text-sm dark:text-white">Stress & Mood Evaluation</p>
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">7 minutes • 15 questions</p>
                           </div>
                           <Button size="sm" variant="outline" className="text-xs">
                             Start
                           </Button>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50 flex justify-between items-center">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700 flex justify-between items-center">
                           <div>
-                            <p className="font-medium text-sm">Nutrition Habits Assessment</p>
-                            <p className="text-xs text-muted-foreground">10 minutes • 20 questions</p>
+                            <p className="font-medium text-sm dark:text-white">Nutrition Habits Assessment</p>
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">10 minutes • 20 questions</p>
                           </div>
                           <Button size="sm" variant="outline" className="text-xs">
                             Start
@@ -690,29 +690,29 @@ export function HealthCoach() {
                         </div>
                       </div>
                     </div>
-                    <div className="border rounded-md p-4">
-                      <h4 className="font-medium mb-3">Previous Results</h4>
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800">
+                      <h4 className="font-medium mb-3 dark:text-white">Previous Results</h4>
                       <div className="space-y-3">
-                        <div className="border rounded-md p-3 bg-gray-50">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
                           <div className="flex justify-between mb-1">
-                            <p className="font-medium text-sm">Sleep Quality Assessment</p>
-                            <span className="text-xs">Apr 15, 2025</span>
+                            <p className="font-medium text-sm dark:text-white">Sleep Quality Assessment</p>
+                            <span className="text-xs dark:text-gray-300">Apr 15, 2025</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="text-xs text-muted-foreground">Score: 72/100</p>
-                            <Button size="sm" variant="ghost" className="text-xs h-7">
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">Score: 72/100</p>
+                            <Button size="sm" variant="ghost" className="text-xs h-7 dark:text-gray-300">
                               View details
                             </Button>
                           </div>
                         </div>
-                        <div className="border rounded-md p-3 bg-gray-50">
+                        <div className="border dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
                           <div className="flex justify-between mb-1">
-                            <p className="font-medium text-sm">Stress & Mood Evaluation</p>
-                            <span className="text-xs">Mar 22, 2025</span>
+                            <p className="font-medium text-sm dark:text-white">Stress & Mood Evaluation</p>
+                            <span className="text-xs dark:text-gray-300">Mar 22, 2025</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <p className="text-xs text-muted-foreground">Score: 65/100</p>
-                            <Button size="sm" variant="ghost" className="text-xs h-7">
+                            <p className="text-xs text-muted-foreground dark:text-gray-400">Score: 65/100</p>
+                            <Button size="sm" variant="ghost" className="text-xs h-7 dark:text-gray-300">
                               View details
                             </Button>
                           </div>
