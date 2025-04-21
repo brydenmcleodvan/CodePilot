@@ -118,10 +118,10 @@ export default function ForumPage() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-[1200px]">
       {/* Reddit-style header with community name */}
-      <div className="flex items-center gap-3 mb-4 bg-white p-3 rounded-md shadow-sm">
+      <div className="flex items-center gap-3 mb-4 bg-white dark:bg-gray-800 p-3 rounded-md shadow-sm">
         <MessageSquare className="w-8 h-8 text-primary" />
         <div>
-          <h1 className="text-xl font-bold">HealthMap Forum</h1>
+          <h1 className="text-xl font-bold dark:text-white">HealthMap Forum</h1>
           <p className="text-sm text-muted-foreground">forum.healthmap.com</p>
         </div>
         <Button variant="outline" size="sm" className="ml-auto">Join</Button>
@@ -132,22 +132,22 @@ export default function ForumPage() {
         {/* Main content area - 2/3 width */}
         <div className="w-full md:w-2/3">
           {/* Search bar */}
-          <div className="bg-white rounded-md shadow-sm p-3 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-3 mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input 
                 type="text" 
                 placeholder="Search HealthMap Forum" 
-                className="pl-10 bg-gray-50"
+                className="pl-10 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-gray-200"
               />
             </div>
           </div>
 
           {/* Reddit-style sort tabs */}
-          <div className="bg-white rounded-md shadow-sm mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm mb-4">
             <Tabs defaultValue="hot" className="w-full" onValueChange={setActiveTab}>
               <div className="p-1">
-                <TabsList className="grid grid-cols-5 h-9">
+                <TabsList className="grid grid-cols-5 h-9 dark:bg-gray-700">
                   <TabsTrigger value="hot" className="flex items-center gap-1.5 text-xs">
                     <Flame className="h-3.5 w-3.5" />
                     <span>Hot</span>
@@ -176,23 +176,23 @@ export default function ForumPage() {
           {/* Reddit-style posts */}
           <div className="space-y-3">
             {forumTopics.map((post) => (
-              <div key={post.id} className="bg-white rounded-md shadow-sm hover:border hover:border-gray-300 transition-all">
+              <div key={post.id} className="bg-white dark:bg-gray-800 rounded-md shadow-sm hover:border hover:border-gray-300 dark:hover:border-gray-600 transition-all">
                 <div className="flex">
                   {/* Voting sidebar */}
-                  <div className="bg-gray-50 p-2 flex flex-col items-center rounded-l-md min-w-[40px]">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-2 flex flex-col items-center rounded-l-md min-w-[40px]">
                     <button 
-                      className={`p-1 rounded hover:bg-gray-200 ${post.isUpvoted ? "text-primary" : ""}`}
+                      className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${post.isUpvoted ? "text-primary" : ""}`}
                     >
                       <ChevronUp className="h-5 w-5" />
                     </button>
                     <span className={`text-xs font-semibold my-1 ${
                       post.isUpvoted ? "text-primary" : 
-                      post.isDownvoted ? "text-red-500" : "text-gray-600"
+                      post.isDownvoted ? "text-red-500" : "text-gray-600 dark:text-gray-300"
                     }`}>
                       {formatCount(post.upvotes)}
                     </span>
                     <button 
-                      className={`p-1 rounded hover:bg-gray-200 ${post.isDownvoted ? "text-red-500" : ""}`}
+                      className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 ${post.isDownvoted ? "text-red-500" : ""}`}
                     >
                       <ChevronDown className="h-5 w-5" />
                     </button>
@@ -222,10 +222,10 @@ export default function ForumPage() {
                     </div>
 
                     {/* Post title and content */}
-                    <h2 className="text-lg font-semibold mb-2 hover:text-primary cursor-pointer">
+                    <h2 className="text-lg font-semibold mb-2 hover:text-primary cursor-pointer dark:text-white">
                       {post.title}
                     </h2>
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-muted-foreground dark:text-gray-400 mb-3">
                       {post.description.length > 180 
                         ? post.description.substring(0, 180) + '...' 
                         : post.description}
@@ -233,7 +233,7 @@ export default function ForumPage() {
 
                     {/* Post image if available */}
                     {post.image && (
-                      <div className="relative mb-3 rounded-md overflow-hidden bg-gray-100">
+                      <div className="relative mb-3 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
                         <img 
                           src={post.image} 
                           alt={post.title} 
@@ -244,15 +244,15 @@ export default function ForumPage() {
 
                     {/* Post actions */}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground mt-2">
-                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded">
                         <MessageCircle className="h-4 w-4" />
                         <span>{post.comments} Comments</span>
                       </button>
-                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded">
                         <Share2 className="h-4 w-4" />
                         <span>Share</span>
                       </button>
-                      <button className="flex items-center gap-1.5 hover:bg-gray-100 p-1.5 rounded">
+                      <button className="flex items-center gap-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded">
                         <Award className="h-4 w-4" />
                         <span>Award</span>
                       </button>
@@ -274,26 +274,26 @@ export default function ForumPage() {
         {/* Sidebar - 1/3 width */}
         <div className="w-full md:w-1/3 space-y-4">
           {/* About Community Box */}
-          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm overflow-hidden">
             <div className="bg-primary p-3">
               <h2 className="text-white font-medium">About Community</h2>
             </div>
             <div className="p-4">
-              <p className="text-sm mb-3">
+              <p className="text-sm mb-3 dark:text-gray-300">
                 A community for discussing health topics, sharing experiences, and getting support from others on similar health journeys.
               </p>
               
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-lg font-bold">8.2m</p>
+                  <p className="text-lg font-bold dark:text-white">8.2m</p>
                   <p className="text-xs text-muted-foreground">Members</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold">12.4k</p>
+                  <p className="text-lg font-bold dark:text-white">12.4k</p>
                   <p className="text-xs text-muted-foreground">Online</p>
                 </div>
                 <div>
-                  <p className="text-lg font-bold">2015</p>
+                  <p className="text-lg font-bold dark:text-white">2015</p>
                   <p className="text-xs text-muted-foreground">Created</p>
                 </div>
               </div>
@@ -306,10 +306,10 @@ export default function ForumPage() {
           </div>
 
           {/* Rules Box */}
-          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm overflow-hidden">
             <div className="p-4">
-              <h3 className="font-semibold mb-3">Community Rules</h3>
-              <ul className="space-y-3 text-sm">
+              <h3 className="font-semibold mb-3 dark:text-white">Community Rules</h3>
+              <ul className="space-y-3 text-sm dark:text-gray-300">
                 <li className="flex items-start gap-2">
                   <span className="font-semibold min-w-[16px]">1.</span>
                   <span>Be respectful and supportive of others</span>
@@ -335,21 +335,21 @@ export default function ForumPage() {
           </div>
 
           {/* Trending Communities */}
-          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm overflow-hidden">
             <div className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Trending Health Communities</h3>
+                <h3 className="font-semibold dark:text-white">Trending Health Communities</h3>
               </div>
               <ul className="space-y-3">
                 {trendingCommunities.map((community, idx) => (
-                  <li key={idx} className="flex items-center justify-between hover:bg-gray-50 p-1.5 rounded-md cursor-pointer">
+                  <li key={idx} className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded-md cursor-pointer">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
                         h/
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{community.name}</p>
+                        <p className="text-sm font-medium dark:text-white">{community.name}</p>
                         <p className="text-xs text-muted-foreground">{community.members} members</p>
                       </div>
                     </div>
