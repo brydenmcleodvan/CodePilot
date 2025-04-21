@@ -434,7 +434,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
             {canExpand && (
               <button
                 onClick={() => toggleNodeExpansion(memberId)}
-                className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
@@ -551,7 +551,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
           
           {/* Expanded view with relatives */}
           {isExpanded && (
-            <div className="mt-2 pl-4 border-l-2 border-dashed border-gray-300">
+            <div className="mt-2 pl-4 border-l-2 border-dashed border-gray-300 dark:border-gray-700">
               {/* Parents section */}
               {(hasFather || hasMother) && (
                 <div className="mb-4">
@@ -638,7 +638,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
         <CardContent>
           <div 
             ref={containerRef}
-            className="family-tree-container overflow-auto p-4 rounded-lg bg-gray-50 min-h-[500px]"
+            className="family-tree-container overflow-auto p-4 rounded-lg bg-gray-50 dark:bg-gray-900 min-h-[500px]"
             style={{ 
               transform: `scale(${zoomLevel})`, 
               transformOrigin: 'top left',
@@ -674,7 +674,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
                 id="name"
                 value={newMember.name}
                 onChange={(e) => setNewMember({...newMember, name: e.target.value})}
-                className="col-span-3 p-2 border rounded"
+                className="col-span-3 p-2 border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -685,7 +685,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
                 id="gender"
                 value={newMember.gender}
                 onChange={(e) => setNewMember({...newMember, gender: e.target.value as 'male' | 'female' | 'other'})}
-                className="col-span-3 p-2 border rounded"
+                className="col-span-3 p-2 border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               >
                 <option value="male">Male</option>
                 <option value="female">Female</option>
