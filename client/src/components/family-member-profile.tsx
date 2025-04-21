@@ -517,19 +517,19 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                 <div className="space-y-8">
                   {member.healthStats.map((stat, idx) => (
                     <div key={idx}>
-                      <h4 className="text-lg font-medium mb-2">
+                      <h4 className="text-lg font-medium mb-2 dark:text-white">
                         {stat.statType.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                       </h4>
                       <div className="flex items-center mb-2">
                         <span className="text-3xl font-bold" style={{color: `var(--${stat.colorScheme})`}}>
                           {stat.value}
                         </span>
-                        {stat.unit && <span className="text-gray-500 ml-1">{stat.unit}</span>}
+                        {stat.unit && <span className="text-gray-500 dark:text-gray-400 ml-1">{stat.unit}</span>}
                       </div>
                       
                       {/* Mock trend visualization */}
-                      <div className="h-24 bg-gray-100 rounded-md flex items-center justify-center mb-2">
-                        <p className="text-sm text-gray-500">Historical trend data would appear here</p>
+                      <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center justify-center mb-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Historical trend data would appear here</p>
                       </div>
                       
                       <Separator className="my-6" />
@@ -546,10 +546,10 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               ) : (
                 <div className="text-center py-16">
                   <div className="mb-4">
-                    <i className="ri-health-book-line text-5xl text-gray-300"></i>
+                    <i className="ri-health-book-line text-5xl text-gray-300 dark:text-gray-600"></i>
                   </div>
-                  <h4 className="text-lg font-medium mb-2">No Health Data Available</h4>
-                  <p className="text-gray-500 mb-6">
+                  <h4 className="text-lg font-medium mb-2 dark:text-white">No Health Data Available</h4>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">
                     Connect their health devices and apps to see detailed health metrics.
                   </p>
                   <Button>Connect Health Data</Button>
@@ -611,10 +611,10 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                  <i className="ri-medicine-bottle-line text-4xl text-gray-300 mb-2"></i>
-                  <p className="text-gray-500">No medications scheduled.</p>
-                  <p className="text-sm text-gray-400 mt-1">Click the button above to add medications.</p>
+                <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800/50">
+                  <i className="ri-medicine-bottle-line text-4xl text-gray-300 dark:text-gray-600 mb-2"></i>
+                  <p className="text-gray-500 dark:text-gray-400">No medications scheduled.</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click the button above to add medications.</p>
                 </div>
               )}
             </div>
@@ -622,9 +622,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
           
           {/* Appointments Tab */}
           <TabsContent value="appointments" className="mt-4">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 dark:border dark:border-gray-800">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-medium">Appointments</h3>
+                <h3 className="text-xl font-medium dark:text-white">Appointments</h3>
                 <Button size="sm">
                   <i className="ri-calendar-line mr-1"></i>
                   Schedule New
@@ -634,12 +634,12 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               {member.upcomingAppointments && member.upcomingAppointments.length > 0 ? (
                 <div className="space-y-4">
                   {member.upcomingAppointments.map((appointment, idx) => (
-                    <div key={idx} className="p-4 border rounded-md">
+                    <div key={idx} className="p-4 border dark:border-gray-700 rounded-md dark:bg-gray-800/50">
                       <div className="flex justify-between mb-2">
-                        <h4 className="font-semibold">{appointment.type}</h4>
-                        <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">{appointment.date}</span>
+                        <h4 className="font-semibold dark:text-white">{appointment.type}</h4>
+                        <span className="text-sm bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400 px-2 py-1 rounded">{appointment.date}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{appointment.time} with Dr. {appointment.provider}</p>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300 mb-3">{appointment.time} with Dr. {appointment.provider}</p>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline">Reschedule</Button>
                         <Button size="sm" variant="outline">Cancel</Button>
@@ -648,9 +648,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
-                  <i className="ri-calendar-line text-4xl text-gray-300 mb-2"></i>
-                  <p className="text-gray-500">No appointments scheduled.</p>
+                <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg dark:bg-gray-800/50">
+                  <i className="ri-calendar-line text-4xl text-gray-300 dark:text-gray-600 mb-2"></i>
+                  <p className="text-gray-500 dark:text-gray-400">No appointments scheduled.</p>
                   <Button size="sm" className="mt-4">Schedule First Appointment</Button>
                 </div>
               )}
@@ -658,8 +658,8 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               <Separator className="my-6" />
               
               <div>
-                <h4 className="font-medium mb-4">Past Appointments</h4>
-                <div className="text-sm text-gray-500 italic">
+                <h4 className="font-medium mb-4 dark:text-white">Past Appointments</h4>
+                <div className="text-sm text-gray-500 dark:text-gray-400 italic">
                   No past appointments found.
                 </div>
               </div>
