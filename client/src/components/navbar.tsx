@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,14 +14,31 @@ const Navbar = () => {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
   };
 
+  // Close menus when scrolling
+  const handleScroll = useCallback(() => {
+    if (isMoreDropdownOpen) setIsMoreDropdownOpen(false);
+    if (isUserDropdownOpen) setIsUserDropdownOpen(false);
+  }, [isMoreDropdownOpen, isUserDropdownOpen]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
   // Close mobile menu when location changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsMoreDropdownOpen(false);
+    setIsUserDropdownOpen(false);
   }, [location]);
 
   return (
@@ -84,7 +101,10 @@ const Navbar = () => {
             
             {/* Dropdown for additional pages to reduce visual clutter */}
             <div className="flex items-center justify-center h-full">
-              <DropdownMenu>
+              <DropdownMenu 
+                open={isMoreDropdownOpen} 
+                onOpenChange={setIsMoreDropdownOpen}
+              >
                 <DropdownMenuTrigger className="text-body-text hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
                   More <ChevronDown className="h-3 w-3" />
                 </DropdownMenuTrigger>
@@ -117,7 +137,10 @@ const Navbar = () => {
           {/* User section with improved spacing */}
           <div className="flex items-center gap-4">
             {user ? (
-              <DropdownMenu>
+              <DropdownMenu
+                open={isUserDropdownOpen} 
+                onOpenChange={setIsUserDropdownOpen}
+              >
                 <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
                   <div className="flex items-center h-8">
                     <div className="flex items-center justify-center h-full">
