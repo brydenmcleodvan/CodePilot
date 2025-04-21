@@ -9,6 +9,15 @@ import { handlePerplexityRequest } from "./perplexity";
 
 const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
 
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
+
 // Middleware to verify JWT token
 const authenticateToken = (req: Request, res: Response, next: Function) => {
   const authHeader = req.headers['authorization'];
@@ -23,7 +32,7 @@ const authenticateToken = (req: Request, res: Response, next: Function) => {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
     
-    req.body.user = user;
+    req.user = user;
     next();
   });
 };
@@ -199,9 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Women's Health - Cycle Tracking Routes
   
   // Get all cycle entries for current user
-  app.get(`${apiRouter}/cycle/entries`, authenticateToken, async (req, res) => {
+  app.get(`${apiRouter}/women-health/cycles`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Parse optional date range parameters
       let startDate: Date | undefined;
@@ -329,9 +338,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Get cycle analysis for current user
-  app.get(`${apiRouter}/cycle/analysis`, authenticateToken, async (req, res) => {
+  app.get(`${apiRouter}/women-health/analysis`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const analysis = await storage.getUserCycleAnalysis(userId);
       
       if (!analysis) {
@@ -398,8 +407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health stats routes
   app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {
-      console.log('GET health/stats - user:', req.body.user);
-      const userId = req.body.user.id;
+      console.log('GET health/stats - user:', req.user);
+      const userId = req.user.id;
       console.log('GET health/stats - userId:', userId);
       
       const stats = await storage.getUserHealthStats(userId);
