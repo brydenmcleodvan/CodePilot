@@ -517,7 +517,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Medication tracking routes
   app.get(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medications = await storage.getUserMedications(userId);
       res.json(medications);
     } catch (error) {
@@ -527,7 +527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationData = {
         ...req.body,
         userId,
@@ -553,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify that the medication belongs to the user
-      if (medication.userId !== req.body.user.id) {
+      if (medication.userId !== req.user.id) {
         return res.status(403).json({ message: 'Not authorized to access this medication' });
       }
       
@@ -565,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/medications/:id/take`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationId = parseInt(req.params.id);
       const result = await storage.markMedicationTaken(userId, medicationId);
       
@@ -582,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Medication history routes
   app.get(`${apiRouter}/medications/:id/history`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationId = parseInt(req.params.id);
       
       // Verify medication belongs to user
@@ -600,7 +600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get(`${apiRouter}/medications/:id/adherence`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationId = parseInt(req.params.id);
       
       // Verify medication belongs to user
@@ -618,7 +618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.patch(`${apiRouter}/medications/:id`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationId = parseInt(req.params.id);
       
       // Verify medication belongs to user
@@ -644,7 +644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/medications/:id/share`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const medicationId = parseInt(req.params.id);
       const shareWithUserId = parseInt(req.body.shareWithUserId);
       
@@ -676,7 +676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Connections routes
   app.get(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const connections = await storage.getUserConnections(userId);
       res.json(connections);
     } catch (error) {
@@ -686,7 +686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const connectionId = parseInt(req.body.connectionId);
       const relationshipType = req.body.relationshipType;
       const relationshipSpecific = req.body.relationshipSpecific;
