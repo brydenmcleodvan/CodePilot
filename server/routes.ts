@@ -406,6 +406,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.post(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const statData = {
+        ...req.body,
+        userId,
+        timestamp: req.body.timestamp || new Date()
+      };
+      
+      const newStat = await storage.addHealthStat(statData);
+      res.json(newStat);
+    } catch (error) {
+      console.error('Error adding health stat:', error);
+      res.status(500).json({ message: 'Server error adding health stat' });
+    }
+  });
+  
   // Consolidated dashboard data endpoint
   app.get(`${apiRouter}/dashboard`, authenticateToken, async (req, res) => {
     try {
