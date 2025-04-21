@@ -23,7 +23,7 @@ const NavLink = ({ href, active, children }: NavLinkProps) => {
     <div className="relative h-full flex items-center">
       <Link
         href={href}
-        className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium py-2 ${
+        className={`text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm font-medium px-1 py-2 ${
           active ? "text-primary font-semibold" : ""
         }`}
       >
@@ -97,7 +97,7 @@ const Navbar = () => {
           </div>
 
           {/* Main navigation - better spacing and reduced visual noise */}
-          <nav className="hidden md:flex items-center space-x-6 h-full">
+          <nav className="hidden md:flex items-center space-x-8 h-full">
             <NavLink href="/" active={location === "/"}>
               Home
             </NavLink>
@@ -120,24 +120,24 @@ const Navbar = () => {
                 <DropdownMenuTrigger className="text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
                   More <ChevronDown className="h-3 w-3" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
-                    <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""}`}>
+                <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700 p-1">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Health Coach
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
-                    <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""}`}>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Connections
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
-                    <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""}`}>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/forum" className={`cursor-pointer w-full ${location.startsWith("/forum") ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Forum
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
-                    <Link href="/messenger" className={`cursor-pointer w-full ${location === "/messenger" ? "text-primary" : ""}`}>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/messenger" className={`cursor-pointer w-full ${location === "/messenger" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Messenger
                     </Link>
                   </DropdownMenuItem>
@@ -172,30 +172,30 @@ const Navbar = () => {
                     </div>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border dark:border-gray-700">
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border dark:border-gray-700 p-1">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile" className="cursor-pointer text-body-text dark:text-gray-200">Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/health-coach" className="cursor-pointer text-body-text dark:text-gray-200">Health Coach</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/connections" className="cursor-pointer text-body-text dark:text-gray-200">Connections</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/family" className="cursor-pointer text-body-text dark:text-gray-200">Family Health</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/messenger" className="cursor-pointer text-body-text dark:text-gray-200">Messenger</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile#neural-profile" className="cursor-pointer text-body-text dark:text-gray-200">Neural Profile</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/profile#settings" className="cursor-pointer text-body-text dark:text-gray-200">Settings</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700"/>
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400 focus:bg-light-blue-bg dark:focus:bg-gray-700">
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700 my-1"/>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 hover:text-red-600 dark:hover:text-red-400 focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
