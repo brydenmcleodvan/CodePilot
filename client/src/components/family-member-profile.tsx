@@ -419,11 +419,11 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                             <i className="ri-microscope-line text-blue-600"></i>
                           </div>
                           <div>
-                            <h5 className="font-medium">Allergy Sensitivity</h5>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <h5 className="font-medium dark:text-white">Allergy Sensitivity</h5>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                               Inherited from both parents, showing moderate environmental allergies with seasonal patterns. Monitor for potential development of asthma as a complication.
                             </p>
-                            <div className="mt-3 flex items-center text-sm text-blue-700">
+                            <div className="mt-3 flex items-center text-sm text-blue-700 dark:text-blue-400">
                               <i className="ri-user-heart-line mr-2"></i>
                               <span>Allergy panel testing recommended annually</span>
                             </div>
