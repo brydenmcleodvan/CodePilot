@@ -510,8 +510,8 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
           
           {/* Health Data Tab */}
           <TabsContent value="health-data" className="mt-4">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-xl font-medium mb-6">Health Metrics</h3>
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 dark:border dark:border-gray-800">
+              <h3 className="text-xl font-medium mb-6 dark:text-white">Health Metrics</h3>
               
               {member.healthStats && member.healthStats.length > 0 ? (
                 <div className="space-y-8">
@@ -560,9 +560,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
           
           {/* Medications Tab */}
           <TabsContent value="medications" className="mt-4">
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6 dark:border dark:border-gray-800">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-medium">Medications</h3>
+                <h3 className="text-xl font-medium dark:text-white">Medications</h3>
                 <Button size="sm" variant="outline">
                   <i className="ri-add-line mr-1"></i>
                   Add Medication
@@ -572,11 +572,11 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               {member.medications && member.medications.length > 0 ? (
                 <div className="space-y-4">
                   {member.medications.map((med, idx) => (
-                    <div key={idx} className="p-4 border rounded-md">
+                    <div key={idx} className="p-4 border dark:border-gray-700 rounded-md dark:bg-gray-800/50">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h4 className="font-semibold">{med.name}</h4>
-                          <p className="text-sm text-gray-500">{med.dosage}</p>
+                          <h4 className="font-semibold dark:text-white">{med.name}</h4>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{med.dosage}</p>
                         </div>
                         <Button size="sm">
                           <i className="ri-check-line mr-1"></i>
@@ -588,14 +588,14 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                       
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
-                          <p className="text-gray-500">Next Dose:</p>
-                          <p className="font-medium">
+                          <p className="text-gray-500 dark:text-gray-400">Next Dose:</p>
+                          <p className="font-medium dark:text-white">
                             {med.nextDose}
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-500">Last Taken:</p>
-                          <p className="font-medium">
+                          <p className="text-gray-500 dark:text-gray-400">Last Taken:</p>
+                          <p className="font-medium dark:text-white">
                             {med.lastTaken || "Never"}
                           </p>
                         </div>
@@ -603,8 +603,8 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                       
                       {med.schedule && (
                         <div className="mt-2 text-sm">
-                          <p className="text-gray-500">Schedule:</p>
-                          <p className="italic text-gray-600">{med.schedule}</p>
+                          <p className="text-gray-500 dark:text-gray-400">Schedule:</p>
+                          <p className="italic text-gray-600 dark:text-gray-300">{med.schedule}</p>
                         </div>
                       )}
                     </div>
