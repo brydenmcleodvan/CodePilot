@@ -99,8 +99,8 @@ const transformHealthData = (healthStats: any[] = []): HealthDataPoint[] => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 border rounded-md shadow-md">
-        <p className="font-bold text-xs mb-1">{label}</p>
+      <div className="bg-white dark:bg-gray-800 p-3 border rounded-md shadow-md dark:border-gray-700">
+        <p className="font-bold text-xs mb-1 dark:text-white">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-xs" style={{ color: entry.color }}>
             {`${entry.name}: ${entry.value}${entry.unit || ''}`}
@@ -269,43 +269,43 @@ export default function HealthVisualization() {
         
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-primary/5">
+          <Card className="bg-primary/5 dark:bg-primary/20">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="text-sm text-gray-600">Avg. Heart Rate</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Avg. Heart Rate</span>
               <div className="flex items-baseline">
-                <span className="text-3xl font-bold text-primary">{summary.avgHeartRate || 'N/A'}</span>
-                <span className="text-sm text-gray-500 ml-1">BPM</span>
+                <span className="text-3xl font-bold text-primary dark:text-primary-400">{summary.avgHeartRate || 'N/A'}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">BPM</span>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-blue-50">
+          <Card className="bg-blue-50 dark:bg-blue-900/30">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="text-sm text-gray-600">Total Steps</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Total Steps</span>
               <div className="flex items-baseline">
-                <span className="text-3xl font-bold text-blue-500">
+                <span className="text-3xl font-bold text-blue-500 dark:text-blue-400">
                   {summary.totalSteps ? summary.totalSteps.toLocaleString() : 'N/A'}
                 </span>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-indigo-50">
+          <Card className="bg-indigo-50 dark:bg-indigo-900/30">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="text-sm text-gray-600">Avg. Sleep</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Avg. Sleep</span>
               <div className="flex items-baseline">
-                <span className="text-3xl font-bold text-indigo-500">{summary.avgSleep || 'N/A'}</span>
-                <span className="text-sm text-gray-500 ml-1">hrs</span>
+                <span className="text-3xl font-bold text-indigo-500 dark:text-indigo-400">{summary.avgSleep || 'N/A'}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">hrs</span>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-orange-50">
+          <Card className="bg-orange-50 dark:bg-orange-900/30">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="text-sm text-gray-600">Avg. Stress</span>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Avg. Stress</span>
               <div className="flex items-baseline">
-                <span className="text-3xl font-bold text-orange-500">{summary.avgStressLevel || 'N/A'}</span>
-                <span className="text-sm text-gray-500 ml-1">/10</span>
+                <span className="text-3xl font-bold text-orange-500 dark:text-orange-400">{summary.avgStressLevel || 'N/A'}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">/10</span>
               </div>
             </CardContent>
           </Card>
