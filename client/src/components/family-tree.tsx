@@ -396,13 +396,13 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
   const getSeverityColor = (severity: 'low' | 'moderate' | 'high') => {
     switch (severity) {
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'moderate':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
   
@@ -425,8 +425,8 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
           {/* Member node */}
           <motion.div 
             className={`flex items-center gap-2 p-3 rounded-md shadow-sm border ${
-              isFocused ? 'bg-primary/10 border-primary' : 'bg-card'
-            } hover:bg-primary/5 transition-colors`}
+              isFocused ? 'bg-primary/10 border-primary' : 'bg-card dark:bg-gray-800 dark:border-gray-700'
+            } hover:bg-primary/5 dark:hover:bg-primary/20 transition-colors`}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
@@ -701,7 +701,7 @@ const FamilyTree: React.FC<FamilyTreeProps> = ({
                 type="date"
                 value={newMember.birthDate || ''}
                 onChange={(e) => setNewMember({...newMember, birthDate: e.target.value})}
-                className="col-span-3 p-2 border rounded"
+                className="col-span-3 p-2 border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
             </div>
           </div>
