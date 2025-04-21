@@ -306,6 +306,9 @@ export class MemStorage implements IStorage {
   }
 
   private async initializeData() {
+    // Create a reference date
+    const now = new Date();
+    
     // Create some initial users
     const user1 = await this.createUser({
       username: "johndoe",
@@ -313,7 +316,35 @@ export class MemStorage implements IStorage {
       email: "john.doe@example.com",
       name: "John Doe",
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      healthData: JSON.stringify({})
+      gender: "male",
+      healthData: JSON.stringify({}),
+      preferences: JSON.stringify({
+        darkMode: true,
+        notifications: true,
+        dataSharingLevel: "minimal"
+      })
+    });
+    
+    // Create Sarah Doe user (female profile)
+    const user2 = await this.createUser({
+      username: "sarahdoe",
+      password: await bcrypt.hash("password123", 10),
+      email: "sarah.doe@example.com",
+      name: "Sarah Doe",
+      profilePicture: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      gender: "female",
+      healthData: JSON.stringify({}),
+      preferences: JSON.stringify({
+        darkMode: true,
+        notifications: true,
+        dataSharingLevel: "minimal",
+        womenHealthTracking: {
+          cycleTracking: true,
+          fertileWindowAlerts: true,
+          periodPrediction: true,
+          symptomLogging: true
+        }
+      })
     });
 
     // Add health stats
@@ -346,8 +377,98 @@ export class MemStorage implements IStorage {
       timestamp: new Date()
     });
     
+    // Add Sarah's women's health stats
+    await this.addHealthStat({
+      userId: 2,
+      statType: "iron_level",
+      value: "63",
+      unit: "μg/dL",
+      icon: "ri-test-tube-line",
+      colorScheme: "red",
+      timestamp: new Date(now.getTime() - 16 * 24 * 60 * 60 * 1000) // 16 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "estrogen_level",
+      value: "125",
+      unit: "pg/mL",
+      icon: "ri-heart-pulse-line",
+      colorScheme: "purple",
+      timestamp: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "progesterone_level",
+      value: "8.5",
+      unit: "ng/mL",
+      icon: "ri-heart-pulse-line",
+      colorScheme: "pink",
+      timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "fsh_level",
+      value: "6.2",
+      unit: "mIU/mL",
+      icon: "ri-pulse-line",
+      colorScheme: "indigo",
+      timestamp: new Date(now.getTime() - 11 * 24 * 60 * 60 * 1000) // 11 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "lh_level",
+      value: "24.5",
+      unit: "mIU/mL",
+      icon: "ri-pulse-line",
+      colorScheme: "amber",
+      timestamp: new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000) // 9 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "bone_density",
+      value: "1.2",
+      unit: "g/cm²",
+      icon: "ri-bone-line",
+      colorScheme: "sky",
+      timestamp: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 days ago
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "heart_rate",
+      value: "68",
+      unit: "bpm",
+      icon: "ri-heart-pulse-line",
+      colorScheme: "primary",
+      timestamp: new Date()
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "sleep_quality",
+      value: "8.2",
+      unit: "hrs",
+      icon: "ri-zzz-line",
+      colorScheme: "warning",
+      timestamp: new Date()
+    });
+    
+    await this.addHealthStat({
+      userId: 2,
+      statType: "calcium_level",
+      value: "9.5",
+      unit: "mg/dL",
+      icon: "ri-medicine-bottle-line",
+      colorScheme: "blue",
+      timestamp: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) // 14 days ago
+    });
+    
     // Add sample medications
-    const now = new Date();
     const tomorrowMorning = new Date(now);
     tomorrowMorning.setDate(tomorrowMorning.getDate() + 1);
     tomorrowMorning.setHours(8, 0, 0, 0);
@@ -706,6 +827,229 @@ export class MemStorage implements IStorage {
       categories: ["personal", "health"],
       notes: "Started morning with exercise and took zinc supplement. Feeling energized.",
       factors: ["exercise", "nutrition"]
+    });
+    
+    // Add Sarah's menstrual cycle entries
+    // Past 3 cycles
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 62 * 24 * 60 * 60 * 1000), // 62 days ago
+      cycleDay: 1,
+      period: true,
+      flow: "heavy",
+      symptoms: ["cramps", "headache", "fatigue"],
+      mood: "irritable",
+      notes: "First day of period, heavy flow with cramps"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 61 * 24 * 60 * 60 * 1000), // 61 days ago
+      cycleDay: 2,
+      period: true,
+      flow: "heavy",
+      symptoms: ["cramps", "bloating"],
+      mood: "tired",
+      notes: "Still heavy flow, cramps less intense"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+      cycleDay: 3,
+      period: true,
+      flow: "medium",
+      symptoms: ["bloating"],
+      mood: "neutral",
+      notes: "Flow decreasing"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 59 * 24 * 60 * 60 * 1000), // 59 days ago
+      cycleDay: 4,
+      period: true,
+      flow: "light",
+      symptoms: [],
+      mood: "improving",
+      notes: "Light flow, feeling better"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 58 * 24 * 60 * 60 * 1000), // 58 days ago
+      cycleDay: 5,
+      period: true,
+      flow: "spotting",
+      symptoms: [],
+      mood: "good",
+      notes: "Almost done with period"
+    });
+    
+    // Ovulation data from previous cycle
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000), // 49 days ago (day 14 of cycle)
+      cycleDay: 14,
+      period: false,
+      ovulation: true,
+      cervicalMucus: "egg white",
+      basalTemperature: 98.6,
+      symptoms: ["mild cramps", "increased libido"],
+      mood: "energetic",
+      notes: "Ovulation signs present"
+    });
+    
+    // Second cycle
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 34 * 24 * 60 * 60 * 1000), // 34 days ago
+      cycleDay: 1,
+      period: true,
+      flow: "heavy",
+      symptoms: ["cramps", "backache", "fatigue"],
+      mood: "irritable",
+      notes: "First day of period, heavier than usual"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 33 * 24 * 60 * 60 * 1000), // 33 days ago
+      cycleDay: 2,
+      period: true,
+      flow: "heavy",
+      symptoms: ["cramps", "bloating"],
+      mood: "tired",
+      notes: "Still heavy flow"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000), // 32 days ago
+      cycleDay: 3,
+      period: true,
+      flow: "medium",
+      symptoms: ["mild cramps"],
+      mood: "neutral",
+      notes: "Flow decreasing"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000), // 31 days ago
+      cycleDay: 4,
+      period: true,
+      flow: "light",
+      symptoms: [],
+      mood: "improving",
+      notes: "Light flow"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      cycleDay: 5,
+      period: true,
+      flow: "spotting",
+      symptoms: [],
+      mood: "good",
+      notes: "Almost done"
+    });
+    
+    // Ovulation data from current cycle
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000), // 21 days ago (day 14 of cycle)
+      cycleDay: 14,
+      period: false,
+      ovulation: true,
+      cervicalMucus: "egg white",
+      basalTemperature: 98.7,
+      symptoms: ["mild cramps", "increased energy", "increased libido"],
+      mood: "energetic",
+      notes: "Ovulation confirmed with OPK test"
+    });
+    
+    // Current cycle
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      cycleDay: 1,
+      period: true,
+      flow: "medium",
+      symptoms: ["mild cramps", "fatigue"],
+      mood: "tired",
+      notes: "First day of period, lighter than usual"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      cycleDay: 2,
+      period: true,
+      flow: "medium",
+      symptoms: ["mild cramps"],
+      mood: "neutral",
+      notes: "Medium flow"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+      cycleDay: 3,
+      period: true,
+      flow: "light",
+      symptoms: [],
+      mood: "improving",
+      notes: "Flow decreasing"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      cycleDay: 4,
+      period: true,
+      flow: "light",
+      symptoms: [],
+      mood: "good",
+      notes: "Light flow"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      cycleDay: 5,
+      period: true,
+      flow: "spotting",
+      symptoms: [],
+      mood: "good",
+      notes: "Just spotting"
+    });
+    
+    await this.createCycleEntry({
+      userId: 2,
+      date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // yesterday
+      cycleDay: 6,
+      period: false,
+      flow: "none",
+      symptoms: [],
+      mood: "great",
+      notes: "Period finished"
+    });
+    
+    // Add cycle analysis for Sarah
+    await this.createCycleAnalysis({
+      userId: 2,
+      averageCycleLength: 28,
+      averagePeriodLength: 5,
+      lastPeriodStart: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      nextPeriodPrediction: new Date(now.getTime() + 22 * 24 * 60 * 60 * 1000), // 22 days from now
+      nextFertileWindowStart: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
+      nextFertileWindowEnd: new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000), // 12 days from now
+      nextOvulationPrediction: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
+      cycleRegularity: "regular",
+      pmsSymptomsSummary: JSON.stringify(["mood swings", "cramps", "bloating", "headache", "fatigue"]),
+      notes: "Cycle has been regular for the past 3 months with consistent symptoms"
     });
     
     // Add health articles
