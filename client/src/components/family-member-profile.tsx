@@ -278,9 +278,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                       </div>
                     </div>
                     
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-blue-100 rounded-full p-2 mr-3">
+                        <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-2 mr-3">
                           <i className="ri-psychotherapy-line text-blue-600"></i>
                         </div>
                         <div>
@@ -317,9 +317,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                   
                   <h4 className="font-medium text-lg mb-4 dark:text-white">Shared Genetic Influences on Children</h4>
                   <div className="space-y-4">
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-green-100 rounded-full p-2 mr-3">
+                        <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-2 mr-3">
                           <i className="ri-mental-health-line text-green-600"></i>
                         </div>
                         <div>
@@ -335,9 +335,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                       </div>
                     </div>
                     
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-pink-100 rounded-full p-2 mr-3">
+                        <div className="bg-pink-100 dark:bg-pink-900/30 rounded-full p-2 mr-3">
                           <i className="ri-hand-heart-line text-pink-600"></i>
                         </div>
                         <div>
