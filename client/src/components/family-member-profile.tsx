@@ -374,9 +374,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                   
                   <h4 className="font-medium text-lg mb-4">Inherited Risk Factors to Monitor</h4>
                   <div className="space-y-4">
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-amber-100 rounded-full p-2 mr-3">
+                        <div className="bg-amber-100 dark:bg-amber-900/30 rounded-full p-2 mr-3">
                           <i className="ri-heart-pulse-line text-amber-600"></i>
                         </div>
                         <div>
@@ -393,9 +393,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                     </div>
                     
                     {member.name === "Emma Doe" && (
-                      <div className="border rounded-md p-4">
+                      <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                         <div className="flex items-start">
-                          <div className="bg-blue-100 rounded-full p-2 mr-3">
+                          <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-2 mr-3">
                             <i className="ri-lungs-line text-blue-600"></i>
                           </div>
                           <div>
@@ -413,9 +413,9 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                     )}
                     
                     {member.name === "Tommy Doe" && (
-                      <div className="border rounded-md p-4">
+                      <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                         <div className="flex items-start">
-                          <div className="bg-blue-100 rounded-full p-2 mr-3">
+                          <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full p-2 mr-3">
                             <i className="ri-microscope-line text-blue-600"></i>
                           </div>
                           <div>
@@ -432,14 +432,14 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                       </div>
                     )}
                     
-                    <div className="border rounded-md p-4">
+                    <div className="border dark:border-gray-700 rounded-md p-4 dark:bg-gray-800/50">
                       <div className="flex items-start">
-                        <div className="bg-purple-100 rounded-full p-2 mr-3">
+                        <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full p-2 mr-3">
                           <i className="ri-capsule-line text-purple-600"></i>
                         </div>
                         <div>
-                          <h5 className="font-medium">Vitamin D Metabolism</h5>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <h5 className="font-medium dark:text-white">Vitamin D Metabolism</h5>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                             Family history on both sides shows tendency toward vitamin D deficiency. Regular supplementation and blood level monitoring recommended.
                           </p>
                           <div className="mt-3 flex items-center text-sm text-purple-700">
@@ -455,22 +455,22 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
               
               <div>
                 <h4 className="font-medium text-lg mb-4">Genetic Testing Status</h4>
-                <div className="border rounded-lg p-4">
+                <div className="border dark:border-gray-700 rounded-lg p-4 dark:bg-gray-800/50">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <div className="bg-primary/10 rounded-full p-2 mr-3">
+                      <div className="bg-primary/10 dark:bg-primary/20 rounded-full p-2 mr-3">
                         <i className="ri-dna-line text-primary"></i>
                       </div>
                       <div>
-                        <h5 className="font-medium">Comprehensive Genetic Panel</h5>
-                        <p className="text-sm text-gray-600">Last updated: January 15, 2025</p>
+                        <h5 className="font-medium dark:text-white">Comprehensive Genetic Panel</h5>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Last updated: January 15, 2025</p>
                       </div>
                     </div>
                     <Button size="sm" variant="outline">View Report</Button>
                   </div>
                   
-                  <div className="border-t pt-4 mt-2">
-                    <h6 className="font-medium mb-3">Key Findings:</h6>
+                  <div className="border-t dark:border-gray-700 pt-4 mt-2">
+                    <h6 className="font-medium mb-3 dark:text-white">Key Findings:</h6>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start">
                         <i className="ri-checkbox-circle-line text-primary mt-0.5 mr-2"></i>
