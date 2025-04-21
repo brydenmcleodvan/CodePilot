@@ -259,17 +259,17 @@ export function Messenger() {
     : [];
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] rounded-lg border">
+    <div className="flex h-[calc(100vh-5rem)] rounded-lg border border-gray-200 dark:border-gray-700">
       {/* Contacts sidebar */}
-      <div className="w-80 border-r flex flex-col bg-white">
-        <div className="p-4 border-b">
-          <h2 className="text-xl font-semibold mb-4">Messages</h2>
+      <div className="w-80 border-r border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-800">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold mb-4 dark:text-white">Messages</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <input
               type="text"
               placeholder="Search contacts..."
-              className="w-full pl-10 py-2 border rounded-md"
+              className="w-full pl-10 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -282,8 +282,8 @@ export function Messenger() {
               <button
                 key={user.id}
                 className={cn(
-                  "w-full p-3 text-left rounded-lg hover:bg-gray-100 mb-1",
-                  activeContact?.id === user.id && "bg-gray-100"
+                  "w-full p-3 text-left rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 mb-1",
+                  activeContact?.id === user.id && "bg-gray-100 dark:bg-gray-700"
                 )}
                 onClick={() => setActiveContact(user)}
               >
@@ -332,7 +332,7 @@ export function Messenger() {
       
       {/* Chat area */}
       {activeContact ? (
-        <div className="flex-1 flex flex-col bg-white">
+        <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
           {/* Chat header */}
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">
@@ -397,7 +397,7 @@ export function Messenger() {
                       "rounded-lg p-3",
                       message.sender === 0
                         ? "bg-primary text-primary-foreground"
-                        : "bg-gray-100"
+                        : "bg-gray-100 dark:bg-gray-700 dark:text-gray-200"
                     )}
                   >
                     <p>{message.content}</p>
@@ -411,7 +411,7 @@ export function Messenger() {
                               "rounded border p-2 flex items-center gap-2",
                               message.sender === 0
                                 ? "bg-primary/80 border-primary/20"
-                                : "bg-white border-gray-200"
+                                : "bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 dark:text-gray-200"
                             )}
                           >
                             {attachment.type === "document" && (
@@ -528,7 +528,7 @@ export function Messenger() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-white">
+        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-800">
           <div className="flex flex-col items-center text-center max-w-md">
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <MessageSquare className="w-12 h-12 text-primary" />
