@@ -18,9 +18,9 @@ import { HealthCoach } from "@/pages/health-coach";
 import { Connections } from "@/pages/connections";
 import { Family } from "@/pages/family";
 import FamilyTreePage from "@/pages/family-tree";
+import NutritionPage from "@/pages/nutrition";
 import MessengerPage from "@/pages/messenger";
 import Shop from "@/pages/shop";
-import NutritionPage from "@/pages/nutrition";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
