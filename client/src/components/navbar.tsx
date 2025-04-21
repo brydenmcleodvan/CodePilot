@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const Navbar = () => {
   const [location] = useLocation();
@@ -136,6 +137,8 @@ const Navbar = () => {
 
           {/* User section with improved spacing */}
           <div className="flex items-center gap-4">
+            <ThemeToggle />
+            
             {user ? (
               <DropdownMenu
                 open={isUserDropdownOpen} 
