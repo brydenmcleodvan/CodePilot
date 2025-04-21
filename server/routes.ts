@@ -196,6 +196,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Women's Health - Cycle Tracking Routes
+  
+  // Get all cycle entries for current user
+  app.get(`${apiRouter}/cycle/entries`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Parse optional date range parameters
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (req.query.startDate) {
+        startDate = new Date(req.query.startDate as string);
+      }
+      
+      if (req.query.endDate) {
+        endDate = new Date(req.query.endDate as string);
+      }
+      
+      const entries = await storage.getUserCycleEntries(userId, startDate, endDate);
+      res.json(entries);
+    } catch (error) {
+      console.error('Error fetching cycle entries:', error);
+      res.status(500).json({ message: 'Server error fetching cycle entries' });
+    }
+  });
+  
+  // Get specific cycle entry
+  app.get(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entryId = parseInt(req.params.id);
+      
+      const entry = await storage.getCycleEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Cycle entry not found' });
+      }
+      
+      // Verify entry belongs to current user
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      res.json(entry);
+    } catch (error) {
+      console.error('Error fetching cycle entry:', error);
+      res.status(500).json({ message: 'Server error fetching cycle entry' });
+    }
+  });
+  
+  // Create new cycle entry
+  app.post(`${apiRouter}/cycle/entries`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Create entry data
+      const entryData = {
+        ...req.body,
+        userId
+      };
+      
+      // Convert date string to Date object
+      if (entryData.date && typeof entryData.date === 'string') {
+        entryData.date = new Date(entryData.date);
+      }
+      
+      const entry = await storage.createCycleEntry(entryData);
+      res.status(201).json(entry);
+    } catch (error) {
+      console.error('Error creating cycle entry:', error);
+      res.status(500).json({ message: 'Server error creating cycle entry' });
+    }
+  });
+  
+  // Update cycle entry
+  app.patch(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entryId = parseInt(req.params.id);
+      
+      // Verify entry belongs to current user
+      const entry = await storage.getCycleEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Cycle entry not found' });
+      }
+      
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Update entry
+      const updatedEntry = await storage.updateCycleEntry(entryId, req.body);
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error('Error updating cycle entry:', error);
+      res.status(500).json({ message: 'Server error updating cycle entry' });
+    }
+  });
+  
+  // Delete cycle entry
+  app.delete(`${apiRouter}/cycle/entries/:id`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const entryId = parseInt(req.params.id);
+      
+      // Verify entry belongs to current user
+      const entry = await storage.getCycleEntryById(entryId);
+      
+      if (!entry) {
+        return res.status(404).json({ message: 'Cycle entry not found' });
+      }
+      
+      if (entry.userId !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Delete entry
+      const success = await storage.deleteCycleEntry(entryId);
+      
+      if (success) {
+        res.json({ message: 'Cycle entry deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to delete cycle entry' });
+      }
+    } catch (error) {
+      console.error('Error deleting cycle entry:', error);
+      res.status(500).json({ message: 'Server error deleting cycle entry' });
+    }
+  });
+  
+  // Get cycle analysis for current user
+  app.get(`${apiRouter}/cycle/analysis`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const analysis = await storage.getUserCycleAnalysis(userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ message: 'Cycle analysis not found' });
+      }
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error fetching cycle analysis:', error);
+      res.status(500).json({ message: 'Server error fetching cycle analysis' });
+    }
+  });
+  
+  // Create or update cycle analysis
+  app.post(`${apiRouter}/cycle/analysis`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      
+      // Check if analysis already exists
+      const existingAnalysis = await storage.getUserCycleAnalysis(userId);
+      
+      // Create analysis data
+      const analysisData = {
+        ...req.body,
+        userId
+      };
+      
+      // Convert date strings to Date objects
+      if (analysisData.cycleStartDate && typeof analysisData.cycleStartDate === 'string') {
+        analysisData.cycleStartDate = new Date(analysisData.cycleStartDate);
+      }
+      if (analysisData.cycleEndDate && typeof analysisData.cycleEndDate === 'string') {
+        analysisData.cycleEndDate = new Date(analysisData.cycleEndDate);
+      }
+      if (analysisData.ovulationDate && typeof analysisData.ovulationDate === 'string') {
+        analysisData.ovulationDate = new Date(analysisData.ovulationDate);
+      }
+      if (analysisData.nextPeriodPrediction && typeof analysisData.nextPeriodPrediction === 'string') {
+        analysisData.nextPeriodPrediction = new Date(analysisData.nextPeriodPrediction);
+      }
+      if (analysisData.fertileWindowStart && typeof analysisData.fertileWindowStart === 'string') {
+        analysisData.fertileWindowStart = new Date(analysisData.fertileWindowStart);
+      }
+      if (analysisData.fertileWindowEnd && typeof analysisData.fertileWindowEnd === 'string') {
+        analysisData.fertileWindowEnd = new Date(analysisData.fertileWindowEnd);
+      }
+      
+      let analysis;
+      if (existingAnalysis) {
+        // Update existing analysis
+        analysis = await storage.updateCycleAnalysis(existingAnalysis.id, analysisData);
+      } else {
+        // Create new analysis
+        analysis = await storage.createCycleAnalysis(analysisData);
+      }
+      
+      res.status(201).json(analysis);
+    } catch (error) {
+      console.error('Error creating/updating cycle analysis:', error);
+      res.status(500).json({ message: 'Server error creating/updating cycle analysis' });
+    }
+  });
+  
   // Health stats routes
   app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
     try {

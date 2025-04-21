@@ -185,6 +185,16 @@ export interface IStorage {
   getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
   createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
   updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
+  
+  // Women's Health - Cycle Tracking
+  getUserCycleEntries(userId: number, startDate?: Date, endDate?: Date): Promise<CycleEntry[]>;
+  getCycleEntryById(id: number): Promise<CycleEntry | undefined>;
+  createCycleEntry(entry: InsertCycleEntry): Promise<CycleEntry>;
+  updateCycleEntry(id: number, entryData: Partial<CycleEntry>): Promise<CycleEntry | undefined>;
+  deleteCycleEntry(id: number): Promise<boolean>;
+  getUserCycleAnalysis(userId: number): Promise<CycleAnalysis | undefined>;
+  createCycleAnalysis(analysis: InsertCycleAnalysis): Promise<CycleAnalysis>;
+  updateCycleAnalysis(id: number, analysisData: Partial<CycleAnalysis>): Promise<CycleAnalysis | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -209,6 +219,8 @@ export class MemStorage implements IStorage {
   private healthArticles: Map<number, HealthArticle>;
   private mealPlans: Map<number, MealPlan>;
   private mealPlanEntries: Map<number, MealPlanEntry>;
+  private cycleEntries: Map<number, CycleEntry>;
+  private cycleAnalyses: Map<number, CycleAnalysis>;
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
@@ -231,6 +243,8 @@ export class MemStorage implements IStorage {
   private healthArticleIdCounter: number;
   private mealPlanIdCounter: number;
   private mealPlanEntryIdCounter: number;
+  private cycleEntryIdCounter: number;
+  private cycleAnalysisIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -254,6 +268,8 @@ export class MemStorage implements IStorage {
     this.healthArticles = new Map();
     this.mealPlans = new Map();
     this.mealPlanEntries = new Map();
+    this.cycleEntries = new Map();
+    this.cycleAnalyses = new Map();
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
@@ -276,6 +292,8 @@ export class MemStorage implements IStorage {
     this.healthArticleIdCounter = 1;
     this.mealPlanIdCounter = 1;
     this.mealPlanEntryIdCounter = 1;
+    this.cycleEntryIdCounter = 1;
+    this.cycleAnalysisIdCounter = 1;
 
     // Add some initial data
     this.initializeData();
@@ -1443,6 +1461,80 @@ export class MemStorage implements IStorage {
     const updatedEntry = { ...entry, ...entryData };
     this.mealPlanEntries.set(id, updatedEntry);
     return updatedEntry;
+  }
+  
+  // Women's Health - Cycle Tracking
+  async getUserCycleEntries(userId: number, startDate?: Date, endDate?: Date): Promise<CycleEntry[]> {
+    let entries = Array.from(this.cycleEntries.values())
+      .filter(entry => entry.userId === userId);
+    
+    // Filter by date range if provided
+    if (startDate) {
+      entries = entries.filter(entry => new Date(entry.date) >= startDate);
+    }
+    
+    if (endDate) {
+      entries = entries.filter(entry => new Date(entry.date) <= endDate);
+    }
+    
+    // Sort by date (newest first)
+    return entries.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }
+  
+  async getCycleEntryById(id: number): Promise<CycleEntry | undefined> {
+    return this.cycleEntries.get(id);
+  }
+  
+  async createCycleEntry(entry: InsertCycleEntry): Promise<CycleEntry> {
+    const id = this.cycleEntryIdCounter++;
+    const newEntry: CycleEntry = {
+      id,
+      ...entry
+    };
+    
+    this.cycleEntries.set(id, newEntry);
+    return newEntry;
+  }
+  
+  async updateCycleEntry(id: number, entryData: Partial<CycleEntry>): Promise<CycleEntry | undefined> {
+    const entry = this.cycleEntries.get(id);
+    if (!entry) return undefined;
+    
+    const updatedEntry = { ...entry, ...entryData };
+    this.cycleEntries.set(id, updatedEntry);
+    return updatedEntry;
+  }
+  
+  async deleteCycleEntry(id: number): Promise<boolean> {
+    if (!this.cycleEntries.has(id)) return false;
+    return this.cycleEntries.delete(id);
+  }
+  
+  async getUserCycleAnalysis(userId: number): Promise<CycleAnalysis | undefined> {
+    return Array.from(this.cycleAnalyses.values())
+      .find(analysis => analysis.userId === userId);
+  }
+  
+  async createCycleAnalysis(analysis: InsertCycleAnalysis): Promise<CycleAnalysis> {
+    const id = this.cycleAnalysisIdCounter++;
+    const newAnalysis: CycleAnalysis = {
+      id,
+      ...analysis
+    };
+    
+    this.cycleAnalyses.set(id, newAnalysis);
+    return newAnalysis;
+  }
+  
+  async updateCycleAnalysis(id: number, analysisData: Partial<CycleAnalysis>): Promise<CycleAnalysis | undefined> {
+    const analysis = this.cycleAnalyses.get(id);
+    if (!analysis) return undefined;
+    
+    const updatedAnalysis = { ...analysis, ...analysisData };
+    this.cycleAnalyses.set(id, updatedAnalysis);
+    return updatedAnalysis;
   }
 }
 
