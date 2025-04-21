@@ -263,6 +263,9 @@ const Navbar = () => {
               <MobileNavLink href="/messenger" active={location === "/messenger"}>
                 Messenger
               </MobileNavLink>
+              <MobileNavLink href="/nutrition" active={location === "/nutrition"}>
+                Nutrition
+              </MobileNavLink>
             </nav>
           </div>
         )}
