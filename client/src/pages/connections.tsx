@@ -320,14 +320,14 @@ export function Connections() {
         Connect with family, friends, health professionals, and communities to share your health journey and learn from others.
       </p>
 
-      <div className="bg-white p-4 rounded-lg shadow mb-8">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-8">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <input
               type="text"
               placeholder="Search for connections..."
-              className="w-full pl-10 py-2 border rounded-md"
+              className="w-full pl-10 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             />
           </div>
           <div className="flex gap-2">
@@ -368,14 +368,14 @@ export function Connections() {
               />
             ))}
             
-            <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <Button variant="ghost" className="w-full h-full flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
                   <Plus className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold mb-2">Add Connection</h2>
-                  <p className="text-sm text-muted-foreground">Connect with health professionals and like-minded individuals</p>
+                  <h2 className="text-lg font-semibold mb-2 dark:text-white">Add Connection</h2>
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">Connect with health professionals and like-minded individuals</p>
                 </div>
               </Button>
             </div>
