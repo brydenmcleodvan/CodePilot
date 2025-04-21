@@ -61,21 +61,21 @@ const Profile = () => {
       <div className="flex flex-col md:flex-row gap-8">
         {/* Profile Sidebar */}
         <div className="md:w-1/3 lg:w-1/4">
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6 sticky top-24">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/10 p-6 mb-6 sticky top-24 dark:border dark:border-gray-700">
             <div className="flex flex-col items-center text-center mb-6">
               <img
                 src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                 alt="Profile Picture"
                 className="w-24 h-24 rounded-full border-4 border-primary mb-4"
               />
-              <h2 className="text-xl font-medium">{user.name}</h2>
-              <p className="text-gray-500">{user.email}</p>
-              <button className="mt-4 w-full bg-white text-primary border border-primary font-medium py-2 rounded-md hover:bg-primary/5 transition-colors duration-200">
+              <h2 className="text-xl font-medium dark:text-white">{user.name}</h2>
+              <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+              <button className="mt-4 w-full bg-white dark:bg-gray-700 text-primary dark:text-primary-400 border border-primary dark:border-primary-500 font-medium py-2 rounded-md hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-200">
                 Edit Profile
               </button>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
               <nav className="flex flex-col space-y-2">
                 <a
                   href="#profile-overview"
@@ -304,18 +304,18 @@ const Profile = () => {
           )}
 
           {activeTab === "genetic-profile" && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6 dark:border dark:border-gray-700">
               <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Genetic Profile</h2>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Connect your genetic testing data to gain insights into your health.
               </p>
               
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4 mb-6">
                 <div className="flex items-start">
-                  <i className="ri-information-line text-amber-500 text-xl mt-1 mr-2"></i>
+                  <i className="ri-information-line text-amber-500 dark:text-amber-400 text-xl mt-1 mr-2"></i>
                   <div>
-                    <h3 className="font-medium text-amber-800">DNA Testing Not Connected</h3>
-                    <p className="text-amber-700 text-sm">
+                    <h3 className="font-medium text-amber-800 dark:text-amber-300">DNA Testing Not Connected</h3>
+                    <p className="text-amber-700 dark:text-amber-200 text-sm">
                       Connect your DNA testing service to unlock genetic insights and personalized recommendations.
                     </p>
                   </div>
@@ -323,28 +323,28 @@ const Profile = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors duration-200">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-primary dark:hover:border-primary-400 transition-colors duration-200 dark:bg-gray-800/50">
                   <div className="flex items-center space-x-3 mb-3">
-                    <i className="ri-dna-line text-primary text-2xl"></i>
-                    <h3 className="font-medium">23andMe</h3>
+                    <i className="ri-dna-line text-primary dark:text-primary-400 text-2xl"></i>
+                    <h3 className="font-medium dark:text-white">23andMe</h3>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     Connect your 23andMe genetic test results for detailed health insights.
                   </p>
-                  <button className="w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                  <button className="w-full bg-primary dark:bg-primary-600 text-white py-2 rounded-md hover:bg-secondary dark:hover:bg-primary-500 transition-colors duration-200">
                     Connect
                   </button>
                 </div>
                 
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors duration-200">
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-primary dark:hover:border-primary-400 transition-colors duration-200 dark:bg-gray-800/50">
                   <div className="flex items-center space-x-3 mb-3">
-                    <i className="ri-dna-line text-primary text-2xl"></i>
-                    <h3 className="font-medium">AncestryDNA</h3>
+                    <i className="ri-dna-line text-primary dark:text-primary-400 text-2xl"></i>
+                    <h3 className="font-medium dark:text-white">AncestryDNA</h3>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     Import your AncestryDNA test results to enhance your health profile.
                   </p>
-                  <button className="w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                  <button className="w-full bg-primary dark:bg-primary-600 text-white py-2 rounded-md hover:bg-secondary dark:hover:bg-primary-500 transition-colors duration-200">
                     Connect
                   </button>
                 </div>
@@ -364,112 +364,112 @@ const Profile = () => {
                   seizure history, cognitive assessments, and personalized treatment recommendations.
                 </p>
                 
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h3 className="text-xl font-medium mb-4">Patient Information</h3>
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 mb-6 dark:border dark:border-gray-700">
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Patient Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <p className="text-sm text-gray-500">Name</p>
-                      <p className="font-medium">John Doe</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
+                      <p className="font-medium dark:text-white">John Doe</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Age at Record</p>
-                      <p className="font-medium">42</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Age at Record</p>
+                      <p className="font-medium dark:text-white">42</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Record Date</p>
-                      <p className="font-medium">April 1, 2025</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">Record Date</p>
+                      <p className="font-medium dark:text-white">April 1, 2025</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Health Status</h3>
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Health Status</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Zinc Deficiency</Badge>
-                        <span className="text-red-500 font-medium">Present</span>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Zinc Deficiency</Badge>
+                        <span className="text-red-500 dark:text-red-400 font-medium">Present</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Confirmed by blood tests</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Confirmed by blood tests</p>
                     </div>
                     
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Sleep Quality</Badge>
-                        <span className="text-amber-500 font-medium">Suboptimal</span>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Sleep Quality</Badge>
+                        <span className="text-amber-500 dark:text-amber-400 font-medium">Suboptimal</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Type: Good but suboptimal</p>
-                      <p className="text-gray-600 text-sm">Average: 7.8 hours per night, occasional disruptions</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Type: Good but suboptimal</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Average: 7.8 hours per night, occasional disruptions</p>
                     </div>
                     
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Migraines</Badge>
-                        <span className="text-green-500 font-medium">Not Present</span>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Migraines</Badge>
+                        <span className="text-green-500 dark:text-green-400 font-medium">Not Present</span>
                       </div>
-                      <p className="text-gray-600 text-sm">No history of migraines</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">No history of migraines</p>
                     </div>
                     
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Headaches</Badge>
-                        <span className="text-amber-500 font-medium">Occasional</span>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Headaches</Badge>
+                        <span className="text-amber-500 dark:text-amber-400 font-medium">Occasional</span>
                       </div>
-                      <p className="text-gray-600 text-sm">Occasional headaches related to stress</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Occasional headaches related to stress</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Diagnostic Tests</h3>
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Diagnostic Tests</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Blood Work</Badge>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Blood Work</Badge>
                       </div>
-                      <p className="text-gray-600 text-sm">Low zinc levels (65 μg/dL, normal range: 70-120 μg/dL)</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Low zinc levels (65 μg/dL, normal range: 70-120 μg/dL)</p>
                     </div>
                     
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                       <div className="flex items-center mb-3">
-                        <Badge variant="secondary" className="mr-2">Sleep Study</Badge>
+                        <Badge variant="secondary" className="mr-2 dark:bg-gray-700 dark:text-gray-200">Sleep Study</Badge>
                       </div>
-                      <p className="text-gray-600 text-sm">Normal sleep architecture, minor disruptions during REM cycles</p>
+                      <p className="text-gray-600 dark:text-gray-300 text-sm">Normal sleep architecture, minor disruptions during REM cycles</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Treatment Plan</h3>
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Treatment Plan</h3>
                   <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium mb-2">Medications</h4>
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <h4 className="font-medium mb-2 dark:text-white">Medications</h4>
                       <ul className="space-y-2">
                         <li className="flex items-center">
-                          <span className="w-1/3 text-gray-600">Zinc Supplement</span>
-                          <span className="text-gray-800">50mg daily - Treat zinc deficiency</span>
+                          <span className="w-1/3 text-gray-600 dark:text-gray-400">Zinc Supplement</span>
+                          <span className="text-gray-800 dark:text-gray-200">50mg daily - Treat zinc deficiency</span>
                         </li>
                         <li className="flex items-center">
-                          <span className="w-1/3 text-gray-600">Vitamin D3</span>
-                          <span className="text-gray-800">2000 IU daily - Support immune function</span>
+                          <span className="w-1/3 text-gray-600 dark:text-gray-400">Vitamin D3</span>
+                          <span className="text-gray-800 dark:text-gray-200">2000 IU daily - Support immune function</span>
                         </li>
                         <li className="flex items-center">
-                          <span className="w-1/3 text-gray-600">Magnesium Glycinate</span>
-                          <span className="text-gray-800">200mg before bedtime - Improve sleep quality</span>
+                          <span className="w-1/3 text-gray-600 dark:text-gray-400">Magnesium Glycinate</span>
+                          <span className="text-gray-800 dark:text-gray-200">200mg before bedtime - Improve sleep quality</span>
                         </li>
                       </ul>
                     </div>
                     
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium mb-2">Referrals</h4>
+                    <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <h4 className="font-medium mb-2 dark:text-white">Referrals</h4>
                       <ul className="space-y-1">
                         <li className="flex items-center">
-                          <i className="ri-arrow-right-line text-primary mr-2"></i>
-                          <span>Nutritional counseling</span>
+                          <i className="ri-arrow-right-line text-primary dark:text-primary-400 mr-2"></i>
+                          <span className="dark:text-gray-200">Nutritional counseling</span>
                         </li>
                         <li className="flex items-center">
-                          <i className="ri-arrow-right-line text-primary mr-2"></i>
-                          <span>Sleep optimization program</span>
+                          <i className="ri-arrow-right-line text-primary dark:text-primary-400 mr-2"></i>
+                          <span className="dark:text-gray-200">Sleep optimization program</span>
                         </li>
                       </ul>
                     </div>
@@ -477,62 +477,62 @@ const Profile = () => {
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Social Health Impact</h3>
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Social Health Impact</h3>
+                  <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="grid grid-cols-1 gap-4">
                       <div>
-                        <h4 className="font-medium mb-1">Impact on Daily Life</h4>
-                        <p className="text-gray-600">Mild fatigue and reduced immune function affect work productivity and exercise capacity</p>
+                        <h4 className="font-medium mb-1 dark:text-white">Impact on Daily Life</h4>
+                        <p className="text-gray-600 dark:text-gray-300">Mild fatigue and reduced immune function affect work productivity and exercise capacity</p>
                       </div>
-                      <Separator />
+                      <Separator className="dark:bg-gray-700" />
                       <div>
-                        <h4 className="font-medium mb-1">Support Network</h4>
-                        <p className="text-gray-600">Family, health coach, online health communities</p>
+                        <h4 className="font-medium mb-1 dark:text-white">Support Network</h4>
+                        <p className="text-gray-600 dark:text-gray-300">Family, health coach, online health communities</p>
                       </div>
-                      <Separator />
+                      <Separator className="dark:bg-gray-700" />
                       <div>
-                        <h4 className="font-medium mb-1">Self Management</h4>
-                        <p className="text-gray-600">Regular nutritional tracking, sleep monitoring with Whoop strap, Apple Watch health metrics tracking</p>
+                        <h4 className="font-medium mb-1 dark:text-white">Self Management</h4>
+                        <p className="text-gray-600 dark:text-gray-300">Regular nutritional tracking, sleep monitoring with Whoop strap, Apple Watch health metrics tracking</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Wearable Device Integration</h3>
-                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Wearable Device Integration</h3>
+                  <div className="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <h4 className="font-medium mb-2">Connected Devices</h4>
+                        <h4 className="font-medium mb-2 dark:text-white">Connected Devices</h4>
                         <ul className="space-y-1 list-disc list-inside">
-                          <li className="text-gray-600">Apple Watch Series 9</li>
-                          <li className="text-gray-600">Whoop Strap 4.0</li>
+                          <li className="text-gray-600 dark:text-gray-300">Apple Watch Series 9</li>
+                          <li className="text-gray-600 dark:text-gray-300">Whoop Strap 4.0</li>
                         </ul>
                       </div>
                       <div>
-                        <h4 className="font-medium mb-2">Metrics Tracked</h4>
+                        <h4 className="font-medium mb-2 dark:text-white">Metrics Tracked</h4>
                         <ul className="space-y-1 list-disc list-inside">
-                          <li className="text-gray-600">Heart rate variability</li>
-                          <li className="text-gray-600">Sleep quality and stages</li>
-                          <li className="text-gray-600">Recovery scores</li>
-                          <li className="text-gray-600">Activity levels</li>
-                          <li className="text-gray-600">Respiration rate</li>
+                          <li className="text-gray-600 dark:text-gray-300">Heart rate variability</li>
+                          <li className="text-gray-600 dark:text-gray-300">Sleep quality and stages</li>
+                          <li className="text-gray-600 dark:text-gray-300">Recovery scores</li>
+                          <li className="text-gray-600 dark:text-gray-300">Activity levels</li>
+                          <li className="text-gray-600 dark:text-gray-300">Respiration rate</li>
                         </ul>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <h4 className="font-medium mb-2">Integration Status</h4>
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="font-medium mb-2 dark:text-white">Integration Status</h4>
                       <div className="flex items-center">
-                        <span className="text-gray-600 mr-2">Fully connected and synchronized daily</span>
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                        <span className="text-gray-600 dark:text-gray-300 mr-2">Fully connected and synchronized daily</span>
+                        <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40">Active</Badge>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 <div className="mt-6">
-                  <h3 className="text-xl font-medium mb-4">Interactive Neural Profile</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Interactive Neural Profile</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
                     Access the interactive neural profile visualization with more detailed analysis below:
                   </p>
                   <StreamlitEmbed />
