@@ -123,11 +123,11 @@ const MedicationTracker = () => {
   };
 
   return (
-    <Card>
+    <Card className="dark:bg-gray-800 dark:border-gray-700">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>Medication Schedule</CardTitle>
-          <CardDescription>Track and manage your medications</CardDescription>
+          <CardTitle className="dark:text-white">Medication Schedule</CardTitle>
+          <CardDescription className="dark:text-gray-300">Track and manage your medications</CardDescription>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -204,7 +204,7 @@ const MedicationTracker = () => {
       <CardContent>
         {isLoading ? (
           <div className="flex justify-center p-4">
-            <div className="animate-pulse">Loading medications...</div>
+            <div className="animate-pulse dark:text-gray-300">Loading medications...</div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -213,19 +213,21 @@ const MedicationTracker = () => {
                 <div 
                   key={med.id} 
                   className={`flex flex-col p-4 rounded-lg border ${
-                    isDueSoon(med.nextDose) ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-200'
+                    isDueSoon(med.nextDose) 
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium flex items-center">
+                      <h4 className="font-medium flex items-center dark:text-white">
                         <i className="ri-capsule-line mr-2 text-primary"></i> 
                         {med.name}
-                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-700">
+                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
                           {med.dosage}
                         </span>
                       </h4>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                         {med.schedule}
                       </p>
                     </div>
@@ -243,14 +245,14 @@ const MedicationTracker = () => {
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-gray-500">Next Dose:</p>
-                      <p className={`font-medium ${isDueSoon(med.nextDose) ? 'text-yellow-700' : ''}`}>
+                      <p className="text-gray-500 dark:text-gray-400">Next Dose:</p>
+                      <p className={`font-medium ${isDueSoon(med.nextDose) ? 'text-yellow-700 dark:text-yellow-400' : 'dark:text-gray-200'}`}>
                         {formatDoseDate(med.nextDose)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Last Taken:</p>
-                      <p className="font-medium">
+                      <p className="text-gray-500 dark:text-gray-400">Last Taken:</p>
+                      <p className="font-medium dark:text-gray-200">
                         {med.lastTaken ? formatDoseDate(med.lastTaken) : "Never"}
                       </p>
                     </div>
@@ -258,17 +260,17 @@ const MedicationTracker = () => {
                   
                   {med.instructions && (
                     <div className="mt-2 text-sm">
-                      <p className="text-gray-500">Instructions:</p>
-                      <p className="italic text-gray-600">{med.instructions}</p>
+                      <p className="text-gray-500 dark:text-gray-400">Instructions:</p>
+                      <p className="italic text-gray-600 dark:text-gray-300">{med.instructions}</p>
                     </div>
                   )}
                 </div>
               ))
             ) : (
-              <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
-                <i className="ri-medicine-bottle-line text-4xl text-gray-300 mb-2"></i>
-                <p className="text-gray-500">No medications scheduled.</p>
-                <p className="text-sm text-gray-400 mt-1">Click the button above to add your medications.</p>
+              <div className="text-center py-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg">
+                <i className="ri-medicine-bottle-line text-4xl text-gray-300 dark:text-gray-600 mb-2"></i>
+                <p className="text-gray-500 dark:text-gray-400">No medications scheduled.</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Click the button above to add your medications.</p>
               </div>
             )}
           </div>
