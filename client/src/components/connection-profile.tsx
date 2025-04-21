@@ -127,9 +127,9 @@ export function ConnectionProfile({
 
   if (!isExpanded) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center">
             {connection.avatarUrl ? (
               <img 
                 src={connection.avatarUrl} 
@@ -141,8 +141,8 @@ export function ConnectionProfile({
             )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold">{connection.name}</h3>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
+            <h3 className="text-lg font-semibold dark:text-white">{connection.name}</h3>
+            <p className="text-sm text-muted-foreground dark:text-gray-400 flex items-center gap-1">
               {connection.type}
               {connection.privacySettings.profileVisibility !== 'public' && (
                 <span>{getPrivacyIcon(connection.privacySettings.profileVisibility)}</span>
@@ -150,15 +150,15 @@ export function ConnectionProfile({
             </p>
           </div>
         </div>
-        <div className="border-t pt-4">
+        <div className="border-t dark:border-gray-700 pt-4">
           {connection.specialty && (
-            <p className="text-sm mb-2"><strong>Specialty:</strong> {connection.specialty}</p>
+            <p className="text-sm mb-2 dark:text-gray-300"><strong className="dark:text-white">Specialty:</strong> {connection.specialty}</p>
           )}
           {connection.joinedDate && (
-            <p className="text-sm mb-2"><strong>Joined:</strong> {connection.joinedDate}</p>
+            <p className="text-sm mb-2 dark:text-gray-300"><strong className="dark:text-white">Joined:</strong> {connection.joinedDate}</p>
           )}
           {connection.members && (
-            <p className="text-sm mb-2"><strong>Community:</strong> {connection.members}</p>
+            <p className="text-sm mb-2 dark:text-gray-300"><strong className="dark:text-white">Community:</strong> {connection.members}</p>
           )}
           <div className="flex justify-between mt-4">
             <Button 
@@ -179,11 +179,11 @@ export function ConnectionProfile({
   }
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md dark:bg-gray-800">
       <CardHeader className="pb-4">
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center">
               {connection.avatarUrl ? (
                 <img 
                   src={connection.avatarUrl} 
@@ -195,8 +195,8 @@ export function ConnectionProfile({
               )}
             </div>
             <div>
-              <CardTitle>{connection.name}</CardTitle>
-              <CardDescription className="flex items-center gap-1">
+              <CardTitle className="dark:text-white">{connection.name}</CardTitle>
+              <CardDescription className="flex items-center gap-1 dark:text-gray-400">
                 {connection.type}
                 {!isOwnProfile && connection.privacySettings.profileVisibility !== 'public' && (
                   <span>{getPrivacyIcon(connection.privacySettings.profileVisibility)}</span>
@@ -272,9 +272,9 @@ export function ConnectionProfile({
                       (connection.privacySettings.healthMetricsVisibility === 'public') ||
                       (connection.privacySettings.healthMetricsVisibility === 'connections'))
                     .map(metric => (
-                      <div key={metric.name} className="bg-gray-50 p-3 rounded">
+                      <div key={metric.name} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
                         <div className="flex justify-between items-center">
-                          <p className="text-xs text-muted-foreground">{metric.name}</p>
+                          <p className="text-xs text-muted-foreground dark:text-gray-300">{metric.name}</p>
                           {isOwnProfile && (
                             <Switch 
                               checked={metric.isPublic} 
@@ -284,10 +284,10 @@ export function ConnectionProfile({
                           )}
                         </div>
                         <div className="flex items-end mt-1">
-                          <span className="text-lg font-semibold">{metric.value}</span>
-                          {metric.unit && <span className="text-xs ml-1 mb-0.5">{metric.unit}</span>}
+                          <span className="text-lg font-semibold dark:text-white">{metric.value}</span>
+                          {metric.unit && <span className="text-xs ml-1 mb-0.5 dark:text-gray-300">{metric.unit}</span>}
                           {metric.trend && (
-                            <span className="ml-2">
+                            <span className="ml-2 dark:text-gray-300">
                               {metric.trend === 'up' ? '↑' : metric.trend === 'down' ? '↓' : '→'}
                             </span>
                           )}

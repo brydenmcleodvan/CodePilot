@@ -313,10 +313,10 @@ export function Connections() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-2 mb-6">
         <Users className="w-6 h-6" />
-        <h1 className="text-3xl font-bold">Connections</h1>
+        <h1 className="text-3xl font-bold dark:text-white">Connections</h1>
       </div>
 
-      <p className="text-lg mb-8">
+      <p className="text-lg mb-8 dark:text-gray-300">
         Connect with family, friends, health professionals, and communities to share your health journey and learn from others.
       </p>
 
@@ -432,27 +432,27 @@ export function Connections() {
               isOwnProfile={true}
             />
             
-            <div className="mt-8 bg-primary/5 border border-primary/20 rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">About Your Connection Profile</h3>
-              <p className="text-sm mb-4">
+            <div className="mt-8 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">About Your Connection Profile</h3>
+              <p className="text-sm mb-4 dark:text-gray-300">
                 Your connection profile allows you to share selected health information with your connections while maintaining privacy control. Here's how it works:
               </p>
               
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-sm dark:text-gray-300">
                 <li className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">1</div>
+                  <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs mt-0.5 dark:text-white">1</div>
                   <p>Choose what health information you want to share: metrics, choices, and goals</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">2</div>
+                  <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs mt-0.5 dark:text-white">2</div>
                   <p>Set privacy levels for each category: Public, Connections Only, or Private</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">3</div>
+                  <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs mt-0.5 dark:text-white">3</div>
                   <p>Share your health journey while protecting sensitive information</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-xs mt-0.5">4</div>
+                  <div className="w-5 h-5 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-xs mt-0.5 dark:text-white">4</div>
                   <p>Learn from others' health choices while respecting their privacy preferences</p>
                 </li>
               </ul>
