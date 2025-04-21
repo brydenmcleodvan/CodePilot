@@ -20,6 +20,8 @@ import {
   healthArticles,
   mealPlans,
   mealPlanEntries,
+  cycleEntries,
+  cycleAnalysis,
   type User,
   type InsertUser,
   type HealthStat,
@@ -61,7 +63,11 @@ import {
   type MealPlan,
   type InsertMealPlan,
   type MealPlanEntry,
-  type InsertMealPlanEntry
+  type InsertMealPlanEntry,
+  type CycleEntry,
+  type InsertCycleEntry,
+  type CycleAnalysis,
+  type InsertCycleAnalysis
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
