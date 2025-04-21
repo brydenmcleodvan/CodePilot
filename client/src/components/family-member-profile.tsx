@@ -79,23 +79,23 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                 )}
               </div>
               <div>
-                <h2 className="text-lg font-semibold">{member.name}</h2>
-                <p className="text-sm text-muted-foreground">{member.relation}</p>
+                <h2 className="text-lg font-semibold dark:text-white">{member.name}</h2>
+                <p className="text-sm text-muted-foreground dark:text-gray-300">{member.relation}</p>
               </div>
             </div>
-            <div className="border-t pt-4">
-              <p className="text-sm mb-2"><strong>Last Active:</strong> {member.lastActive}</p>
-              <p className="text-sm mb-2">
+            <div className="border-t dark:border-gray-700 pt-4">
+              <p className="text-sm mb-2 dark:text-gray-300"><strong>Last Active:</strong> {member.lastActive}</p>
+              <p className="text-sm mb-2 dark:text-gray-300">
                 <strong>Health Status:</strong>{' '}
                 <span className={`${
-                  member.healthSummary?.status === 'Good' ? 'text-green-600' : 
-                  member.healthSummary?.status === 'Fair' ? 'text-amber-600' : 
-                  member.healthSummary?.status === 'Poor' ? 'text-red-600' : 'text-gray-600'
+                  member.healthSummary?.status === 'Good' ? 'text-green-600 dark:text-green-400' : 
+                  member.healthSummary?.status === 'Fair' ? 'text-amber-600 dark:text-amber-400' : 
+                  member.healthSummary?.status === 'Poor' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
                 }`}>
                   {member.healthSummary?.status || 'Unknown'}
                 </span>
               </p>
-              <p className="text-sm"><strong>Upcoming:</strong> Annual checkup in 2 weeks</p>
+              <p className="text-sm dark:text-gray-300"><strong>Upcoming:</strong> Annual checkup in 2 weeks</p>
             </div>
           </div>
         </Button>
@@ -119,10 +119,10 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
           
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-4">
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6 dark:border dark:border-gray-700">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex flex-col items-center text-center mb-6 md:mb-0 md:w-1/3">
-                  <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <div className="w-24 h-24 bg-primary/20 dark:bg-primary/30 rounded-full flex items-center justify-center mb-4">
                     {member.profilePicture ? (
                       <img
                         src={member.profilePicture}
@@ -130,34 +130,34 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                         className="w-24 h-24 rounded-full object-cover"
                       />
                     ) : (
-                      <span className="text-3xl text-primary font-bold">
+                      <span className="text-3xl text-primary dark:text-primary-400 font-bold">
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     )}
                   </div>
-                  <h2 className="text-xl font-medium">{member.name}</h2>
-                  <p className="text-gray-500">{member.relation}</p>
-                  <p className="text-sm text-gray-500 mt-2">Last active: {member.lastActive}</p>
+                  <h2 className="text-xl font-medium dark:text-white">{member.name}</h2>
+                  <p className="text-gray-500 dark:text-gray-400">{member.relation}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Last active: {member.lastActive}</p>
                   <Button className="mt-4 w-full" variant="outline">Send Message</Button>
                 </div>
                 
                 <div className="md:w-2/3">
-                  <h3 className="text-xl font-medium mb-4">Health Summary</h3>
+                  <h3 className="text-xl font-medium mb-4 dark:text-white">Health Summary</h3>
                   {member.healthSummary?.insights ? (
                     <ul className="space-y-2">
                       {member.healthSummary.insights.map((insight, idx) => (
                         <li key={idx} className="flex items-start space-x-2">
                           <i className={`mt-1 ${
-                            insight.type === 'alert' ? 'ri-alert-line text-red-500' : 
-                            insight.type === 'info' ? 'ri-information-line text-blue-500' : 
-                            'ri-checkbox-circle-line text-green-500'
+                            insight.type === 'alert' ? 'ri-alert-line text-red-500 dark:text-red-400' : 
+                            insight.type === 'info' ? 'ri-information-line text-blue-500 dark:text-blue-400' : 
+                            'ri-checkbox-circle-line text-green-500 dark:text-green-400'
                           }`}></i>
-                          <span>{insight.content}</span>
+                          <span className="dark:text-gray-300">{insight.content}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500">
+                    <p className="text-gray-500 dark:text-gray-400">
                       No health insights available. Connect their health data to see more information.
                     </p>
                   )}
@@ -171,18 +171,18 @@ const FamilyMemberProfile: React.FC<FamilyMemberProfileProps> = ({ member }) => 
                 {member.healthStats.map((stat, index) => (
                   <div 
                     key={index} 
-                    className={`bg-white rounded-xl shadow-sm p-6 flex items-center space-x-4 transition-transform hover:scale-105 duration-200`}
+                    className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 flex items-center space-x-4 transition-transform hover:scale-105 duration-200 dark:border dark:border-gray-700`}
                   >
-                    <div className={`bg-${stat.colorScheme}/10 rounded-full p-4`}>
+                    <div className={`bg-${stat.colorScheme}/10 dark:bg-${stat.colorScheme}/20 rounded-full p-4`}>
                       <i className="ri-heart-pulse-line text-2xl" style={{color: `var(--${stat.colorScheme})`}}></i>
                     </div>
                     <div>
-                      <h3 className="text-lg font-medium">
+                      <h3 className="text-lg font-medium dark:text-white">
                         {stat.statType.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                       </h3>
                       <p className="text-2xl font-bold" style={{color: `var(--${stat.colorScheme})`}}>
                         {stat.value}
-                        {stat.unit && <span className="text-sm text-gray-500"> {stat.unit}</span>}
+                        {stat.unit && <span className="text-sm text-gray-500 dark:text-gray-400"> {stat.unit}</span>}
                       </p>
                     </div>
                   </div>

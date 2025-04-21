@@ -329,19 +329,19 @@ export function Family() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {familyMembers.map((member) => (
-          <div key={member.id} className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+          <div key={member.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow dark:border dark:border-gray-700">
             <FamilyMemberProfile member={member} />
           </div>
         ))}
 
-        <div className="bg-white p-6 rounded-lg shadow border-2 border-dashed border-primary/30 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border-2 border-dashed border-primary/30 dark:border-primary/20 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           <Button variant="ghost" className="w-full h-full flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-              <Plus className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+              <Plus className="w-8 h-8 text-primary dark:text-primary-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-2">Add Family Member</h2>
-              <p className="text-sm text-muted-foreground">Invite a family member to connect and share health information</p>
+              <h2 className="text-lg font-semibold mb-2 dark:text-white">Add Family Member</h2>
+              <p className="text-sm text-muted-foreground dark:text-gray-300">Invite a family member to connect and share health information</p>
             </div>
           </Button>
         </div>
