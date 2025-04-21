@@ -366,9 +366,9 @@ export default function ForumPage() {
           </div>
 
           {/* Moderators Box */}
-          <div className="bg-white rounded-md shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm overflow-hidden">
             <div className="p-4">
-              <h3 className="font-semibold mb-2">Moderators</h3>
+              <h3 className="font-semibold mb-2 dark:text-white">Moderators</h3>
               <Button variant="link" className="text-xs p-0 h-auto">
                 Message the mods
               </Button>
