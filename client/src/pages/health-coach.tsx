@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { healthResponses, queryPerplexityAPI } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { LoadingOverlay } from "@/components/loading-overlay";
+import { Spinner } from "@/components/ui/spinner";
 
 // Define type for chat messages
 interface ChatMessage {
@@ -33,11 +35,18 @@ export function HealthCoach() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   
-  // Set API status to unavailable for demo purposes
+  // Set API status to unavailable for demo purposes and handle initial loading
   useEffect(() => {
-    // For demo purposes, we'll always use the fallback responses
-    setApiStatus('unavailable');
+    // Simulate initial page loading
+    const loadingTimer = setTimeout(() => {
+      setPageLoading(false);
+      // For demo purposes, we'll always use the fallback responses
+      setApiStatus('unavailable');
+    }, 1500); // Show loading for 1.5 seconds for demonstration
+    
+    return () => clearTimeout(loadingTimer);
   }, []);
 
   // Handle sending a message to the AI assistant
@@ -105,7 +114,9 @@ export function HealthCoach() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 relative">
+      {pageLoading && <LoadingOverlay message="Loading health coach data..." />}
+      
       <div className="flex items-center gap-2 mb-6">
         <HeadphonesIcon className="w-6 h-6" />
         <h1 className="text-3xl font-bold dark:text-white">Health Coach</h1>
