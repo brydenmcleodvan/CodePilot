@@ -27,6 +27,7 @@ const MessengerPage = lazy(() => import("@/pages/messenger"));
 const Shop = lazy(() => import("@/pages/shop"));
 const LongevityPage = lazy(() => import("@/pages/longevity"));
 const MetabolicHealthPage = lazy(() => import("@/pages/metabolic"));
+const EnhancedHome = lazy(() => import("@/pages/enhanced-home"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -55,6 +56,7 @@ function Router() {
           <Suspense fallback={<LoadingComponent />}>
             <Switch>
               <Route path="/" component={Home} />
+              <Route path="/enhanced" component={EnhancedHome} />
               <Route path="/landing" component={LandingPage} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/profile" component={Profile} />
