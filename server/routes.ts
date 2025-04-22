@@ -724,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/forum/posts`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const postData = insertForumPostSchema.parse({
         ...req.body,
         userId,
@@ -809,7 +809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get(`${apiRouter}/products/recommendations`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Get user health stats to determine recommendations
       const healthStats = await storage.getUserHealthStats(userId);
@@ -883,7 +883,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Symptom Checks routes
   app.get(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const checks = await storage.getUserSymptomChecks(userId);
       res.json(checks);
     } catch (error) {
@@ -901,7 +901,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user can access this check
-      if (check.userId !== req.body.user.id) {
+      if (check.userId !== req.user.id) {
         return res.status(403).json({ message: 'Not authorized to access this symptom check' });
       }
       
@@ -913,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const checkData = insertSymptomCheckSchema.parse({
         ...req.body,
         userId,
@@ -933,7 +933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Appointments routes
   app.get(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const appointments = await storage.getUserAppointments(userId);
       res.json(appointments);
     } catch (error) {
@@ -951,7 +951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user can access this appointment
-      if (appointment.userId !== req.body.user.id) {
+      if (appointment.userId !== req.user.id) {
         return res.status(403).json({ message: 'Not authorized to access this appointment' });
       }
       
@@ -963,7 +963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Handle date conversion
       const startTime = new Date(req.body.startTime);
@@ -988,7 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.patch(`${apiRouter}/appointments/:id`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const appointmentId = parseInt(req.params.id);
       
       // Verify appointment exists and belongs to user
@@ -1019,7 +1019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health Data Connection routes
   app.get(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const connections = await storage.getUserHealthDataConnections(userId);
       res.json(connections);
     } catch (error) {
