@@ -1,734 +1,380 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { getSkipToContentProps } from "@/lib/accessibility";
-import { ResponsiveContainer, ResponsiveSection, ResponsiveGrid } from "@/components/layout/responsive-container";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
-
-// Icons for each service
-const serviceIcons = {
-  "apple": "ri-apple-fill",
-  "fitbit": "ri-watch-line",
-  "garmin": "ri-watch-line",
-  "whoop": "ri-heart-pulse-line",
-  "oura": "ri-fingerprint-line",
-  "myfitnesspal": "ri-restaurant-line",
-  "google": "ri-google-fill",
-  "stripe": "ri-bank-card-line",
-  "buymeacoffee": "ri-cup-line",
-  "strava": "ri-run-line",
-  "withings": "ri-scales-3-line",
-  "peloton": "ri-bike-line",
-  "polar": "ri-heart-pulse-line"
-};
-
-// Integration services with details
-const healthServices = [
-  {
-    id: "apple",
-    name: "Apple Health",
-    description: "Sync your Apple Health data including workouts, steps, heart rate, and more.",
-    icon: "ri-apple-fill",
-    category: "activity",
-    isPopular: true,
-    connected: false
-  },
-  {
-    id: "fitbit",
-    name: "Fitbit",
-    description: "Connect your Fitbit device to sync activities, sleep tracking, and heart rate data.",
-    icon: "ri-watch-line",
-    category: "activity",
-    isPopular: true,
-    connected: false
-  },
-  {
-    id: "garmin",
-    name: "Garmin",
-    description: "Import your Garmin Connect data including workouts, body metrics, and sleep.",
-    icon: "ri-watch-line",
-    category: "activity",
-    isPopular: false,
-    connected: false
-  },
-  {
-    id: "whoop",
-    name: "Whoop",
-    description: "Sync recovery, strain, and sleep data from your Whoop strap.",
-    icon: "ri-heart-pulse-line",
-    category: "activity",
-    isPopular: false,
-    connected: false
-  },
-  {
-    id: "oura",
-    name: "Oura Ring",
-    description: "Import sleep quality, readiness, and activity data from your Oura Ring.",
-    icon: "ri-fingerprint-line", 
-    category: "activity",
-    isPopular: true,
-    connected: false
-  },
-  {
-    id: "myfitnesspal",
-    name: "MyFitnessPal",
-    description: "Sync your nutrition and calorie tracking data from MyFitnessPal.",
-    icon: "ri-restaurant-line",
-    category: "nutrition",
-    isPopular: true,
-    connected: false
-  },
-  {
-    id: "strava",
-    name: "Strava",
-    description: "Connect your Strava account to import runs, rides, and other activities.",
-    icon: "ri-run-line",
-    category: "activity",
-    isPopular: true,
-    connected: false
-  },
-  {
-    id: "withings",
-    name: "Withings",
-    description: "Sync weight, body composition, and other metrics from Withings devices.",
-    icon: "ri-scales-3-line",
-    category: "metrics",
-    isPopular: false,
-    connected: false
-  },
-  {
-    id: "peloton",
-    name: "Peloton",
-    description: "Import your Peloton workouts and fitness metrics.",
-    icon: "ri-bike-line",
-    category: "activity",
-    isPopular: false,
-    connected: false
-  },
-  {
-    id: "polar",
-    name: "Polar",
-    description: "Connect your Polar device to sync heart rate, training load, and recovery.",
-    icon: "ri-heart-pulse-line",
-    category: "activity",
-    isPopular: false,
-    connected: false
-  }
-];
+import { 
+  HealthService, 
+  healthServiceConfig, 
+  ConnectedService,
+  connectHealthService,
+  getConnectedServices,
+  disconnectHealthService,
+  syncHealthService
+} from "@/lib/health-api-integration";
 
 export default function IntegrationsPage() {
-  const [services, setServices] = useState(healthServices);
-  const [localStorageEnabled, setLocalStorageEnabled] = useState(
-    localStorage.getItem("healthfolioOfflineMode") === "enabled"
-  );
+  const [connectedServices, setConnectedServices] = useState<ConnectedService[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [syncingService, setSyncingService] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"connected" | "available">("connected");
   const { toast } = useToast();
-  const { user } = useAuth();
 
-  // Mock connection handler - in a real app this would initiate OAuth flow
-  const handleConnect = (serviceId: string) => {
-    // This would typically redirect to OAuth flow
-    setTimeout(() => {
-      setServices(services.map(service => 
-        service.id === serviceId ? { ...service, connected: true } : service
-      ));
-      
-      toast({
-        title: "Integration Connected",
-        description: `Successfully connected to ${serviceId.charAt(0).toUpperCase() + serviceId.slice(1)}`,
-        variant: "default",
-      });
-      
-      // In a real app, we would save this connection to the user's profile
-    }, 1000);
+  // Fetch connected services on component mount
+  useEffect(() => {
+    const services = getConnectedServices();
+    setConnectedServices(services);
+    setIsLoading(false);
+  }, []);
+
+  // Get available services (services that are not connected)
+  const getAvailableServices = () => {
+    const connectedServiceTypes = connectedServices.map(service => service.service);
+    return Object.values(HealthService).filter(
+      service => !connectedServiceTypes.includes(service)
+    );
   };
 
-  // Mock disconnect handler
-  const handleDisconnect = (serviceId: string) => {
-    setServices(services.map(service => 
-      service.id === serviceId ? { ...service, connected: false } : service
-    ));
-    
-    toast({
-      title: "Integration Disconnected",
-      description: `Disconnected from ${serviceId.charAt(0).toUpperCase() + serviceId.slice(1)}`,
-      variant: "default",
-    });
-  };
-
-  // Toggle localStorage/offline mode
-  const toggleOfflineMode = (enabled: boolean) => {
-    setLocalStorageEnabled(enabled);
-    if (enabled) {
-      localStorage.setItem("healthfolioOfflineMode", "enabled");
+  // Connect to a health service
+  const handleConnect = async (service: HealthService) => {
+    try {
+      await connectHealthService(service);
+      // The actual connection happens through OAuth redirect
+      // We don't need to update the state here as the page will reload
+    } catch (error) {
+      console.error(`Error connecting to ${service}:`, error);
       toast({
-        title: "Offline Mode Enabled",
-        description: "Your data will be stored locally for offline access",
-        variant: "default",
-      });
-    } else {
-      localStorage.setItem("healthfolioOfflineMode", "disabled");
-      toast({
-        title: "Offline Mode Disabled",
-        description: "Your data will only be accessible while online",
-        variant: "default",
+        title: "Connection Error",
+        description: error instanceof Error ? error.message : "Failed to connect service",
+        variant: "destructive",
       });
     }
   };
 
-  return (
-    <>
-      {/* Accessibility: Skip to content link */}
-      <a {...getSkipToContentProps("main-content")} />
+  // Disconnect a health service
+  const handleDisconnect = (serviceId: string, serviceName: string) => {
+    try {
+      const success = disconnectHealthService(serviceId);
       
-      <main id="main-content" className="pb-12">
-        <ResponsiveSection>
-          <ResponsiveContainer>
-            <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-heading font-bold mb-4 text-gray-900 dark:text-white">
-                Integrations & Services
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl">
-                Connect your favorite health apps and devices to create a complete picture of your health journey. Your data remains private and secure.
-              </p>
-            </div>
+      if (success) {
+        // Update the state to remove the disconnected service
+        setConnectedServices(prevServices => 
+          prevServices.filter(service => service.id !== serviceId)
+        );
+        
+        toast({
+          title: "Service Disconnected",
+          description: `Successfully disconnected from ${serviceName}`,
+        });
+      } else {
+        throw new Error("Failed to disconnect service");
+      }
+    } catch (error) {
+      console.error(`Error disconnecting service ${serviceId}:`, error);
+      toast({
+        title: "Disconnection Error",
+        description: error instanceof Error ? error.message : "Failed to disconnect service",
+        variant: "destructive",
+      });
+    }
+  };
 
-            <Tabs defaultValue="health" className="w-full">
-              <div className="mb-6">
-                <TabsList className="grid grid-cols-4 md:w-[600px] w-full">
-                  <TabsTrigger value="health">Health Trackers</TabsTrigger>
-                  <TabsTrigger value="login">Login Options</TabsTrigger>
-                  <TabsTrigger value="storage">Data Storage</TabsTrigger>
-                  <TabsTrigger value="support">Tip Jar</TabsTrigger>
-                </TabsList>
+  // Sync a health service
+  const handleSync = async (serviceId: string, serviceName: string) => {
+    try {
+      setSyncingService(serviceId);
+      
+      const success = await syncHealthService(serviceId);
+      
+      if (success) {
+        // Refresh the connected services
+        const updatedServices = getConnectedServices();
+        setConnectedServices(updatedServices);
+        
+        toast({
+          title: "Sync Complete",
+          description: `Successfully synced data from ${serviceName}`,
+        });
+      } else {
+        throw new Error("Failed to sync service data");
+      }
+    } catch (error) {
+      console.error(`Error syncing service ${serviceId}:`, error);
+      toast({
+        title: "Sync Error",
+        description: error instanceof Error ? error.message : "Failed to sync service data",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingService(null);
+    }
+  };
+
+  // Format relative time for last synced
+  const formatLastSynced = (date: Date | null): string => {
+    if (!date) return "Never";
+    
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min${diffMins === 1 ? "" : "s"} ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? "" : "s"} ago`;
+    
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays} day${diffDays === 1 ? "" : "s"} ago`;
+    
+    const diffMonths = Math.floor(diffDays / 30);
+    return `${diffMonths} month${diffMonths === 1 ? "" : "s"} ago`;
+  };
+
+  // Format data points number
+  const formatDataPoints = (points: number): string => {
+    if (points === 0) return "No data";
+    if (points < 1000) return `${points} points`;
+    if (points < 1000000) return `${(points / 1000).toFixed(1)}K points`;
+    return `${(points / 1000000).toFixed(1)}M points`;
+  };
+
+  // Get service configuration by type
+  const getServiceConfig = (serviceType: HealthService) => {
+    return healthServiceConfig[serviceType];
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-gray-800 dark:text-white mb-2">Health Integrations</h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Connect your health apps and wearables to enhance your health insights.
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <Link href="/profile#connected-services">
+              <Button variant="outline" className="mr-2">
+                <i className="ri-user-line mr-2"></i>
+                View in Profile
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        <Tabs 
+          defaultValue="connected" 
+          value={activeTab} 
+          onValueChange={(value) => setActiveTab(value as "connected" | "available")}
+          className="space-y-4"
+        >
+          <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsTrigger value="connected" className="text-sm md:text-base">
+              Connected Services
+              {connectedServices.length > 0 && (
+                <Badge variant="outline" className="ml-2 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-400">
+                  {connectedServices.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="available" className="text-sm md:text-base">
+              Available Services
+              <Badge variant="outline" className="ml-2 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300">
+                {getAvailableServices().length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="connected" className="space-y-6">
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
-
-              {/* Health Trackers Tab */}
-              <TabsContent value="health" className="mt-0">
-                <Card className="border-0 shadow-none">
-                  <CardContent className="p-0">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">Popular Integrations</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Connect your existing health and fitness apps to import your data
-                      </p>
-                      
-                      <ResponsiveGrid columns={{ sm: 1, md: 2, lg: 3 }} gap="gap-6">
-                        {services
-                          .filter(service => service.isPopular)
-                          .map(service => (
-                            <Card key={service.id} className="hover:shadow-md transition-shadow duration-300">
-                              <CardHeader className="pb-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`flex h-10 w-10 rounded-full items-center justify-center bg-primary/10 text-primary`}>
-                                      <i className={`${service.icon} text-2xl`} aria-hidden="true"></i>
-                                    </div>
-                                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                                  </div>
-                                  {service.connected && (
-                                    <div className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300 rounded-full">
-                                      Connected
-                                    </div>
-                                  )}
-                                </div>
-                              </CardHeader>
-                              <CardContent className="pb-3">
-                                <CardDescription>{service.description}</CardDescription>
-                              </CardContent>
-                              <CardFooter>
-                                {!service.connected ? (
-                                  <Button 
-                                    onClick={() => handleConnect(service.id)}
-                                    variant="default"
-                                    className="w-full"
-                                  >
-                                    Connect
-                                  </Button>
-                                ) : (
-                                  <Button 
-                                    onClick={() => handleDisconnect(service.id)}
-                                    variant="outline"
-                                    className="w-full"
-                                  >
-                                    Disconnect
-                                  </Button>
-                                )}
-                              </CardFooter>
-                            </Card>
-                          ))}
-                      </ResponsiveGrid>
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-semibold mb-2">All Integrations</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Browse all available health and fitness service integrations
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {services.map(service => (
-                          <div 
-                            key={service.id} 
-                            className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`flex h-10 w-10 rounded-full items-center justify-center bg-gray-100 dark:bg-gray-700 text-primary`}>
-                                <i className={`${service.icon} text-xl`} aria-hidden="true"></i>
+            ) : connectedServices.length === 0 ? (
+              <Card className="border-dashed border-2 dark:border-gray-700">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+                    <i className="ri-link-m text-2xl text-gray-500 dark:text-gray-400"></i>
+                  </div>
+                  <h3 className="text-xl font-medium mb-2 dark:text-white">No Connected Services</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-center mb-6 max-w-md">
+                    Connect your health apps and wearables to get better insights and track your progress.
+                  </p>
+                  <Button onClick={() => setActiveTab("available")}>
+                    Connect Your First Service
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {connectedServices.map((service) => {
+                  const config = getServiceConfig(service.service);
+                  return (
+                    <motion.div 
+                      key={service.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Card className="overflow-hidden dark:border-gray-700">
+                        <CardHeader className={`${config.color} pb-3`}>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              <div className="rounded-full p-2 bg-white dark:bg-gray-800 flex items-center justify-center">
+                                <i className={`${config.icon} text-xl`}></i>
                               </div>
                               <div>
-                                <h3 className="font-medium">{service.name}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {service.connected ? "Connected" : "Not connected"}
-                                </p>
+                                <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
+                                <CardDescription>{service.dataPoints > 0 ? `${formatDataPoints(service.dataPoints)}` : 'No data yet'}</CardDescription>
                               </div>
                             </div>
-                            {!service.connected ? (
-                              <Button 
-                                onClick={() => handleConnect(service.id)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                Connect
-                              </Button>
-                            ) : (
-                              <Button 
-                                onClick={() => handleDisconnect(service.id)}
-                                variant="ghost"
-                                size="sm"
-                              >
-                                Disconnect
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Login Options Tab */}
-              <TabsContent value="login" className="mt-0">
-                <Card className="border-0 shadow-none">
-                  <CardContent className="p-0">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">OAuth Login Options</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Connect these services to enable single sign-on for quicker access to your account
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 rounded-full items-center justify-center bg-red-100 text-red-600">
-                                <i className="ri-google-fill text-2xl" aria-hidden="true"></i>
-                              </div>
-                              <CardTitle className="text-lg">Google Sign-In</CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pb-3">
-                            <CardDescription>
-                              Sign in with your Google account for seamless access to your health data.
-                            </CardDescription>
-                          </CardContent>
-                          <CardFooter>
-                            <Button 
-                              className="w-full"
-                              onClick={() => {
-                                toast({
-                                  title: "Google Sign-In",
-                                  description: "This would initiate Google OAuth in a production environment",
-                                });
-                              }}
+                            <Badge 
+                              className={
+                                service.status === "active" 
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" 
+                                  : service.status === "error"
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" 
+                                  : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                              }
                             >
-                              Connect Google
-                            </Button>
-                          </CardFooter>
-                        </Card>
-
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 rounded-full items-center justify-center bg-gray-100 text-black">
-                                <i className="ri-apple-fill text-2xl" aria-hidden="true"></i>
-                              </div>
-                              <CardTitle className="text-lg">Apple Sign-In</CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pb-3">
-                            <CardDescription>
-                              Use your Apple ID to quickly and securely access your Healthfolio account.
-                            </CardDescription>
-                          </CardContent>
-                          <CardFooter>
-                            <Button 
-                              variant="outline" 
-                              className="w-full border-gray-800 text-gray-800 dark:text-white hover:bg-gray-100"
-                              onClick={() => {
-                                toast({
-                                  title: "Apple Sign-In",
-                                  description: "This would initiate Apple OAuth in a production environment",
-                                });
-                              }}
-                            >
-                              Connect Apple ID
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-semibold mb-2">Account Security</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Additional security options for your Healthfolio account
-                      </p>
-                      
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
+                              {service.status === "active" ? "Connected" : service.status === "error" ? "Error" : "Expired"}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="py-4">
+                          <div className="flex justify-between items-center">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <h3 className="font-medium">Two-Factor Authentication</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Add an extra layer of security to your account
+                                <p className="text-gray-500 dark:text-gray-400">Last synced</p>
+                                <p className="font-medium dark:text-gray-200">{formatLastSynced(service.lastSynced)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 dark:text-gray-400">Connected since</p>
+                                <p className="font-medium dark:text-gray-200">
+                                  {service.connectedAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </p>
                               </div>
-                              <Button 
-                                variant="outline"
-                                onClick={() => {
-                                  toast({
-                                    title: "2FA Setup",
-                                    description: "Two-factor authentication setup would be initiated here",
-                                  });
-                                }}
-                              >
-                                Setup 2FA
-                              </Button>
                             </div>
-                            
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">Password Recovery Email</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {user?.email || "Add an email for account recovery"}
-                                </p>
-                              </div>
-                              <Button 
-                                variant="ghost"
-                                onClick={() => {
-                                  toast({
-                                    title: "Recovery Email",
-                                    description: "Email update form would open here",
-                                  });
-                                }}
-                              >
-                                Update
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Data Storage Tab */}
-              <TabsContent value="storage" className="mt-0">
-                <Card className="border-0 shadow-none">
-                  <CardContent className="p-0">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">Local Data Storage</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Configure how your health data is stored and accessed on this device
-                      </p>
-                      
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">Offline Mode</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Store your data locally for access without an internet connection
-                                </p>
-                              </div>
-                              <Switch 
-                                checked={localStorageEnabled} 
-                                onCheckedChange={toggleOfflineMode}
-                                aria-label="Toggle offline mode"
-                              />
-                            </div>
-                            
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">IndexedDB Storage</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Use browser database for larger data storage needs
-                                </p>
-                              </div>
-                              <Switch 
-                                checked={false} 
-                                onCheckedChange={(checked) => {
-                                  toast({
-                                    title: checked ? "IndexedDB Enabled" : "IndexedDB Disabled",
-                                    description: checked ? 
-                                      "Your data will be stored in the browser database" : 
-                                      "IndexedDB storage has been disabled",
-                                  });
-                                }}
-                                aria-label="Toggle IndexedDB storage"
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-medium">Data Backup</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Export your health data as a downloadable file
-                                </p>
-                              </div>
-                              <Button 
-                                variant="outline"
-                                onClick={() => {
-                                  toast({
-                                    title: "Data Export",
-                                    description: "Your health data would be exported here",
-                                  });
-                                }}
-                              >
-                                Export Data
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-semibold mb-2">Storage Management</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Manage your data storage and clear cached information
-                      </p>
-                      
-                      <Card>
-                        <CardContent className="pt-6">
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="font-medium mb-1">Local Storage Usage</h3>
-                              <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                <div className="bg-primary h-2.5 rounded-full" style={{ width: '10%' }}></div>
-                              </div>
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Using 0.5 MB of 5 MB (10%)
-                              </p>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2">
-                              <Button 
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  toast({
-                                    title: "Cache Cleared",
-                                    description: "Your cached data has been cleared",
-                                  });
-                                }}
-                              >
-                                Clear Cache
-                              </Button>
-                              
-                              <Button 
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  toast({
-                                    title: "Preference Reset",
-                                    description: "Your local preferences have been reset to default",
-                                  });
-                                }}
-                              >
-                                Reset Preferences
-                              </Button>
-                              
-                              <Button 
-                                variant="outline"
-                                size="sm"
-                                className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                onClick={() => {
-                                  toast({
-                                    title: "Warning",
-                                    description: "This would delete all locally stored data",
-                                    variant: "destructive",
-                                  });
-                                }}
-                              >
-                                Delete All Data
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tip Jar Tab */}
-              <TabsContent value="support" className="mt-0">
-                <Card className="border-0 shadow-none">
-                  <CardContent className="p-0">
-                    <div className="mb-6">
-                      <h2 className="text-xl font-semibold mb-2">Support Healthfolio</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Help us continue to provide the best health tracking experience
-                      </p>
-                      
-                      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 dark:from-gray-800 dark:to-gray-900 border-0">
-                        <CardContent className="pt-6">
-                          <div className="text-center mb-6">
-                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 text-primary mb-4">
-                              <i className="ri-heart-fill text-3xl" aria-hidden="true"></i>
-                            </div>
-                            <h3 className="text-xl font-semibold mb-2">Tip Jar</h3>
-                            <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-                              If you're enjoying Healthfolio, consider supporting our team with a small contribution.
-                            </p>
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                            <Button
-                              variant="outline"
-                              className="bg-white dark:bg-gray-800"
-                              onClick={() => {
-                                toast({
-                                  title: "Stripe",
-                                  description: "This would open Stripe payment in production",
-                                });
-                              }}
-                            >
-                              <i className="ri-bank-card-line mr-2"></i>
-                              Support with Stripe
-                            </Button>
-                            
-                            <Button
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                              onClick={() => {
-                                toast({
-                                  title: "Buy Me A Coffee",
-                                  description: "This would redirect to BuyMeACoffee in production",
-                                });
-                              }}
-                            >
-                              <i className="ri-cup-line mr-2"></i>
-                              Buy Me A Coffee
-                            </Button>
-                          </div>
-                          
-                          <div className="text-center">
-                            <h4 className="font-medium mb-3">Choose an amount</h4>
-                            <div className="flex flex-wrap justify-center gap-3 mb-4">
-                              {[5, 10, 20, 50].map(amount => (
-                                <Button
-                                  key={amount}
-                                  variant="outline"
-                                  size="sm"
-                                  className="w-20 bg-white dark:bg-gray-800"
-                                  onClick={() => {
-                                    toast({
-                                      title: `$${amount} Selected`,
-                                      description: "Thank you for your support!",
-                                    });
-                                  }}
-                                >
-                                  ${amount}
-                                </Button>
-                              ))}
+                            <div className="flex items-center space-x-4">
                               <Button
-                                variant="outline"
                                 size="sm"
-                                className="w-20 bg-white dark:bg-gray-800"
-                                onClick={() => {
-                                  toast({
-                                    title: "Custom Amount",
-                                    description: "You would be able to enter a custom amount here",
-                                  });
-                                }}
+                                variant="outline"
+                                className="flex items-center gap-1"
+                                onClick={() => handleSync(service.id, config.name)}
+                                disabled={syncingService === service.id}
                               >
-                                Custom
+                                {syncingService === service.id ? (
+                                  <>
+                                    <i className="ri-loader-2-line animate-spin"></i>
+                                    Syncing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="ri-refresh-line"></i>
+                                    Sync
+                                  </>
+                                )}
                               </Button>
+                              <div className="flex items-center">
+                                <Switch id={`auto-sync-${service.id}`} checked={service.autoSync} />
+                                <label htmlFor={`auto-sync-${service.id}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                                  Auto-sync
+                                </label>
+                              </div>
                             </div>
-                            
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              Your support helps us add new features and improve Healthfolio!
-                            </p>
                           </div>
                         </CardContent>
+                        <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/20"
+                            onClick={() => handleDisconnect(service.id, config.name)}
+                          >
+                            <i className="ri-delete-bin-line mr-1"></i>
+                            Disconnect
+                          </Button>
+                        </CardFooter>
                       </Card>
-                    </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
 
-                    <div>
-                      <h2 className="text-xl font-semibold mb-2">Supporter Benefits</h2>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Exclusive perks for our valued supporters
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="hover:shadow-md transition-all">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <i className="ri-vip-crown-line text-amber-500"></i>
-                              Ad-Free Experience
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Enjoy Healthfolio without any advertisements or promotions.
-                            </p>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="hover:shadow-md transition-all">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <i className="ri-brush-line text-purple-500"></i>
-                              Custom Themes
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Access exclusive color schemes and personalization options.
-                            </p>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="hover:shadow-md transition-all">
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <i className="ri-rocket-line text-blue-500"></i>
-                              Early Features
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-gray-600 dark:text-gray-400">
-                              Be the first to try new features before they're widely released.
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </ResponsiveContainer>
-        </ResponsiveSection>
-      </main>
-    </>
+          <TabsContent value="available" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {getAvailableServices().map((service) => {
+                const config = getServiceConfig(service);
+                return (
+                  <motion.div 
+                    key={service}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="dark:border-gray-700 h-full flex flex-col">
+                      <CardHeader className={`${config.color} pb-3`}>
+                        <div className="flex items-center space-x-3">
+                          <div className="rounded-full p-2 bg-white dark:bg-gray-800 flex items-center justify-center">
+                            <i className={`${config.icon} text-xl`}></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="py-4 flex-grow">
+                        <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                          {config.description}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {config.scopes.map(scope => (
+                            <Badge key={scope} variant="outline" className="bg-gray-50 dark:bg-gray-800">
+                              {scope.charAt(0).toUpperCase() + scope.slice(1)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
+                        <Button
+                          className="w-full"
+                          onClick={() => handleConnect(service)}
+                        >
+                          <i className="ri-link mr-1"></i>
+                          Connect
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-12 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-medium mb-4 dark:text-white">About Health Integrations</h2>
+          <div className="text-gray-600 dark:text-gray-300 space-y-4">
+            <p>
+              Connecting your health apps and devices allows Healthmap to provide more personalized insights and a comprehensive view of your health.
+            </p>
+            <p>
+              Your data is securely stored and never shared without your explicit permission. You can disconnect any service at any time.
+            </p>
+            <p>
+              <strong>Note:</strong> For the best experience, enable auto-sync to keep your data up to date automatically.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
