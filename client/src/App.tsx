@@ -30,6 +30,7 @@ const MetabolicHealthPage = lazy(() => import("@/pages/metabolic"));
 const EnhancedHome = lazy(() => import("@/pages/enhanced-home"));
 const IntegrationsPage = lazy(() => import("@/pages/integrations"));
 const OAuthCallbackPage = lazy(() => import("@/pages/oauth-callback"));
+const ThankYouPage = lazy(() => import("@/pages/thank-you"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -77,6 +78,7 @@ function Router() {
               <Route path="/metabolic" component={MetabolicHealthPage} />
               <Route path="/integrations" component={IntegrationsPage} />
               <Route path="/integrations/callback/:service" component={OAuthCallbackPage} />
+              <Route path="/thank-you" component={ThankYouPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>

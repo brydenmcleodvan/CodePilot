@@ -1546,6 +1546,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     handlePerplexityRequest(req, res);
   });
 
+  // Tip Jar - Stripe integration
+  // This is a placeholder implementation until we get the Stripe API key
+  app.post(`${apiRouter}/tip-jar/create-checkout`, async (req, res) => {
+    try {
+      // Validate the request body
+      const tipSchema = z.object({
+        amount: z.number().min(1).max(1000),
+      });
+
+      const { amount } = tipSchema.parse(req.body);
+
+      // If we don't have the Stripe API key, return a mock response for now
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(200).json({
+          url: '#mock-stripe-checkout-url',
+          message: 'This is a mock response. To enable actual payments, please set up the STRIPE_SECRET_KEY environment variable.'
+        });
+      }
+
+      // With a real Stripe implementation, this would be:
+      /*
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Healthmap Support',
+                description: `$${amount} contribution to support Healthmap development`,
+              },
+              unit_amount: amount * 100, // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.headers.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin}/`,
+      });
+
+      res.json({ url: session.url });
+      */
+
+      // For now, without the API key, return a mock response
+      res.status(200).json({
+        url: '#mock-stripe-checkout-url',
+        message: 'This is a mock response. To enable actual payments, please set up the STRIPE_SECRET_KEY environment variable.'
+      });
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create checkout session' });
+    }
+  });
+
+  // Thank you page webhook for successful payments
+  app.get(`${apiRouter}/tip-jar/session-status`, async (req, res) => {
+    const { session_id } = req.query;
+    
+    if (!session_id) {
+      return res.status(400).json({ message: 'Missing session ID' });
+    }
+
+    try {
+      // If we don't have the Stripe API key, return a mock response
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.json({
+          status: 'complete',
+          customer_email: 'user@example.com',
+          amount_total: 1000, // $10.00
+          message: 'This is a mock response. To enable actual session verification, please set up the STRIPE_SECRET_KEY environment variable.'
+        });
+      }
+
+      // With a real Stripe implementation, this would be:
+      /*
+      const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.retrieve(session_id as string);
+      
+      res.json({
+        status: session.status,
+        customer_email: session.customer_details?.email,
+        amount_total: session.amount_total,
+      });
+      */
+      
+      // For now, return a mock response
+      res.json({
+        status: 'complete',
+        customer_email: 'user@example.com',
+        amount_total: 1000, // $10.00
+        message: 'This is a mock response. To enable actual session verification, please set up the STRIPE_SECRET_KEY environment variable.'
+      });
+    } catch (error) {
+      console.error('Error retrieving checkout session:', error);
+      res.status(500).json({ message: 'Error retrieving session details' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
