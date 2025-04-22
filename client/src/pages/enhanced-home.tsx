@@ -6,7 +6,7 @@ import { ResponsiveContainer, ResponsiveGrid, ResponsiveSection } from '@/compon
 import { ProgressCard } from '@/components/dashboard/progress-card';
 import { HealthNarrativeLoop } from '@/components/health-narrative/narrative-loop';
 import GuidedIntro from '@/components/onboarding/guided-intro';
-import { createSkipToContentLink } from '@/lib/accessibility';
+import { getSkipToContentProps } from '@/lib/accessibility';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 
 export default function EnhancedHomePage() {
@@ -37,7 +37,7 @@ export default function EnhancedHomePage() {
   return (
     <>
       {/* Accessibility: Skip to content link */}
-      {createSkipToContentLink("main-content")}
+      <a {...getSkipToContentProps("main-content")} />
       
       {/* Onboarding flow */}
       {showOnboarding && <GuidedIntro onComplete={handleOnboardingComplete} />}

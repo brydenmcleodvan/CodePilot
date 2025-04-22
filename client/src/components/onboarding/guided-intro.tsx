@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { createSkipToContentLink, handleKeyboardActivation } from "@/lib/accessibility";
+import { getSkipToContentProps, handleKeyboardActivation } from "@/lib/accessibility";
 
 // Define onboarding steps
 const onboardingSteps = [
@@ -70,7 +70,7 @@ export default function GuidedIntro({ onComplete, isFirstVisit = true }: GuidedI
       aria-labelledby="onboarding-title"
     >
       {/* Accessibility skip to content link */}
-      {createSkipToContentLink("main-content")}
+      <a {...getSkipToContentProps("main-content")} />
       
       <div className="w-full max-w-md">
         <AnimatePresence mode="wait">
