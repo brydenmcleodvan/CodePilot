@@ -1461,7 +1461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/mood/entries`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       // Ensure date is properly parsed as Date object
       const entryData = {
@@ -1488,7 +1488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       if (entry.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -1520,7 +1520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       if (entry.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
