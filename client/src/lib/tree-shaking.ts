@@ -5,6 +5,8 @@
  */
 
 // Chart components - selective imports from recharts to optimize bundle size
+// Uncomment and use these imports if recharts is installed
+/*
 export { 
   LineChart, 
   Line, 
@@ -20,6 +22,7 @@ export {
   Pie,
   Cell
 } from 'recharts';
+*/
 
 // Selectively import only needed Lucide icons to reduce bundle size
 // Instead of importing the entire library with: import * as LucideIcons from 'lucide-react'
