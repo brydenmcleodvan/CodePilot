@@ -6,6 +6,10 @@ import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { handlePerplexityRequest } from "./perplexity";
+import { z } from "zod";
+
+// Import Stripe - we're not actually initializing it yet since we need the API key
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
 

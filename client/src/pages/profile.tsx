@@ -558,6 +558,174 @@ const Profile = () => {
             </div>
           )}
 
+          {activeTab === "connected-services" && (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Connected Services</h2>
+                  <Link href="/integrations" className="flex items-center space-x-1 text-primary hover:text-primary-600 transition-colors">
+                    <i className="ri-add-line"></i>
+                    <span>Connect New Service</span>
+                  </Link>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Manage your connected health and fitness platforms. Data from these services enhances your health insights and recommendations.
+                </p>
+                
+                <div className="space-y-4">
+                  {/* Apple Health */}
+                  <Card className="overflow-hidden dark:border-gray-700">
+                    <CardHeader className="bg-gray-50 dark:bg-gray-800/50 pb-2">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-gray-100 dark:bg-gray-700 rounded-full p-2 flex items-center justify-center">
+                            <i className="ri-apple-fill text-xl text-black dark:text-white"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-medium">Apple Health</CardTitle>
+                            <CardDescription>Syncing activity, sleep, and vitals</CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">Connected</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-center">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Last synced</p>
+                            <p className="font-medium dark:text-gray-200">Today, 2:45 PM</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Data points</p>
+                            <p className="font-medium dark:text-gray-200">24,521</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Connected since</p>
+                            <p className="font-medium dark:text-gray-200">Oct 12, 2024</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <button className="text-gray-500 hover:text-primary dark:text-gray-400">
+                            <i className="ri-refresh-line text-lg"></i>
+                          </button>
+                          <div className="flex items-center">
+                            <Switch id="apple-auto-sync" defaultChecked />
+                            <label htmlFor="apple-auto-sync" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              Auto-sync
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Fitbit */}
+                  <Card className="overflow-hidden dark:border-gray-700">
+                    <CardHeader className="bg-gray-50 dark:bg-gray-800/50 pb-2">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-full p-2 flex items-center justify-center">
+                            <i className="ri-heart-pulse-line text-xl text-blue-500 dark:text-blue-400"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-medium">Fitbit</CardTitle>
+                            <CardDescription>Tracking activity and sleep metrics</CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">Connected</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-center">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Last synced</p>
+                            <p className="font-medium dark:text-gray-200">Yesterday, 8:30 PM</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Data points</p>
+                            <p className="font-medium dark:text-gray-200">12,879</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Connected since</p>
+                            <p className="font-medium dark:text-gray-200">Sep 5, 2024</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <button className="text-gray-500 hover:text-primary dark:text-gray-400">
+                            <i className="ri-refresh-line text-lg"></i>
+                          </button>
+                          <div className="flex items-center">
+                            <Switch id="fitbit-auto-sync" defaultChecked />
+                            <label htmlFor="fitbit-auto-sync" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              Auto-sync
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Oura Ring */}
+                  <Card className="overflow-hidden dark:border-gray-700">
+                    <CardHeader className="bg-gray-50 dark:bg-gray-800/50 pb-2">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-full p-2 flex items-center justify-center">
+                            <i className="ri-fingerprint-line text-xl text-purple-500 dark:text-purple-400"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-medium">Oura Ring</CardTitle>
+                            <CardDescription>Sleep and recovery data</CardDescription>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">Connected</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-center">
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Last synced</p>
+                            <p className="font-medium dark:text-gray-200">Today, 7:15 AM</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Data points</p>
+                            <p className="font-medium dark:text-gray-200">8,413</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-500 dark:text-gray-400">Connected since</p>
+                            <p className="font-medium dark:text-gray-200">Jan 18, 2025</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <button className="text-gray-500 hover:text-primary dark:text-gray-400">
+                            <i className="ri-refresh-line text-lg"></i>
+                          </button>
+                          <div className="flex items-center">
+                            <Switch id="oura-auto-sync" defaultChecked />
+                            <label htmlFor="oura-auto-sync" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              Auto-sync
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Connect More */}
+                  <div className="mt-6 text-center">
+                    <Link href="/integrations" className="inline-flex items-center justify-center space-x-2 text-primary hover:text-primary-600 font-medium">
+                      <i className="ri-add-circle-line text-lg"></i>
+                      <span>Connect More Health Services</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "settings" && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
               <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Settings</h2>

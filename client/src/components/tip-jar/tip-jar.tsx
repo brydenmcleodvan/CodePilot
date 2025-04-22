@@ -1,248 +1,178 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { apiRequest } from "@/lib/queryClient";
 
-// Available donation amounts
-const DONATION_AMOUNTS = [5, 10, 20, 50];
-
-// Payment methods
-type PaymentMethod = "stripe" | "buymeacoffee";
+// This would need a real API implementation on the server side
+// to handle communication with Stripe's payment API
+// using the STRIPE_SECRET_KEY environment variable
 
 interface TipJarProps {
-  minimal?: boolean; // If true, display a more compact version
+  minimal?: boolean;
   className?: string;
 }
 
+const tipOptions = [
+  { amount: 5, label: "$5", description: "Buy us a coffee" },
+  { amount: 10, label: "$10", description: "Support development" },
+  { amount: 25, label: "$25", description: "Contribute significantly" },
+  { amount: 50, label: "$50", description: "Become a platform patron" },
+];
+
 export function TipJar({ minimal = false, className = "" }: TipJarProps) {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
-  // Handle donation button click
-  const handleDonate = () => {
-    const amount = selectedAmount || (customAmount ? parseFloat(customAmount) : 0);
-    
-    if (!amount || amount <= 0) {
+  const handleSubmit = async () => {
+    if (!selectedAmount) {
       toast({
-        title: "Invalid Amount",
-        description: "Please select or enter a valid donation amount.",
+        title: "Please select an amount",
         variant: "destructive",
       });
       return;
     }
 
-    // This would integrate with Stripe or Buy Me A Coffee in production
-    toast({
-      title: "Thank You!",
-      description: `Your $${amount.toFixed(2)} donation would be processed via ${paymentMethod === "stripe" ? "Stripe" : "Buy Me A Coffee"} in production.`,
-    });
+    setIsProcessing(true);
+
+    try {
+      // This would need to call your actual API endpoint that handles Stripe payments
+      const response = await apiRequest("POST", "/api/tip-jar/create-checkout", {
+        amount: selectedAmount,
+      });
+
+      if (response.ok) {
+        const { url } = await response.json();
+        // Redirect to Stripe checkout
+        window.location.href = url;
+      } else {
+        throw new Error("Payment initiation failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Payment Error",
+        description: "There was an error processing your payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Minimal version (for footer, sidebar, etc.)
   if (minimal) {
+    // Minimal version for the footer
     return (
-      <div className={`rounded-lg p-4 ${className}`}>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white dark:bg-gray-800"
-            onClick={() => {
-              toast({
-                title: "Support Us",
-                description: "This would open the donation modal in production.",
-              });
-            }}
+      <div className={`rounded-lg overflow-hidden ${className}`}>
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)} 
+          className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors p-3"
+        >
+          <i className="ri-heart-fill text-rose-500"></i>
+          <span className="font-medium">Support Us</span>
+        </button>
+        
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="p-3 pt-0"
           >
-            <i className="ri-heart-line mr-2 text-red-500"></i>
-            Support Us
-          </Button>
-          
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Help us improve Healthfolio
-          </span>
-        </div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              {tipOptions.map((option) => (
+                <button
+                  key={option.amount}
+                  onClick={() => setSelectedAmount(option.amount)}
+                  className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                    selectedAmount === option.amount
+                      ? "bg-primary/20 text-primary-50 border border-primary-500/30"
+                      : "bg-gray-700/50 text-gray-300 hover:bg-gray-700 border border-gray-700"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!selectedAmount || isProcessing}
+              className="w-full text-sm h-8"
+              variant="secondary"
+            >
+              {isProcessing ? (
+                <>
+                  <i className="ri-loader-2-line animate-spin mr-1"></i>
+                  Processing...
+                </>
+              ) : (
+                <>Contribute</>
+              )}
+            </Button>
+          </motion.div>
+        )}
       </div>
     );
   }
 
-  // Full version with donation options
+  // Full featured version
   return (
     <Card className={`overflow-hidden ${className}`}>
-      <CardContent className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mb-4">
-            <i className="ri-heart-fill text-2xl" aria-hidden="true"></i>
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5 pb-4 dark:from-primary/20 dark:to-primary/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-bold text-primary dark:text-primary-400">Support Healthmap</CardTitle>
+            <CardDescription>Help us continue building great health tools</CardDescription>
           </div>
-          <h3 className="text-xl font-semibold mb-2">Support Healthfolio</h3>
-          <p className="text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
-            Your contribution helps us develop new features and maintain the platform.
-          </p>
+          <div className="bg-primary/20 dark:bg-primary/30 rounded-full p-2 text-primary dark:text-primary-400">
+            <i className="ri-heart-fill text-2xl"></i>
+          </div>
         </div>
-
-        <Tabs defaultValue="amount" className="w-full">
-          <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="amount">Amount</TabsTrigger>
-            <TabsTrigger value="payment">Payment Method</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="amount" className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                Select an amount:
-              </Label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {DONATION_AMOUNTS.map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={selectedAmount === amount ? "default" : "outline"}
-                    className={selectedAmount === amount ? "" : "bg-white dark:bg-gray-800"}
-                    onClick={() => {
-                      setSelectedAmount(amount);
-                      setCustomAmount("");
-                    }}
-                  >
-                    ${amount}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="custom-amount" className="text-sm font-medium mb-2 block">
-                Or enter a custom amount:
-              </Label>
-              <div className="flex items-center">
-                <span className="bg-gray-100 dark:bg-gray-700 px-3 py-2 border border-r-0 border-gray-300 dark:border-gray-600 rounded-l-md">
-                  $
-                </span>
-                <Input
-                  id="custom-amount"
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  placeholder="Enter amount"
-                  value={customAmount}
-                  onChange={(e) => {
-                    setCustomAmount(e.target.value);
-                    setSelectedAmount(null);
-                  }}
-                  className="rounded-l-none"
-                />
-              </div>
-            </div>
-
-            <Button 
-              className="w-full"
-              onClick={() => {
-                const el = document.querySelector('[data-value="payment"]') as HTMLElement;
-                if (el) el.click();
-              }}
+      </CardHeader>
+      <CardContent className="pt-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Your support helps us improve Healthmap and keep it accessible to everyone. Choose an amount:
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {tipOptions.map((option) => (
+            <button
+              key={option.amount}
+              onClick={() => setSelectedAmount(option.amount)}
+              className={`px-4 py-3 rounded-md text-left transition-all ${
+                selectedAmount === option.amount
+                  ? "bg-primary/10 border-primary/30 dark:bg-primary/20 border dark:border-primary/40 shadow-sm"
+                  : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+              }`}
             >
-              Continue to Payment
-            </Button>
-          </TabsContent>
-          
-          <TabsContent value="payment" className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium mb-2 block">
-                Choose a payment method:
-              </Label>
-              <div className="space-y-2">
-                <div 
-                  className={`flex items-center p-3 border rounded-md cursor-pointer ${
-                    paymentMethod === "stripe" 
-                      ? "border-primary bg-primary/5" 
-                      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-                  }`}
-                  onClick={() => setPaymentMethod("stripe")}
-                >
-                  <input 
-                    type="radio" 
-                    name="payment-method" 
-                    checked={paymentMethod === "stripe"} 
-                    onChange={() => setPaymentMethod("stripe")}
-                    className="mr-3"
-                  />
-                  <div className="flex items-center">
-                    <i className="ri-bank-card-line text-xl mr-2 text-primary"></i>
-                    <div>
-                      <p className="font-medium">Credit Card</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Secure payment via Stripe
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div 
-                  className={`flex items-center p-3 border rounded-md cursor-pointer ${
-                    paymentMethod === "buymeacoffee" 
-                      ? "border-primary bg-primary/5" 
-                      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-                  }`}
-                  onClick={() => setPaymentMethod("buymeacoffee")}
-                >
-                  <input 
-                    type="radio" 
-                    name="payment-method" 
-                    checked={paymentMethod === "buymeacoffee"} 
-                    onChange={() => setPaymentMethod("buymeacoffee")}
-                    className="mr-3"
-                  />
-                  <div className="flex items-center">
-                    <i className="ri-cup-line text-xl mr-2 text-yellow-500"></i>
-                    <div>
-                      <p className="font-medium">Buy Me A Coffee</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Simple and fun way to support us
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              <div className="flex justify-between mb-1">
-                <span className="text-gray-600 dark:text-gray-300">Donation amount:</span>
-                <span className="font-medium">
-                  ${selectedAmount || (customAmount ? parseFloat(customAmount).toFixed(2) : "0.00")}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => {
-                  const el = document.querySelector('[data-value="amount"]') as HTMLElement;
-                  if (el) el.click();
-                }}
-              >
-                Back
-              </Button>
-              <Button 
-                className="flex-1"
-                onClick={handleDonate}
-              >
-                Donate Now
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-400">
-          All transactions are secure and encrypted.
-          <br />Your generous support is greatly appreciated!
+              <div className="font-medium dark:text-white">{option.label}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{option.description}</div>
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+          Powered by Stripe. All transactions are secure.
         </div>
       </CardContent>
+      <CardFooter className="flex justify-end pt-0">
+        <Button
+          onClick={handleSubmit}
+          disabled={!selectedAmount || isProcessing}
+          className="w-full"
+          variant="default"
+        >
+          {isProcessing ? (
+            <>
+              <i className="ri-loader-2-line animate-spin mr-2"></i>
+              Processing...
+            </>
+          ) : (
+            <>Support with {selectedAmount ? `$${selectedAmount}` : "a tip"}</>
+          )}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
