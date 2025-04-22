@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import HealthStats from "@/components/health-stats";
 import ConnectionCard from "@/components/connection-card";
 import AIHealthAssistant from "@/components/ai-health-assistant";
@@ -152,6 +153,18 @@ const Profile = () => {
                 >
                   <i className="ri-settings-line"></i>
                   <span>Settings</span>
+                </a>
+                <a
+                  href="#connected-services"
+                  onClick={() => setActiveTab("connected-services")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "connected-services"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-link"></i>
+                  <span>Connected Services</span>
                 </a>
               </nav>
             </div>

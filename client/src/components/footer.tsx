@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { TipJar } from "@/components/tip-jar";
 
 const Footer = () => {
   return (
@@ -107,8 +108,23 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Support section with Tip Jar */}
+        <div className="border-t border-gray-700 mt-10 pt-10 pb-6">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+            <TipJar minimal className="bg-gray-700 rounded-xl" />
+            <div className="h-10 border-r border-gray-700 hidden md:block"></div>
+            <Link 
+              href="/integrations"
+              className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors py-2 px-4 rounded-lg bg-gray-700 hover:bg-gray-600"
+            >
+              <i className="ri-link text-xl"></i>
+              <span className="text-sm">Connect Your Health Apps</span>
+            </Link>
+          </div>
+        </div>
+        
         {/* Clean footer separator and bottom section */}
-        <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
             &copy; {new Date().getFullYear()} Healthmap. All rights reserved.
           </p>
