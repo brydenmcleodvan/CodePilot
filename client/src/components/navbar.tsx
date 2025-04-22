@@ -156,6 +156,11 @@ const Navbar = () => {
                       Metabolic Health
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/integrations" className={`cursor-pointer w-full ${location === "/integrations" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                      Integrations
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -287,6 +292,9 @@ const Navbar = () => {
               </MobileNavLink>
               <MobileNavLink href="/metabolic" active={location === "/metabolic"}>
                 Metabolic Health
+              </MobileNavLink>
+              <MobileNavLink href="/integrations" active={location === "/integrations"}>
+                Integrations
               </MobileNavLink>
             </nav>
           </div>
