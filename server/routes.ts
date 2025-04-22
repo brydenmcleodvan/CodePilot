@@ -1092,7 +1092,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health Journey Entries
   app.get(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const entries = await storage.getUserHealthJourneyEntries(userId);
       res.json(entries);
     } catch (error) {
@@ -1103,7 +1103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const entryData = {
         ...req.body,
         userId,
@@ -1126,7 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       if (entry.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
@@ -1141,7 +1141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health Coaching Plans
   app.get(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const plans = await storage.getUserHealthCoachingPlans(userId);
       res.json(plans);
     } catch (error) {
@@ -1152,7 +1152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const now = new Date();
       const planData = {
         ...req.body,
@@ -1179,7 +1179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the plan belongs to the authenticated user
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       if (plan.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
@@ -1227,7 +1227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Challenge Progress
   app.get(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const progresses = await storage.getUserChallengeProgresses(userId);
       res.json(progresses);
     } catch (error) {
@@ -1238,7 +1238,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const progressData = {
         ...req.body,
         userId,
@@ -1272,7 +1272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the progress belongs to the authenticated user
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       if (progress.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
