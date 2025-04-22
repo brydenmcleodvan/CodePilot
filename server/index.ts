@@ -51,9 +51,12 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
+  // Apply cache headers to static assets in production
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
+    // Apply cache headers before serving static files in production
+    app.use(setAssetCacheHeaders());
     serveStatic(app);
   }
 

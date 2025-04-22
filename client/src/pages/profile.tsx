@@ -17,6 +17,7 @@ import StreamlitEmbed from "@/components/streamlit-embed";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import HealthDashboard from "@/components/health-dashboard";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -63,10 +64,13 @@ const Profile = () => {
         <div className="md:w-1/3 lg:w-1/4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md dark:shadow-gray-900/10 p-6 mb-6 sticky top-24 dark:border dark:border-gray-700">
             <div className="flex flex-col items-center text-center mb-6">
-              <img
+              <OptimizedImage
                 src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                 alt="Profile Picture"
-                className="w-24 h-24 rounded-full border-4 border-primary mb-4"
+                className="w-24 h-24 rounded-full border-4 border-primary mb-4 overflow-hidden"
+                width={96}
+                height={96}
+                priority={true}
               />
               <h2 className="text-xl font-medium dark:text-white">{user.name}</h2>
               <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
