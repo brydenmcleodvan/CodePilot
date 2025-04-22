@@ -1029,7 +1029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       
       const connectionData = insertHealthDataConnectionSchema.parse({
         ...req.body,
@@ -1050,7 +1050,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.patch(`${apiRouter}/health-data-connections/:id/sync`, authenticateToken, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const userId = req.user.id;
       const connectionId = parseInt(req.params.id);
       
       // Verify connection exists and belongs to user
