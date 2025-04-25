@@ -1825,6 +1825,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================
+  // Analytics & Feedback API Routes
+  // =============================
+  
+  // Submit user feedback
+  app.post(`${apiRouter}/analytics/feedback`, async (req, res) => {
+    try {
+      const feedbackData = insertUserFeedbackSchema.parse(req.body);
+      
+      // If the user is authenticated, add their ID
+      if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+        feedbackData.userId = req.user.id;
+      }
+      
+      // Ensure timestamp is set
+      feedbackData.timestamp = new Date();
+      
+      // Create feedback entry
+      const feedback = await storage.createUserFeedback(feedbackData);
+      
+      res.status(201).json(feedback);
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error submitting feedback' });
+    }
+  });
+  
+  // Get all feedback (admin only)
+  app.get(`${apiRouter}/analytics/feedback`, authenticateToken, async (req, res) => {
+    try {
+      // Check if user is admin (you might want to implement proper role-based access)
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.id !== 1) { // Using ID 1 as admin for simplicity
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get optional filters from query params
+      const sourceFilter = req.query.source as string | undefined;
+      const userIdFilter = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      const feedback = await storage.getUserFeedback(userIdFilter, sourceFilter);
+      res.json(feedback);
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      res.status(500).json({ message: 'Server error fetching feedback' });
+    }
+  });
+  
+  // Report client-side error
+  app.post(`${apiRouter}/analytics/error`, async (req, res) => {
+    try {
+      const errorData = insertErrorLogSchema.parse(req.body);
+      
+      // If the user is authenticated, add their ID
+      if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+        errorData.userId = req.user.id;
+      }
+      
+      // Ensure timestamp is set
+      errorData.timestamp = new Date();
+      
+      // Create error log
+      const errorLog = await storage.createErrorLog(errorData);
+      
+      res.status(201).json({ success: true, id: errorLog.id });
+    } catch (error) {
+      console.error('Error logging client error:', error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error logging client error' });
+    }
+  });
+  
+  // Get error logs (admin only)
+  app.get(`${apiRouter}/analytics/errors`, authenticateToken, async (req, res) => {
+    try {
+      // Check if user is admin (you might want to implement proper role-based access)
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user || user.id !== 1) { // Using ID 1 as admin for simplicity
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Get limit from query params
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      const errors = await storage.getErrorLogs(limit);
+      res.json(errors);
+    } catch (error) {
+      console.error('Error fetching error logs:', error);
+      res.status(500).json({ message: 'Server error fetching error logs' });
+    }
+  });
+  
+  // Track user event
+  app.post(`${apiRouter}/analytics/event`, async (req, res) => {
+    try {
+      const eventData = insertUserEventSchema.parse(req.body);
+      
+      // If the user is authenticated, add their ID
+      if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+        eventData.userId = req.user.id;
+      }
+      
+      // Ensure timestamp is set
+      eventData.timestamp = new Date();
+      
+      // Create event
+      const event = await storage.createUserEvent(eventData);
+      
+      res.status(201).json({ success: true, id: event.id });
+    } catch (error) {
+      console.error('Error tracking event:', error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Server error tracking event' });
+    }
+  });
+  
+  // Get user events (admin or self only)
+  app.get(`${apiRouter}/analytics/events`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get optional filters from query params
+      const category = req.query.category as string | undefined;
+      const userIdParam = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Only allow viewing other users' events if user is admin
+      const isAdmin = user.id === 1; // Using ID 1 as admin for simplicity
+      
+      if (userIdParam && userIdParam !== userId && !isAdmin) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Use the requested userId if specified and allowed, otherwise use the current user's ID
+      const targetUserId = userIdParam || userId;
+      
+      const events = await storage.getUserEvents(targetUserId, category);
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching user events:', error);
+      res.status(500).json({ message: 'Server error fetching user events' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
