@@ -20,6 +20,16 @@ import {
   type HealthData,
   type HealthInsight
 } from "./ai-intelligence";
+import { addToWaitlist, getWaitlistCount } from './api/waitlist';
+import { getChangelog, addChangelogEntry } from './api/changelog';
+import { 
+  getFeatureRequests, 
+  addFeatureRequest, 
+  voteForFeature, 
+  addComment, 
+  updateFeatureStatus 
+} from './api/feature-requests';
+import { processFeedback, getFeedbackStats } from './api/feedback/process-feedback';
 
 // Enable session-based auth typing
 declare global {
@@ -2071,6 +2081,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Server error fetching user events' });
     }
   });
+
+  // API handlers for iteration loop features
+
+  // Waitlist Routes
+  app.post(`${apiRouter}/waitlist`, addToWaitlist);
+  app.get(`${apiRouter}/waitlist/count`, getWaitlistCount);
+
+  // Changelog Routes
+  app.get(`${apiRouter}/changelog`, getChangelog);
+  app.post(`${apiRouter}/changelog`, authenticateToken, addChangelogEntry);
+
+  // Feature Requests Routes
+  app.get(`${apiRouter}/feature-requests`, getFeatureRequests);
+  app.post(`${apiRouter}/feature-requests`, authenticateToken, addFeatureRequest);
+  app.post(`${apiRouter}/feature-requests/:id/vote`, authenticateToken, voteForFeature);
+  app.post(`${apiRouter}/feature-requests/:id/comment`, authenticateToken, addComment);
+  app.patch(`${apiRouter}/feature-requests/:id/status`, authenticateToken, updateFeatureStatus);
+
+  // User Feedback Routes
+  app.post(`${apiRouter}/feedback`, processFeedback);
+  app.get(`${apiRouter}/feedback/stats`, authenticateToken, getFeedbackStats);
 
   const httpServer = createServer(app);
   return httpServer;

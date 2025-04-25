@@ -33,6 +33,9 @@ const OAuthCallbackPage = lazy(() => import("@/pages/oauth-callback"));
 const ThankYouPage = lazy(() => import("@/pages/thank-you"));
 const AIIntelligencePage = lazy(() => import("@/pages/ai-intelligence"));
 const PrivacyPolicyPage = lazy(() => import("@/pages/privacy-policy-page"));
+const ChangelogPage = lazy(() => import("@/pages/changelog"));
+const LandingPageNew = lazy(() => import("@/pages/landing-page"));
+const FeatureVotingPage = lazy(() => import("@/pages/feature-voting"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -66,6 +69,7 @@ function Router() {
               <Route path="/" component={Home} />
               <Route path="/enhanced" component={EnhancedHome} />
               <Route path="/landing" component={LandingPage} />
+              <Route path="/landing-new" component={LandingPageNew} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/profile" component={Profile} />
               <Route path="/forum" component={Forum} />
@@ -87,6 +91,8 @@ function Router() {
               <Route path="/ai-intelligence" component={AIIntelligencePage} />
               <Route path="/privacy-policy" component={PrivacyPolicyPage} />
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
+              <Route path="/changelog" component={ChangelogPage} />
+              <Route path="/feature-voting" component={FeatureVotingPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
