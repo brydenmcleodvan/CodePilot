@@ -212,7 +212,7 @@ interface FormFieldSkeletonProps extends SkeletonProps {
  * Base Skeleton component
  */
 const BaseSkeleton = React.forwardRef<HTMLDivElement, SkeletonProps>(
-  ({ className, animation = 'pulse', isLoading = true, children, ...props }, ref) => {
+  ({ className, animation = 'none', isLoading = true, children, ...props }, ref) => {
     if (!isLoading) {
       return <>{children}</>;
     }
@@ -373,7 +373,6 @@ export const CardSkeleton = React.forwardRef<HTMLDivElement, CardSkeletonProps>(
           className
         )}
         style={{ height }}
-        {...props}
       >
         {hasHeader && (
           <div className="p-6 pb-3">
@@ -432,7 +431,6 @@ export const TableSkeleton = React.forwardRef<HTMLDivElement, TableSkeletonProps
           'w-full overflow-hidden',
           className
         )}
-        {...props}
       >
         <table className="w-full">
           {hasHeader && (
@@ -488,7 +486,6 @@ export const ListSkeleton = React.forwardRef<HTMLDivElement, ListSkeletonProps>(
           'space-y-4',
           className
         )}
-        {...props}
       >
         {Array.from({ length: items }).map((_, index) => (
           <div key={index} className="flex gap-3">
@@ -536,7 +533,6 @@ export const ChartSkeleton = React.forwardRef<HTMLDivElement, ChartSkeletonProps
           className
         )}
         style={{ height }}
-        {...props}
       >
         {type === 'donut' ? (
           <div className="h-full flex items-center justify-center">
@@ -636,7 +632,6 @@ export const FormFieldSkeleton = React.forwardRef<HTMLDivElement, FormFieldSkele
           'space-y-2',
           className
         )}
-        {...props}
       >
         {hasLabel && (
           <TextSkeleton width="30%" className="h-4" />
