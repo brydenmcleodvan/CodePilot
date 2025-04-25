@@ -122,13 +122,8 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700 p-1">
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
-                    <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                    <Link href="/health-coach" className={`cursor-pointer w-full ${location === "/health-coach" || location === "/ai-intelligence" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Health Coach
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
-                    <Link href="/ai-intelligence" className={`cursor-pointer w-full ${location === "/ai-intelligence" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
-                      AI Intelligence
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
@@ -274,7 +269,7 @@ const Navbar = () => {
               <MobileNavLink href="/dashboard" active={location === "/dashboard"}>
                 Dashboard
               </MobileNavLink>
-              <MobileNavLink href="/health-coach" active={location === "/health-coach"}>
+              <MobileNavLink href="/health-coach" active={location === "/health-coach" || location === "/ai-intelligence"}>
                 Health Coach
               </MobileNavLink>
               <MobileNavLink href="/connections" active={location === "/connections"}>
