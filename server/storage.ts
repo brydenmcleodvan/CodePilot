@@ -221,6 +221,12 @@ export interface IStorage {
   // User Event Tracking
   getUserEvents(userId?: number, category?: string): Promise<UserEvent[]>;
   createUserEvent(event: InsertUserEvent): Promise<UserEvent>;
+  
+  // Analytics & Feedback
+  getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]>;
+  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
+  getErrorLogs(limit?: number): Promise<ErrorLog[]>;
+  createErrorLog(error: InsertErrorLog): Promise<ErrorLog>;
 }
 
 export class MemStorage implements IStorage {
@@ -238,6 +244,7 @@ export class MemStorage implements IStorage {
   private healthDataConnections: Map<number, HealthDataConnection>;
   private healthJourneyEntries: Map<number, HealthJourneyEntry>;
   private healthCoachingPlans: Map<number, HealthCoachingPlan>;
+  
   private wellnessChallenges: Map<number, WellnessChallenge>;
   private userChallengeProgresses: Map<number, UserChallengeProgress>;
   private mentalHealthAssessments: Map<number, MentalHealthAssessment>;

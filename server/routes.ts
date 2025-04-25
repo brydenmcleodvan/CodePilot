@@ -21,6 +21,15 @@ import {
   type HealthInsight
 } from "./ai-intelligence";
 
+// Enable session-based auth typing
+declare global {
+  namespace Express {
+    interface Request {
+      isAuthenticated?: () => boolean;
+    }
+  }
+}
+
 // Import Stripe - we're not actually initializing it yet since we need the API key
 // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
