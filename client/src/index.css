@@ -6,6 +6,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations for skeleton loaders */
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@keyframes wave {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+  
+  .animate-wave {
+    animation: wave 1.5s infinite linear;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+    background-size: 200% 100%;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

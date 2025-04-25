@@ -36,6 +36,7 @@ const PrivacyPolicyPage = lazy(() => import("@/pages/privacy-policy-page"));
 const ChangelogPage = lazy(() => import("@/pages/changelog"));
 const LandingPageNew = lazy(() => import("@/pages/landing-page"));
 const FeatureVotingPage = lazy(() => import("@/pages/feature-voting"));
+const SkeletonDemoPage = lazy(() => import("@/pages/skeleton-demo"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -93,6 +94,7 @@ function Router() {
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
               <Route path="/changelog" component={ChangelogPage} />
               <Route path="/feature-voting" component={FeatureVotingPage} />
+              <Route path="/skeleton-demo" component={SkeletonDemoPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
