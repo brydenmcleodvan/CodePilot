@@ -31,6 +31,7 @@ const EnhancedHome = lazy(() => import("@/pages/enhanced-home"));
 const IntegrationsPage = lazy(() => import("@/pages/integrations"));
 const OAuthCallbackPage = lazy(() => import("@/pages/oauth-callback"));
 const ThankYouPage = lazy(() => import("@/pages/thank-you"));
+const AIIntelligencePage = lazy(() => import("@/pages/ai-intelligence"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -79,6 +80,7 @@ function Router() {
               <Route path="/integrations" component={IntegrationsPage} />
               <Route path="/integrations/callback/:service" component={OAuthCallbackPage} />
               <Route path="/thank-you" component={ThankYouPage} />
+              <Route path="/ai-intelligence" component={AIIntelligencePage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>

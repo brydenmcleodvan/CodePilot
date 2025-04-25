@@ -127,6 +127,11 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/ai-intelligence" className={`cursor-pointer w-full ${location === "/ai-intelligence" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
+                      AI Intelligence
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/connections" className={`cursor-pointer w-full ${location === "/connections" ? "text-primary" : ""} text-body-text dark:text-gray-200`}>
                       Connections
                     </Link>
@@ -200,6 +205,9 @@ const Navbar = () => {
                     <Link href="/health-coach" className="cursor-pointer text-body-text dark:text-gray-200">Health Coach</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
+                    <Link href="/ai-intelligence" className="cursor-pointer text-body-text dark:text-gray-200">AI Intelligence</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
                     <Link href="/connections" className="cursor-pointer text-body-text dark:text-gray-200">Connections</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="focus:bg-light-blue-bg dark:focus:bg-gray-700 py-2">
@@ -271,6 +279,9 @@ const Navbar = () => {
               </MobileNavLink>
               <MobileNavLink href="/health-coach" active={location === "/health-coach"}>
                 Health Coach
+              </MobileNavLink>
+              <MobileNavLink href="/ai-intelligence" active={location === "/ai-intelligence"}>
+                AI Intelligence
               </MobileNavLink>
               <MobileNavLink href="/connections" active={location === "/connections"}>
                 Connections
