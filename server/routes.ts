@@ -231,6 +231,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Privacy Settings Route
+  app.post(`${apiRouter}/user/privacy-settings`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Get privacy preferences from request body
+      const { preferences } = req.body;
+      
+      if (!preferences) {
+        return res.status(400).json({ message: 'Privacy preferences are required' });
+      }
+      
+      // Parse the current user preferences
+      let currentPreferences: any = {};
+      try {
+        if (user.preferences) {
+          currentPreferences = JSON.parse(user.preferences);
+        }
+      } catch (e) {
+        console.warn('Failed to parse existing preferences, starting fresh');
+      }
+      
+      // Update with new privacy settings
+      const updatedPreferences = {
+        ...currentPreferences,
+        privacy: preferences
+      };
+      
+      // Save to database
+      const updatedUser = await storage.updateUser(userId, {
+        preferences: JSON.stringify(updatedPreferences)
+      });
+      
+      // Return success response
+      res.status(200).json({ 
+        message: 'Privacy settings updated successfully',
+        preferences: updatedPreferences.privacy
+      });
+    } catch (error) {
+      console.error('Error updating privacy settings:', error);
+      res.status(500).json({ message: 'Server error updating privacy settings' });
+    }
+  });
+  
   // Women's Health - Cycle Tracking Routes
   
   // Get all cycle entries for current user

@@ -129,23 +129,23 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} Healthmap. All rights reserved.
           </p>
           <div className="flex gap-8 mt-6 md:mt-0">
-            <a
-              href="#"
+            <Link
+              href="/privacy-policy"
               className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
             >
-              Privacy
-            </a>
+              Privacy Policy
+            </Link>
+            <Link
+              href="/settings/privacy"
+              className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+            >
+              Privacy Settings
+            </Link>
             <a
               href="#"
               className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
             >
               Terms
-            </a>
-            <a
-              href="#"
-              className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
-            >
-              Cookies
             </a>
           </div>
         </div>

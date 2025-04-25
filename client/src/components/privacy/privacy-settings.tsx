@@ -10,9 +10,9 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { usePrivacy } from "@/hooks/use-privacy";
 
 // Define the interface for privacy preferences
 export interface PrivacyPreferences {
