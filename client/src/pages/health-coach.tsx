@@ -43,6 +43,14 @@ export function HealthCoach() {
   
   // Set API status to unavailable for demo purposes and handle initial loading
   useEffect(() => {
+    // Check if we should set a specific tab based on session storage
+    const tabFromSession = sessionStorage.getItem('healthCoachTab');
+    if (tabFromSession) {
+      setActiveTab(tabFromSession);
+      // Clear the session storage so it doesn't persist on page refresh
+      sessionStorage.removeItem('healthCoachTab');
+    }
+    
     // Simulate initial page loading
     const loadingTimer = setTimeout(() => {
       setPageLoading(false);
