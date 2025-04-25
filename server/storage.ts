@@ -1926,6 +1926,95 @@ export class MemStorage implements IStorage {
     this.cycleAnalyses.set(id, updatedAnalysis);
     return updatedAnalysis;
   }
+
+  // Analytics & Feedback methods
+  
+  async getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]> {
+    const feedbacks = Array.from(this.userFeedbacks.values());
+    
+    // Filter by userId if provided
+    let filtered = feedbacks;
+    if (userId !== undefined) {
+      filtered = filtered.filter(feedback => feedback.userId === userId);
+    }
+    
+    // Filter by source if provided
+    if (source) {
+      filtered = filtered.filter(feedback => feedback.source === source);
+    }
+    
+    // Sort by newest first
+    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  async createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback> {
+    const id = this.userFeedbackIdCounter++;
+    const timestamp = feedback.timestamp || new Date();
+    
+    const newFeedback: UserFeedback = {
+      id,
+      ...feedback,
+      timestamp
+    };
+    
+    this.userFeedbacks.set(id, newFeedback);
+    return newFeedback;
+  }
+  
+  async getErrorLogs(limit?: number): Promise<ErrorLog[]> {
+    // Get all error logs sorted by timestamp (newest first)
+    const logs = Array.from(this.errorLogs.values())
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    
+    // Limit the results if requested
+    return limit ? logs.slice(0, limit) : logs;
+  }
+  
+  async createErrorLog(error: InsertErrorLog): Promise<ErrorLog> {
+    const id = this.errorLogIdCounter++;
+    const timestamp = error.timestamp || new Date();
+    
+    const newErrorLog: ErrorLog = {
+      id,
+      ...error,
+      timestamp
+    };
+    
+    this.errorLogs.set(id, newErrorLog);
+    return newErrorLog;
+  }
+  
+  async getUserEvents(userId?: number, category?: string): Promise<UserEvent[]> {
+    const events = Array.from(this.userEvents.values());
+    
+    // Filter by userId if provided
+    let filtered = events;
+    if (userId !== undefined) {
+      filtered = filtered.filter(event => event.userId === userId);
+    }
+    
+    // Filter by category if provided
+    if (category) {
+      filtered = filtered.filter(event => event.eventCategory === category);
+    }
+    
+    // Sort by newest first
+    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  async createUserEvent(event: InsertUserEvent): Promise<UserEvent> {
+    const id = this.userEventIdCounter++;
+    const timestamp = event.timestamp || new Date();
+    
+    const newEvent: UserEvent = {
+      id,
+      ...event,
+      timestamp
+    };
+    
+    this.userEvents.set(id, newEvent);
+    return newEvent;
+  }
 }
 
 export const storage = new MemStorage();

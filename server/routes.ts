@@ -4,6 +4,11 @@ import { storage } from "./storage";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
+import { 
+  insertUserFeedbackSchema, 
+  insertErrorLogSchema, 
+  insertUserEventSchema 
+} from "@shared/analytics-schema";
 import { ZodError } from "zod";
 import { handlePerplexityRequest } from "./perplexity";
 import { z } from "zod";
