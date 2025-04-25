@@ -7,6 +7,14 @@ import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/sc
 import { ZodError } from "zod";
 import { handlePerplexityRequest } from "./perplexity";
 import { z } from "zod";
+import {
+  generateCoachingInsights,
+  generateCorrelationalInsights,
+  analyzeMoodPatterns,
+  generateGeneralHealthInsights,
+  type HealthData,
+  type HealthInsight
+} from "./ai-intelligence";
 
 // Import Stripe - we're not actually initializing it yet since we need the API key
 // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
