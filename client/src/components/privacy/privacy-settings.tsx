@@ -1,244 +1,322 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
-// Storage keys for privacy preferences
-const STORAGE_KEY_ANALYTICS = "healthmap_privacy_analytics";
-const STORAGE_KEY_FEEDBACK = "healthmap_privacy_feedback";
-const STORAGE_KEY_LOCATION = "healthmap_privacy_location";
-const STORAGE_KEY_LOCAL_STORAGE = "healthmap_privacy_local_storage";
-
+// Define the interface for privacy preferences
 export interface PrivacyPreferences {
   allowAnalytics: boolean;
-  allowFeedback: boolean;
-  allowLocation: boolean;
+  allowFeedbackCollection: boolean;
+  allowLocationData: boolean;
   preferLocalStorage: boolean;
+  shareHealthMetrics: boolean;
+  shareMedicationData: boolean;
+  shareSymptomData: boolean;
 }
 
-/**
- * Privacy Settings component that allows users to control their data privacy settings
- */
-export default function PrivacySettings() {
+// Default preferences - privacy focused by default
+const defaultPreferences: PrivacyPreferences = {
+  allowAnalytics: false,
+  allowFeedbackCollection: false,
+  allowLocationData: false,
+  preferLocalStorage: true,
+  shareHealthMetrics: false,
+  shareMedicationData: false,
+  shareSymptomData: false,
+};
+
+// Get current privacy preferences from localStorage or API
+export const getPrivacyPreferences = (): PrivacyPreferences => {
+  try {
+    const storedPrefs = localStorage.getItem('healthmap_privacy_prefs');
+    if (storedPrefs) {
+      return JSON.parse(storedPrefs);
+    }
+  } catch (error) {
+    console.error("Failed to load privacy preferences:", error);
+  }
+  
+  // Return default privacy-focused settings if nothing stored
+  return defaultPreferences;
+};
+
+export function PrivacySettings() {
+  const { toast } = useToast();
   const { user } = useAuth();
-  const [preferences, setPreferences] = useState<PrivacyPreferences>({
-    allowAnalytics: false,
-    allowFeedback: false,
-    allowLocation: false,
-    preferLocalStorage: true,
-  });
-  const [loading, setLoading] = useState(false);
+  const [preferences, setPreferences] = useState<PrivacyPreferences>(defaultPreferences);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Load preferences from localStorage
+  // Load preferences when component mounts
   useEffect(() => {
-    const savedAnalytics = localStorage.getItem(STORAGE_KEY_ANALYTICS);
-    const savedFeedback = localStorage.getItem(STORAGE_KEY_FEEDBACK);
-    const savedLocation = localStorage.getItem(STORAGE_KEY_LOCATION);
-    const savedLocalStorage = localStorage.getItem(STORAGE_KEY_LOCAL_STORAGE);
+    const loadedPrefs = getPrivacyPreferences();
+    setPreferences(loadedPrefs);
+  }, []);
 
-    setPreferences({
-      allowAnalytics: savedAnalytics ? savedAnalytics === "true" : false,
-      allowFeedback: savedFeedback ? savedFeedback === "true" : false,
-      allowLocation: savedLocation ? savedLocation === "true" : false,
-      preferLocalStorage: savedLocalStorage ? savedLocalStorage === "true" : true,
-    });
-
-    // If user is logged in, try to load from server
-    if (user?.id) {
-      loadServerPreferences();
-    }
-  }, [user?.id]);
-
-  // Load preferences from the server if logged in
-  const loadServerPreferences = async () => {
-    try {
-      setLoading(true);
-      const response = await apiRequest("GET", "/api/user/privacy-preferences");
-      const data = await response.json();
-      
-      if (response.ok && data) {
-        const serverPrefs = {
-          allowAnalytics: data.allowAnalytics ?? false,
-          allowFeedback: data.allowFeedback ?? false,
-          allowLocation: data.allowLocation ?? false,
-          preferLocalStorage: data.preferLocalStorage ?? true,
-        };
-        
-        // Update local state with server preferences
-        setPreferences(serverPrefs);
-        
-        // Sync to localStorage
-        saveToLocalStorage(serverPrefs);
-      }
-    } catch (error) {
-      console.error("Failed to load privacy preferences from server", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Save preferences both locally and to server if logged in
-  const savePreferences = async () => {
-    try {
-      setLoading(true);
-      
-      // Always save to localStorage
-      saveToLocalStorage(preferences);
-      
-      // If logged in, save to server
-      if (user?.id) {
-        const response = await apiRequest("POST", "/api/user/privacy-preferences", preferences);
-        
-        if (!response.ok) {
-          throw new Error("Failed to save preferences to server");
-        }
-      }
-      
-      toast({
-        title: "Privacy settings updated",
-        description: "Your privacy preferences have been saved.",
-      });
-    } catch (error) {
-      console.error("Failed to save privacy preferences", error);
-      toast({
-        title: "Error saving settings",
-        description: "Your privacy settings could not be saved. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Save to localStorage
-  const saveToLocalStorage = (prefs: PrivacyPreferences) => {
-    localStorage.setItem(STORAGE_KEY_ANALYTICS, prefs.allowAnalytics.toString());
-    localStorage.setItem(STORAGE_KEY_FEEDBACK, prefs.allowFeedback.toString());
-    localStorage.setItem(STORAGE_KEY_LOCATION, prefs.allowLocation.toString());
-    localStorage.setItem(STORAGE_KEY_LOCAL_STORAGE, prefs.preferLocalStorage.toString());
-  };
-
-  // Handle toggle changes
-  const handleToggle = (key: keyof PrivacyPreferences) => {
+  // Handle changes to privacy settings
+  const handleToggleChange = (setting: keyof PrivacyPreferences) => {
     setPreferences((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [setting]: !prev[setting],
     }));
   };
 
+  // Save preferences
+  const savePreferences = async () => {
+    setIsSaving(true);
+    
+    try {
+      // Always save locally first
+      localStorage.setItem('healthmap_privacy_prefs', JSON.stringify(preferences));
+      
+      // Save to server if user is logged in
+      if (user) {
+        const response = await apiRequest("POST", "/api/user/privacy-settings", { 
+          preferences 
+        });
+        
+        if (response.ok) {
+          toast({
+            title: "Settings Saved",
+            description: "Your privacy preferences have been updated.",
+          });
+        } else {
+          throw new Error("Failed to save settings to server");
+        }
+      } else {
+        toast({
+          title: "Settings Saved Locally",
+          description: "Your privacy preferences have been saved to this device.",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving privacy settings:", error);
+      toast({
+        title: "Error Saving Settings",
+        description: "There was a problem saving your privacy preferences.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Reset to default privacy-focused settings
+  const resetToDefault = () => {
+    setPreferences(defaultPreferences);
+    toast({
+      title: "Reset to Defaults",
+      description: "Privacy settings have been reset to the default privacy-focused configuration.",
+    });
+  };
+
+  // Delete all local data
+  const deleteAllData = () => {
+    if (window.confirm("Are you sure you want to delete all your locally stored health data? This cannot be undone.")) {
+      try {
+        // Clear specific healthmap prefixed items
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('healthmap_')) {
+            localStorage.removeItem(key);
+          }
+        }
+        
+        toast({
+          title: "Data Deleted",
+          description: "All your locally stored health data has been deleted.",
+        });
+        
+        // Reset preferences to default after deletion
+        setPreferences(defaultPreferences);
+      } catch (error) {
+        console.error("Error deleting local data:", error);
+        toast({
+          title: "Error Deleting Data",
+          description: "There was a problem deleting your data.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle>Privacy Settings</CardTitle>
-        <CardDescription>
-          Control how your data is used and stored in Healthmap
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="analytics" className="text-base font-medium">
-                Analytics
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Allow anonymous usage data to help us improve Healthmap
-              </p>
-            </div>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Collection</CardTitle>
+          <CardDescription>
+            Control what data we collect and how it's used
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <Label htmlFor="analytics" className="flex flex-col space-y-1">
+              <span>Usage Analytics</span>
+              <span className="font-normal text-sm text-muted-foreground">
+                Anonymous data about how you use the app to help us improve
+              </span>
+            </Label>
             <Switch
               id="analytics"
               checked={preferences.allowAnalytics}
-              onCheckedChange={() => handleToggle("allowAnalytics")}
+              onCheckedChange={() => handleToggleChange("allowAnalytics")}
             />
           </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="feedback" className="text-base font-medium">
-                Feedback Collection
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Allow us to collect your feedback on features and recommendations
-              </p>
-            </div>
+          
+          <div className="flex items-center justify-between space-x-2">
+            <Label htmlFor="feedback" className="flex flex-col space-y-1">
+              <span>Feedback Collection</span>
+              <span className="font-normal text-sm text-muted-foreground">
+                Allow us to collect your responses to "Was this helpful?" prompts
+              </span>
+            </Label>
             <Switch
               id="feedback"
-              checked={preferences.allowFeedback}
-              onCheckedChange={() => handleToggle("allowFeedback")}
+              checked={preferences.allowFeedbackCollection}
+              onCheckedChange={() => handleToggleChange("allowFeedbackCollection")}
             />
           </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="location" className="text-base font-medium">
-                Location Data
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Share your location for personalized health recommendations
-              </p>
-            </div>
+          
+          <div className="flex items-center justify-between space-x-2">
+            <Label htmlFor="location" className="flex flex-col space-y-1">
+              <span>Location Data</span>
+              <span className="font-normal text-sm text-muted-foreground">
+                Use your location for personalized recommendations
+              </span>
+            </Label>
             <Switch
               id="location"
-              checked={preferences.allowLocation}
-              onCheckedChange={() => handleToggle("allowLocation")}
+              checked={preferences.allowLocationData}
+              onCheckedChange={() => handleToggleChange("allowLocationData")}
             />
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="localStorage" className="text-base font-medium">
-                Local-First Storage
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Keep sensitive health data on your device
-              </p>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Storage</CardTitle>
+          <CardDescription>
+            Choose where your health data is stored
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between space-x-2">
+            <Label htmlFor="local-storage" className="flex flex-col space-y-1">
+              <span>Local-Only Storage</span>
+              <span className="font-normal text-sm text-muted-foreground">
+                Keep sensitive health data on your device only (recommended for privacy)
+              </span>
+            </Label>
             <Switch
-              id="localStorage"
+              id="local-storage"
               checked={preferences.preferLocalStorage}
-              onCheckedChange={() => handleToggle("preferLocalStorage")}
+              onCheckedChange={() => handleToggleChange("preferLocalStorage")}
             />
           </div>
-        </div>
 
-        <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-md">
-          <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300">
-            🔒 Data Protection Promise
-          </h3>
-          <p className="mt-1 text-sm text-blue-700 dark:text-blue-400">
-            Your health data is encrypted and will never be sold or shared with third parties. 
-            You control what data is stored, how it's used, and can delete it at any time.
+          <div className="pt-2 pb-1">
+            <h4 className="text-sm font-medium mb-2">Sync With Cloud</h4>
+            <p className="text-sm text-muted-foreground mb-3">
+              Select what health data can be synchronized with our servers
+            </p>
+            
+            <div className="space-y-3 ml-2">
+              <div className="flex items-center justify-between space-x-2">
+                <Label htmlFor="share-metrics" className="flex flex-col space-y-1">
+                  <span>Health Metrics</span>
+                  <span className="font-normal text-xs text-muted-foreground">
+                    Steps, sleep, heart rate, etc.
+                  </span>
+                </Label>
+                <Switch
+                  id="share-metrics"
+                  checked={preferences.shareHealthMetrics}
+                  onCheckedChange={() => handleToggleChange("shareHealthMetrics")}
+                  disabled={preferences.preferLocalStorage}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between space-x-2">
+                <Label htmlFor="share-medications" className="flex flex-col space-y-1">
+                  <span>Medication Data</span>
+                  <span className="font-normal text-xs text-muted-foreground">
+                    Your medications and schedule
+                  </span>
+                </Label>
+                <Switch
+                  id="share-medications"
+                  checked={preferences.shareMedicationData}
+                  onCheckedChange={() => handleToggleChange("shareMedicationData")}
+                  disabled={preferences.preferLocalStorage}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between space-x-2">
+                <Label htmlFor="share-symptoms" className="flex flex-col space-y-1">
+                  <span>Symptom Data</span>
+                  <span className="font-normal text-xs text-muted-foreground">
+                    Symptoms and health issues you've reported
+                  </span>
+                </Label>
+                <Switch
+                  id="share-symptoms"
+                  checked={preferences.shareSymptomData}
+                  onCheckedChange={() => handleToggleChange("shareSymptomData")}
+                  disabled={preferences.preferLocalStorage}
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Data Management</CardTitle>
+          <CardDescription>
+            Manage or delete your health data
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm">
+            You can delete all locally stored data or reset your privacy settings to default values.
           </p>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={savePreferences} disabled={loading}>
-          {loading ? "Saving..." : "Save Preferences"}
-        </Button>
-      </CardFooter>
-    </Card>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={resetToDefault}
+            >
+              Reset to Default
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={deleteAllData}
+            >
+              Delete All Local Data
+            </Button>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button 
+            onClick={savePreferences} 
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Preferences"}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
-
-// Utility to get current privacy preferences
-export const getPrivacyPreferences = (): PrivacyPreferences => {
-  if (typeof window === "undefined") {
-    return {
-      allowAnalytics: false,
-      allowFeedback: false,
-      allowLocation: false,
-      preferLocalStorage: true,
-    };
-  }
-  
-  return {
-    allowAnalytics: localStorage.getItem(STORAGE_KEY_ANALYTICS) === "true",
-    allowFeedback: localStorage.getItem(STORAGE_KEY_FEEDBACK) === "true",
-    allowLocation: localStorage.getItem(STORAGE_KEY_LOCATION) === "true",
-    preferLocalStorage: localStorage.getItem(STORAGE_KEY_LOCAL_STORAGE) !== "false", // Default to true
-  };
-};

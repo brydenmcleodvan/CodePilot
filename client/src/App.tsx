@@ -32,6 +32,10 @@ const IntegrationsPage = lazy(() => import("@/pages/integrations"));
 const OAuthCallbackPage = lazy(() => import("@/pages/oauth-callback"));
 const ThankYouPage = lazy(() => import("@/pages/thank-you"));
 const AIIntelligencePage = lazy(() => import("@/pages/ai-intelligence"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/privacy-policy-page"));
+
+// Privacy & Security pages
+const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -81,6 +85,8 @@ function Router() {
               <Route path="/integrations/callback/:service" component={OAuthCallbackPage} />
               <Route path="/thank-you" component={ThankYouPage} />
               <Route path="/ai-intelligence" component={AIIntelligencePage} />
+              <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+              <Route path="/settings/privacy" component={PrivacySettingsPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
