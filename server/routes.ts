@@ -1657,6 +1657,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Error retrieving session details' });
     }
   });
+  
+  // AI Intelligence - API Routes
+  
+  // Get Smart Coaching Assistant insights
+  app.get(`${apiRouter}/ai/coaching-insights`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const focusArea = req.query.focusArea as string | undefined;
+      
+      // Get user's health data for the last 30 days
+      const healthData = await storage.getUserHealthStats(userId);
+      
+      if (!healthData || healthData.length === 0) {
+        return res.status(200).json({ 
+          insights: [{
+            type: "coaching",
+            message: "We need more health data to provide personalized coaching insights. Try tracking your daily activity, sleep, and other health metrics.",
+            confidence: 0.5,
+            relatedMetrics: [],
+            actionable: false
+          }]
+        });
+      }
+      
+      // Generate coaching insights using OpenAI
+      const insights = await generateCoachingInsights(healthData, focusArea);
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating coaching insights:', error);
+      res.status(500).json({ 
+        message: 'Error generating coaching insights',
+        insights: [{
+          type: "coaching",
+          message: "We're having trouble analyzing your health data right now. Try again later.",
+          confidence: 0,
+          relatedMetrics: [],
+          actionable: false
+        }]
+      });
+    }
+  });
+  
+  // Get Correlational Insights
+  app.get(`${apiRouter}/ai/correlational-insights`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get user's health data for the last 30 days
+      const healthData = await storage.getUserHealthStats(userId);
+      
+      if (!healthData || healthData.length === 0) {
+        return res.status(200).json({ 
+          insights: [{
+            type: "correlation",
+            message: "We need more health data to identify correlations. Try tracking multiple health metrics consistently.",
+            confidence: 0.5,
+            relatedMetrics: [],
+            actionable: false
+          }]
+        });
+      }
+      
+      // Generate correlational insights
+      const insights = generateCorrelationalInsights(healthData);
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating correlational insights:', error);
+      res.status(500).json({ 
+        message: 'Error generating correlational insights',
+        insights: [{
+          type: "correlation",
+          message: "We're having trouble analyzing correlations in your health data right now. Try again later.",
+          confidence: 0,
+          relatedMetrics: [],
+          actionable: false
+        }]
+      });
+    }
+  });
+  
+  // Get Mood Analysis
+  app.get(`${apiRouter}/ai/mood-analysis`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get user's mood data for the last 30 days
+      const moodEntries = await storage.getUserMoodEntries(userId);
+      
+      if (!moodEntries || moodEntries.length === 0) {
+        return res.status(200).json({ 
+          insights: [{
+            type: "mood",
+            message: "We need more mood tracking data to provide insights. Try logging your mood daily.",
+            confidence: 0.5,
+            relatedMetrics: ["mood"],
+            actionable: false
+          }]
+        });
+      }
+      
+      // Format mood entries for analysis
+      const moodData = moodEntries.map(entry => ({
+        date: new Date(entry.date).toISOString().split('T')[0],
+        mood: entry.mood,
+        notes: entry.notes || "",
+        activities: entry.factors || []
+      }));
+      
+      // Analyze mood patterns
+      const insights = await analyzeMoodPatterns(moodData);
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating mood analysis:', error);
+      res.status(500).json({ 
+        message: 'Error generating mood analysis',
+        insights: [{
+          type: "mood",
+          message: "We're having trouble analyzing your mood data right now. Try again later.",
+          confidence: 0,
+          relatedMetrics: ["mood"],
+          actionable: false
+        }]
+      });
+    }
+  });
+  
+  // Get General Health Insights
+  app.get(`${apiRouter}/ai/general-insights`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get user profile
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Remove sensitive information
+      const { password, ...userProfile } = user;
+      
+      // Generate general health insights
+      const insights = await generateGeneralHealthInsights(userProfile);
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error('Error generating general health insights:', error);
+      res.status(500).json({ 
+        message: 'Error generating general health insights',
+        insights: [{
+          type: "general",
+          message: "We're having trouble generating health insights right now. Try again later.",
+          confidence: 0,
+          relatedMetrics: [],
+          actionable: false
+        }]
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

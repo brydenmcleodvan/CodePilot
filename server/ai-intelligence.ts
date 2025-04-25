@@ -1,9 +1,40 @@
-import OpenAI from "openai";
+// We'll use the fetch API instead of the OpenAI SDK
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Initialize OpenAI with the API key from environment variables
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Helper function to make OpenAI API calls
+async function callOpenAIAPI(messages: any[], options: any = {}) {
+  try {
+    if (!OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not set");
+    }
+    
+    const response = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+        messages,
+        temperature: options.temperature || 0.3,
+        max_tokens: options.max_tokens,
+        response_format: options.response_format || { type: "json_object" },
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error calling OpenAI API:", error);
+    throw error;
+  }
+}
 
 // Types for health data
 export interface HealthData {
@@ -71,14 +102,14 @@ export async function generateCoachingInsights(
     `;
     
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user 
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+    
+    const response = await callOpenAIAPI(messages, {
       temperature: 0.3, // Lower temperature for more factual responses
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" }
     });
     
     // Parse the response
@@ -257,14 +288,14 @@ export async function analyzeMoodPatterns(
     `;
     
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+    
+    const response = await callOpenAIAPI(messages, {
       temperature: 0.4,
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" }
     });
     
     // Parse the response
@@ -367,14 +398,14 @@ export async function generateGeneralHealthInsights(
     `;
     
     // Call OpenAI API
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+    
+    const response = await callOpenAIAPI(messages, {
       temperature: 0.3,
-      response_format: { type: "json_object" },
+      response_format: { type: "json_object" }
     });
     
     // Parse the response
