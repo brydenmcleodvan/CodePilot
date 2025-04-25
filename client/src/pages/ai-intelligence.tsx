@@ -42,15 +42,17 @@ export default function AIIntelligencePage() {
         apiRequest("GET", "/api/ai/general-insights")
       ]);
 
+      // Parse responses considering the API response structure
       const coachingData = await coachingRes.json();
       const correlationData = await correlationRes.json();
       const moodData = await moodRes.json();
       const generalData = await generalRes.json();
 
-      setCoachingInsights(coachingData);
-      setCorrelationInsights(correlationData);
-      setMoodInsights(moodData);
-      setGeneralInsights(generalData);
+      // Handle different response formats (direct array or {insights: array})
+      setCoachingInsights(Array.isArray(coachingData) ? coachingData : coachingData.insights || []);
+      setCorrelationInsights(Array.isArray(correlationData) ? correlationData : correlationData.insights || []);
+      setMoodInsights(Array.isArray(moodData) ? moodData : moodData.insights || []);
+      setGeneralInsights(Array.isArray(generalData) ? generalData : generalData.insights || []);
     } catch (error) {
       console.error("Failed to fetch insights:", error);
       toast({
