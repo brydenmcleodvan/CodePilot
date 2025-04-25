@@ -3,7 +3,8 @@ import {
   HeadphonesIcon, Calendar, MessageSquare, VideoIcon, 
   Bot, Send, Mic, RefreshCw, Sparkles, AlertCircle,
   ChevronUp, ChevronDown, LineChart, Users, Award,
-  Utensils, FileText, Play, BookOpen, Target, ScrollText
+  Utensils, FileText, Play, BookOpen, Target, ScrollText,
+  TrendingUp, Smile, Brain
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,9 @@ export function HealthCoach() {
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [isExpanded, setIsExpanded] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  
+  // State for AI Intelligence
+  const [activeTab, setActiveTab] = useState('coach');
   
   // Set API status to unavailable for demo purposes and handle initial loading
   useEffect(() => {
@@ -122,8 +126,12 @@ export function HealthCoach() {
         <h1 className="text-3xl font-bold dark:text-white">Health Coach</h1>
       </div>
 
-      <Tabs defaultValue="coach" className="mb-8">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        className="mb-8"
+      >
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="coach" className="flex items-center gap-2">
             <HeadphonesIcon className="w-4 h-4" />
             <span>Human Coach</span>
@@ -131,6 +139,10 @@ export function HealthCoach() {
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Bot className="w-4 h-4" />
             <span>AI Assistant</span>
+          </TabsTrigger>
+          <TabsTrigger value="intelligence" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            <span>AI Intelligence</span>
           </TabsTrigger>
         </TabsList>
         
@@ -283,6 +295,209 @@ export function HealthCoach() {
                   {question}
                 </Button>
               ))}
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="intelligence">
+          <p className="text-lg mb-8 dark:text-gray-300">
+            Gain deeper insights into your health patterns with AI-powered analytics that identify connections between your lifestyle and wellbeing.
+          </p>
+          
+          {/* AI Intelligence Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Smart Coaching Insights */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-blue-500" />
+                </div>
+                <div className="text-white">
+                  <h3 className="font-semibold">Smart Coaching</h3>
+                  <p className="text-xs opacity-90">Actionable insights for your health journey</p>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="space-y-4">
+                  <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium dark:text-white">Improve your sleep patterns</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Your sleep data shows irregular patterns. Try to maintain a consistent sleep schedule, even on weekends, to improve sleep quality.
+                        </p>
+                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                          <span>Related to:</span>
+                          <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300">Sleep</span>
+                          <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300">Stress</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium dark:text-white">Increase protein intake</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Based on your workout intensity and goals, consider increasing daily protein to support muscle recovery.
+                        </p>
+                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                          <span>Related to:</span>
+                          <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300">Nutrition</span>
+                          <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded text-blue-700 dark:text-blue-300">Workouts</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button variant="outline" size="sm" className="w-full mt-4">
+                  View All Coaching Insights
+                </Button>
+              </div>
+            </motion.div>
+            
+            {/* Correlations Card */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-purple-500" />
+                </div>
+                <div className="text-white">
+                  <h3 className="font-semibold">Health Correlations</h3>
+                  <p className="text-xs opacity-90">Discover connections in your health data</p>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="space-y-4">
+                  <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                    <div className="flex items-start gap-2">
+                      <TrendingUp className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium dark:text-white">Sleep quality affects your workout performance</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Your workout intensity is 30% higher on days following nights with 7+ hours of sleep.
+                        </p>
+                        <div className="mt-2 flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                          <span>Correlation strength:</span>
+                          <span className="font-medium">High (85%)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                    <div className="flex items-start gap-2">
+                      <TrendingUp className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium dark:text-white">Water intake affects skin health</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Days with 2L+ water intake correlate with improved skin hydration scores.
+                        </p>
+                        <div className="mt-2 flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                          <span>Correlation strength:</span>
+                          <span className="font-medium">Medium (68%)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button variant="outline" size="sm" className="w-full mt-4">
+                  View All Correlations
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+          
+          {/* Mood Analysis */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden mb-8">
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                  <Smile className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="text-white">
+                  <h3 className="font-semibold">Mood Analysis</h3>
+                  <p className="text-xs opacity-90">Understanding your emotional patterns</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-medium mb-4 dark:text-white">Mood Trends (Last 30 Days)</h4>
+                  <div className="h-40 bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex items-center justify-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Chart visualization would appear here</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-medium mb-4 dark:text-white">Key Mood Insights</h4>
+                  <div className="space-y-3">
+                    <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                      <div className="flex items-start gap-2">
+                        <Smile className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium dark:text-white">Morning workouts boost your mood</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Days with morning workouts show a 25% higher average mood score.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 border dark:border-gray-700 rounded-lg dark:bg-gray-750">
+                      <div className="flex items-start gap-2">
+                        <Smile className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium dark:text-white">Social activities improve wellbeing</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Days with social interactions show consistently higher mood scores.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Get started with AI Intelligence */}
+          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-xl p-6">
+            <div className="flex flex-col md:flex-row gap-6 items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 dark:bg-primary/30 flex items-center justify-center">
+                <Sparkles className="h-8 w-8 text-primary" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="text-lg font-heading font-semibold text-dark-text dark:text-white mb-2">
+                  Unlock More AI-Powered Health Insights
+                </h3>
+                <p className="text-body-text dark:text-gray-300 mb-4">
+                  Connect more health data sources and track consistently to receive increasingly accurate and personalized insights.
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  <Button className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Connect Health Data
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    Learn More
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>

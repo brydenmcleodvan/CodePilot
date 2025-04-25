@@ -1,33 +1,26 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/lib/auth";
-import { Loader2, AlertCircle, Lightbulb, Brain, TrendingUp, Smile, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import IntelligenceDashboard from "@/components/ai-intelligence/intelligence-dashboard";
-import { apiRequest } from "@/lib/queryClient";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { Loader2 } from "lucide-react";
 
-// Types from server/ai-intelligence.ts
-interface HealthInsight {
-  type: "coaching" | "correlation" | "mood" | "general";
-  message: string;
-  confidence: number;
-  relatedMetrics: string[];
-  actionable: boolean;
-  suggestedAction?: string;
-}
-
+// Redirect to Health Coach page with Intelligence tab selected
 export default function AIIntelligencePage() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [coachingInsights, setCoachingInsights] = useState<HealthInsight[]>([]);
-  const [correlationInsights, setCorrelationInsights] = useState<HealthInsight[]>([]);
-  const [moodInsights, setMoodInsights] = useState<HealthInsight[]>([]);
-  const [generalInsights, setGeneralInsights] = useState<HealthInsight[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    // Use a session storage flag to indicate we want the intelligence tab
+    sessionStorage.setItem('healthCoachTab', 'intelligence');
+    
+    // Redirect to health coach page
+    setLocation("/health-coach");
+  }, [setLocation]);
+  
+  // Show loading indicator while redirecting
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+      <p className="text-body-text dark:text-gray-300">Redirecting to Health Coach...</p>
+    </div>
+  );
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchInsights = async () => {
