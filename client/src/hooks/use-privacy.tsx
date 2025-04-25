@@ -21,19 +21,12 @@ export function usePrivacy() {
     queryKey: ["/api/user/privacy-settings"],
     queryFn: async () => {
       try {
-        const response = await apiRequest("GET", "/api/user/preferences");
+        const response = await apiRequest("GET", "/api/user/privacy-settings");
         const data = await response.json();
         
-        // Extract privacy settings from user preferences if they exist
+        // The API endpoint now returns privacy preferences directly
         if (data.preferences) {
-          try {
-            const preferences = JSON.parse(data.preferences);
-            if (preferences.privacy) {
-              return preferences.privacy as PrivacyPreferences;
-            }
-          } catch (e) {
-            console.warn("Could not parse privacy preferences", e);
-          }
+          return data.preferences as PrivacyPreferences;
         }
         
         // Return default if no preferences are found

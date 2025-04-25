@@ -231,7 +231,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Privacy Settings Route
+  // Privacy Settings Routes
+  // Get privacy settings for current user
+  app.get(`${apiRouter}/user/privacy-settings`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Parse the current user preferences
+      let privacySettings = {};
+      try {
+        if (user.preferences) {
+          const preferences = JSON.parse(user.preferences);
+          privacySettings = preferences.privacy || {};
+        }
+      } catch (e) {
+        console.warn('Failed to parse existing preferences');
+      }
+      
+      // Return privacy settings
+      res.json({ preferences: privacySettings });
+    } catch (error) {
+      console.error('Error fetching privacy settings:', error);
+      res.status(500).json({ message: 'Server error fetching privacy settings' });
+    }
+  });
+  
+  // Update privacy settings
   app.post(`${apiRouter}/user/privacy-settings`, authenticateToken, async (req, res) => {
     try {
       const userId = req.user.id;
