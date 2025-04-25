@@ -54,14 +54,26 @@ export const getPrivacyPreferences = (): PrivacyPreferences => {
 export function PrivacySettings() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { 
+    privacyPreferences: serverPreferences, 
+    updatePrivacy, 
+    isUpdating,
+    isLoading 
+  } = usePrivacy();
+  
   const [preferences, setPreferences] = useState<PrivacyPreferences>(defaultPreferences);
-  const [isSaving, setIsSaving] = useState(false);
 
-  // Load preferences when component mounts
+  // Load preferences when component mounts - prioritize server preferences if available, fall back to local
   useEffect(() => {
-    const loadedPrefs = getPrivacyPreferences();
-    setPreferences(loadedPrefs);
-  }, []);
+    // First try to load from server (if user is logged in)
+    if (serverPreferences) {
+      setPreferences(serverPreferences);
+    } else {
+      // Otherwise load from local storage
+      const loadedPrefs = getPrivacyPreferences();
+      setPreferences(loadedPrefs);
+    }
+  }, [serverPreferences]);
 
   // Handle changes to privacy settings
   const handleToggleChange = (setting: keyof PrivacyPreferences) => {
@@ -73,26 +85,13 @@ export function PrivacySettings() {
 
   // Save preferences
   const savePreferences = async () => {
-    setIsSaving(true);
-    
     try {
       // Always save locally first
       localStorage.setItem('healthmap_privacy_prefs', JSON.stringify(preferences));
       
       // Save to server if user is logged in
       if (user) {
-        const response = await apiRequest("POST", "/api/user/privacy-settings", { 
-          preferences 
-        });
-        
-        if (response.ok) {
-          toast({
-            title: "Settings Saved",
-            description: "Your privacy preferences have been updated.",
-          });
-        } else {
-          throw new Error("Failed to save settings to server");
-        }
+        updatePrivacy(preferences);
       } else {
         toast({
           title: "Settings Saved Locally",
@@ -106,8 +105,6 @@ export function PrivacySettings() {
         description: "There was a problem saving your privacy preferences.",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -311,9 +308,9 @@ export function PrivacySettings() {
         <CardFooter className="flex justify-end">
           <Button 
             onClick={savePreferences} 
-            disabled={isSaving}
+            disabled={isUpdating}
           >
-            {isSaving ? "Saving..." : "Save Preferences"}
+            {isUpdating ? "Saving..." : "Save Preferences"}
           </Button>
         </CardFooter>
       </Card>
