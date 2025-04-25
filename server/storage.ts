@@ -69,6 +69,14 @@ import {
   type CycleAnalysis,
   type InsertCycleAnalysis
 } from "@shared/schema";
+import {
+  type UserFeedback,
+  type InsertUserFeedback,
+  type ErrorLog,
+  type InsertErrorLog,
+  type UserEvent,
+  type InsertUserEvent
+} from "@shared/analytics-schema";
 import bcrypt from "bcryptjs";
 
 // Modify the interface with any CRUD methods you might need
@@ -201,6 +209,18 @@ export interface IStorage {
   getUserCycleAnalysis(userId: number): Promise<CycleAnalysis | undefined>;
   createCycleAnalysis(analysis: InsertCycleAnalysis): Promise<CycleAnalysis>;
   updateCycleAnalysis(id: number, analysisData: Partial<CycleAnalysis>): Promise<CycleAnalysis | undefined>;
+  
+  // Analytics & Feedback
+  getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]>;
+  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
+  
+  // Error Logging
+  getErrorLogs(limit?: number): Promise<ErrorLog[]>;
+  createErrorLog(error: InsertErrorLog): Promise<ErrorLog>;
+  
+  // User Event Tracking
+  getUserEvents(userId?: number, category?: string): Promise<UserEvent[]>;
+  createUserEvent(event: InsertUserEvent): Promise<UserEvent>;
 }
 
 export class MemStorage implements IStorage {
@@ -227,6 +247,11 @@ export class MemStorage implements IStorage {
   private mealPlanEntries: Map<number, MealPlanEntry>;
   private cycleEntries: Map<number, CycleEntry>;
   private cycleAnalyses: Map<number, CycleAnalysis>;
+  
+  // Analytics collections
+  private userFeedbacks: Map<number, UserFeedback>;
+  private errorLogs: Map<number, ErrorLog>;
+  private userEvents: Map<number, UserEvent>;
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
@@ -251,6 +276,11 @@ export class MemStorage implements IStorage {
   private mealPlanEntryIdCounter: number;
   private cycleEntryIdCounter: number;
   private cycleAnalysisIdCounter: number;
+  
+  // Analytics counters
+  private userFeedbackIdCounter: number;
+  private errorLogIdCounter: number;
+  private userEventIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -276,6 +306,11 @@ export class MemStorage implements IStorage {
     this.mealPlanEntries = new Map();
     this.cycleEntries = new Map();
     this.cycleAnalyses = new Map();
+    
+    // Initialize analytics collections
+    this.userFeedbacks = new Map();
+    this.errorLogs = new Map();
+    this.userEvents = new Map();
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
@@ -300,6 +335,11 @@ export class MemStorage implements IStorage {
     this.mealPlanEntryIdCounter = 1;
     this.cycleEntryIdCounter = 1;
     this.cycleAnalysisIdCounter = 1;
+    
+    // Initialize analytics counters
+    this.userFeedbackIdCounter = 1;
+    this.errorLogIdCounter = 1;
+    this.userEventIdCounter = 1;
 
     // Add some initial data
     this.initializeData();
