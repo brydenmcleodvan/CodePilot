@@ -37,6 +37,7 @@ const ChangelogPage = lazy(() => import("@/pages/changelog"));
 const LandingPageNew = lazy(() => import("@/pages/landing-page"));
 const FeatureVotingPage = lazy(() => import("@/pages/feature-voting"));
 const SkeletonDemoPage = lazy(() => import("@/pages/skeleton-demo"));
+const ResponsiveUIDemoPage = lazy(() => import("@/pages/responsive-ui-demo"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -95,6 +96,7 @@ function Router() {
               <Route path="/changelog" component={ChangelogPage} />
               <Route path="/feature-voting" component={FeatureVotingPage} />
               <Route path="/skeleton-demo" component={SkeletonDemoPage} />
+              <Route path="/responsive-ui-demo" component={ResponsiveUIDemoPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
