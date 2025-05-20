@@ -1,226 +1,223 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { storage } from '../../storage';
+import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
 import { User } from '@shared/schema';
+import { randomUUID } from 'crypto';
+import { storage } from '../../storage';
 
-/**
- * Configuration for authentication middleware
- */
-export const AUTH_CONFIG = {
-  jwtSecret: process.env.JWT_SECRET || 'healthmap-dev-secret',
-  accessTokenExpiry: '15m',
-  refreshTokenExpiry: '7d',
-  cookieOptions: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  }
-};
+// Environment variables
+const JWT_SECRET = process.env.JWT_SECRET || 'healthmap-dev-secret';
+const JWT_ACCESS_EXPIRY = process.env.JWT_ACCESS_EXPIRY || '15m';
+const JWT_REFRESH_EXPIRY = process.env.JWT_REFRESH_EXPIRY || '7d';
 
-/**
- * Interface for decoded JWT token payload
- */
-export interface TokenPayload {
+// Interface for the JWT payload
+interface JwtTokenPayload extends JwtPayload {
   userId: number;
   tokenId: string;
-  roles?: string[];
-  iat?: number;
-  exp?: number;
+  roles: string[];
+  type: 'access' | 'refresh';
 }
 
 /**
- * Middleware to verify JWT token and attach user to request
+ * Middleware to verify JWT access token
  */
-export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
+export function authenticateJwt(req: Request, res: Response, next: NextFunction) {
+  // Extract token from Authorization header
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Authorization header missing or invalid' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'Access token missing' });
+  }
+
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      return res.status(401).json({ message: 'Access token is required' });
+    // Verify the token
+    const decoded = jwt.verify(token, JWT_SECRET as Secret) as JwtTokenPayload;
+    
+    // Check token type
+    if (decoded.type !== 'access') {
+      return res.status(401).json({ message: 'Invalid token type' });
     }
-
-    // Verify token
-    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
     
     // Check if token has been revoked
-    const tokenMetadata = await storage.getTokenById(decoded.tokenId);
-    if (!tokenMetadata || tokenMetadata.isRevoked) {
-      return res.status(401).json({ message: 'Token has been revoked' });
-    }
-
-    // Get user from database
-    const user = await storage.getUser(decoded.userId);
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    // Attach token data and user to request
-    req.user = user;
-    req.tokenData = decoded;
-
-    next();
+    storage.getTokenById(decoded.tokenId).then(tokenMeta => {
+      if (!tokenMeta || tokenMeta.isRevoked) {
+        return res.status(401).json({ message: 'Token has been revoked' });
+      }
+      
+      // Set user info in request object
+      req.user = { id: decoded.userId, roles: decoded.roles } as User;
+      next();
+    }).catch(error => {
+      console.error('Error checking token revocation:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    });
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ message: 'Token expired', code: 'TOKEN_EXPIRED' });
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: 'Invalid token', code: 'INVALID_TOKEN' });
+      return res.status(401).json({ message: 'Access token expired' });
     }
-    
-    console.error('Auth middleware error:', error);
-    return res.status(401).json({ message: 'Authentication failed' });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: 'Invalid access token' });
+    }
+    console.error('JWT verification error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
 /**
  * Middleware to handle token refresh
  */
-export const handleTokenRefresh = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    // Get refresh token from cookies
-    const refreshToken = req.cookies.refreshToken;
-    
-    if (!refreshToken) {
-      return res.status(401).json({ message: 'Refresh token is required' });
-    }
+export function handleTokenRefresh(req: Request, res: Response, next: NextFunction) {
+  // Extract refresh token from cookie
+  const refreshToken = req.cookies.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token missing' });
+  }
 
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
+  try {
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, JWT_SECRET as Secret) as JwtTokenPayload;
+    
+    // Check token type
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({ message: 'Invalid token type' });
+    }
     
     // Check if token has been revoked
-    const tokenMetadata = await storage.getTokenById(decoded.tokenId);
-    if (!tokenMetadata || tokenMetadata.isRevoked) {
-      return res.status(401).json({ message: 'Refresh token has been revoked' });
-    }
-
-    // Get user from database
-    const user = await storage.getUser(decoded.userId);
-    if (!user) {
-      return res.status(401).json({ message: 'User not found' });
-    }
-
-    // Generate new tokens
-    const { accessToken, refreshToken: newRefreshToken } = await generateTokens(user);
-
-    // Revoke old refresh token
-    await storage.revokeToken(decoded.tokenId, 'Token refresh');
-
-    // Set new refresh token cookie
-    res.cookie('refreshToken', newRefreshToken, AUTH_CONFIG.cookieOptions);
-
-    // Return new access token
-    res.json({
-      accessToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        name: user.name,
-        profilePicture: user.profilePicture
+    storage.getTokenById(decoded.tokenId).then(async tokenMeta => {
+      if (!tokenMeta || tokenMeta.isRevoked) {
+        return res.status(401).json({ message: 'Refresh token has been revoked' });
       }
+      
+      // Get user
+      const user = await storage.getUser(decoded.userId);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
+      // Revoke old refresh token
+      await storage.revokeToken(decoded.tokenId, 'Rotation during refresh');
+      
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = await generateTokens(user);
+      
+      // Set new refresh token cookie
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+      
+      // Set response
+      res.locals.user = user;
+      res.locals.accessToken = accessToken;
+      
+      next();
+    }).catch(error => {
+      console.error('Error during token refresh:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     });
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ message: 'Refresh token expired', code: 'REFRESH_TOKEN_EXPIRED' });
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({ message: 'Invalid refresh token', code: 'INVALID_REFRESH_TOKEN' });
+      return res.status(401).json({ message: 'Refresh token expired' });
     }
-    
-    console.error('Token refresh error:', error);
-    return res.status(401).json({ message: 'Token refresh failed' });
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: 'Invalid refresh token' });
+    }
+    console.error('JWT verification error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
 /**
- * Optional authentication middleware - doesn't require auth but attaches user if available
+ * Middleware to verify JWT in cookie
+ * This is used for routes that don't require the full user object
  */
-export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+export function authenticateJwtCookie(req: Request, res: Response, next: NextFunction) {
+  // Extract token from cookie
+  const token = req.cookies.jwt;
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-      return next();
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
+    // Verify the token
+    const decoded = jwt.verify(token, JWT_SECRET as Secret) as JwtTokenPayload;
     
     // Check if token has been revoked
-    const tokenMetadata = await storage.getTokenById(decoded.tokenId);
-    if (!tokenMetadata || tokenMetadata.isRevoked) {
-      return next();
-    }
-
-    // Get user from database
-    const user = await storage.getUser(decoded.userId);
-    if (!user) {
-      return next();
-    }
-
-    // Attach token data and user to request
-    req.user = user;
-    req.tokenData = decoded;
-
-    next();
+    storage.getTokenById(decoded.tokenId).then(tokenMeta => {
+      if (!tokenMeta || tokenMeta.isRevoked) {
+        return res.status(401).json({ message: 'Token has been revoked' });
+      }
+      
+      // Set user ID in request object
+      req.user = { id: decoded.userId, roles: decoded.roles } as User;
+      next();
+    }).catch(error => {
+      console.error('Error checking token revocation:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+    });
   } catch (error) {
-    // In optional auth, we don't fail on errors
-    next();
-  }
-};
-
-/**
- * Generate JWT tokens (access and refresh) for a user
- */
-export const generateTokens = async (user: User) => {
-  // Generate token ID
-  const tokenId = generateTokenId();
-  
-  // Generate access token
-  const accessToken = jwt.sign(
-    { userId: user.id, tokenId },
-    AUTH_CONFIG.jwtSecret as jwt.Secret,
-    { expiresIn: AUTH_CONFIG.accessTokenExpiry }
-  );
-  
-  // Generate refresh token
-  const refreshToken = jwt.sign(
-    { userId: user.id, tokenId },
-    AUTH_CONFIG.jwtSecret as jwt.Secret,
-    { expiresIn: AUTH_CONFIG.refreshTokenExpiry }
-  );
-
-  // Store token metadata
-  const decoded = jwt.decode(accessToken) as jwt.JwtPayload;
-  
-  await storage.storeTokenMetadata({
-    tokenId,
-    userId: user.id,
-    expiresAt: new Date(decoded.exp! * 1000),
-    isRevoked: false,
-    clientInfo: {}
-  });
-
-  return { accessToken, refreshToken };
-};
-
-/**
- * Generate a random token ID
- */
-const generateTokenId = (): string => {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
-};
-
-// Extend Express Request interface to include user and token data
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-      tokenData?: TokenPayload;
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ message: 'Token expired' });
     }
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    console.error('JWT verification error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
+}
+
+/**
+ * Generate JWT tokens for a user
+ */
+export async function generateTokens(user: User): Promise<{ accessToken: string, refreshToken: string }> {
+  // Generate unique token IDs
+  const accessTokenId = randomUUID();
+  const refreshTokenId = randomUUID();
+  
+  // Current time
+  const now = Math.floor(Date.now() / 1000);
+  
+  // Calculate expiration times
+  const accessExpiry = now + parseInt(JWT_ACCESS_EXPIRY.replace('m', '')) * 60;
+  const refreshExpiry = now + parseInt(JWT_REFRESH_EXPIRY.replace('d', '')) * 24 * 60 * 60;
+  
+  // Create token payloads
+  const accessPayload: JwtTokenPayload = {
+    userId: user.id,
+    tokenId: accessTokenId,
+    roles: user.roles || [],
+    type: 'access',
+    iat: now,
+    exp: accessExpiry
+  };
+  
+  const refreshPayload: JwtTokenPayload = {
+    userId: user.id,
+    tokenId: refreshTokenId,
+    roles: user.roles || [],
+    type: 'refresh',
+    iat: now,
+    exp: refreshExpiry
+  };
+  
+  // Sign tokens
+  const accessToken = jwt.sign(accessPayload, JWT_SECRET as Secret);
+  const refreshToken = jwt.sign(refreshPayload, JWT_SECRET as Secret);
+  
+  // Store refresh token metadata
+  await storage.storeTokenMetadata({
+    tokenId: refreshTokenId,
+    userId: user.id,
+    expiresAt: new Date(refreshExpiry * 1000),
+    isRevoked: false,
+    clientInfo: { userAgent: 'unknown' }
+  });
+  
+  return { accessToken, refreshToken };
 }
