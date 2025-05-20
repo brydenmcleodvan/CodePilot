@@ -2,7 +2,6 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
 import { 
   insertUserFeedbackSchema, 
@@ -31,6 +30,10 @@ import {
 } from './api/feature-requests';
 import { processFeedback, getFeedbackStats } from './api/feedback/process-feedback';
 
+// Import the enhanced authentication middleware
+import { authenticateToken, requireAdmin, requireOwnership } from './middleware/auth-middleware';
+import apiRoutes from './routes/index';
+
 // Enable session-based auth typing
 declare global {
   namespace Express {
@@ -43,8 +46,6 @@ declare global {
 // Import Stripe - we're not actually initializing it yet since we need the API key
 // const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
-
 // Extend Express Request type to include user
 declare global {
   namespace Express {
@@ -54,102 +55,12 @@ declare global {
   }
 }
 
-// Middleware to verify JWT token
-const authenticateToken = (req: Request, res: Response, next: Function) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
-    }
-    
-    req.user = user;
-    next();
-  });
-};
-
 export async function registerRoutes(app: Express): Promise<Server> {
-  // API routes
-  const apiRouter = '/api';
+  // Use our enhanced API routes with improved security
+  app.use('/api', apiRoutes);
   
-  // Auth routes
-  app.post(`${apiRouter}/auth/register`, async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      
-      // Check if email already exists
-      const existingEmail = await storage.getUserByEmail(userData.email);
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email already in use' });
-      }
-      
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      
-      // Create new user
-      const newUser = await storage.createUser({
-        ...userData,
-        password: hashedPassword
-      });
-      
-      // Generate JWT token
-      const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, {
-        expiresIn: '1d'
-      });
-      
-      // Return user without password and include token
-      const { password, ...userWithoutPassword } = newUser;
-      res.status(201).json({ user: userWithoutPassword, token });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error during registration' });
-    }
-  });
-  
-  app.post(`${apiRouter}/auth/login`, async (req, res) => {
-    try {
-      const loginData = loginSchema.parse(req.body);
-      
-      // Find user by username
-      const user = await storage.getUserByUsername(loginData.username);
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
-      
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(loginData.password, user.password);
-      if (!isPasswordValid) {
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
-      
-      // Generate JWT token
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
-        expiresIn: '1d'
-      });
-      
-      // Return user without password and include token
-      const { password, ...userWithoutPassword } = user;
-      res.json({ user: userWithoutPassword, token });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error during login' });
-    }
-  });
+  // Legacy authentication routes are now handled by our new secure implementation
+  // in server/routes/auth-routes.ts and server/middleware/auth-middleware.ts
   
   // User profile routes
   app.get(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
