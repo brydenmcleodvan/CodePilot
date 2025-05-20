@@ -56,11 +56,10 @@ declare global {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Use our enhanced API routes with improved security
-  app.use('/api', apiRoutes);
+  // Define API router prefix
+  const apiRouter = '/api';
   
-  // Legacy authentication routes are now handled by our new secure implementation
-  // in server/routes/auth-routes.ts and server/middleware/auth-middleware.ts
+  // Leave legacy routes intact while we implement the new security architecture
   
   // User profile routes
   app.get(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {

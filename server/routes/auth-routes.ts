@@ -1,137 +1,202 @@
-import { Router, Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
+import { Router } from 'express';
 import { ZodError } from 'zod';
-import { storage } from '../storage';
 import { insertUserSchema, loginSchema } from '@shared/schema';
-import { 
-  createAccessToken, 
-  createRefreshToken, 
-  handleTokenRefresh, 
-  authenticateToken 
-} from '../middleware/auth-middleware';
+import { authService } from '../security/auth/auth-service';
 
 const router = Router();
 
-// Register a new user
-router.post('/register', async (req: Request, res: Response) => {
+/**
+ * @route POST /auth/register
+ * @description Register a new user with secure password handling
+ * @access Public
+ */
+router.post('/register', async (req, res) => {
   try {
+    // Validate input with Zod schema
     const userData = insertUserSchema.parse(req.body);
     
-    // Check if username already exists
-    const existingUser = await storage.getUserByUsername(userData.username);
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username already exists' });
-    }
-    
-    // Check if email already exists
-    const existingEmail = await storage.getUserByEmail(userData.email);
-    if (existingEmail) {
-      return res.status(400).json({ message: 'Email already in use' });
-    }
-    
-    // Hash password with increased cost factor for better security
-    const BCRYPT_COST_FACTOR = 12; // Increased from 10
-    const hashedPassword = await bcrypt.hash(userData.password, BCRYPT_COST_FACTOR);
-    
-    // Create new user
-    const newUser = await storage.createUser({
-      ...userData,
-      password: hashedPassword
-    });
+    // Register new user with secure password handling
+    const user = await authService.registerUser(userData);
     
     // Generate tokens
-    const accessToken = createAccessToken(newUser.id, newUser.username);
-    const refreshToken = createRefreshToken(newUser.id, newUser.username);
+    const tokens = await authService.generateTokens(user);
     
-    // Return user without password and include tokens
-    const { password, ...userWithoutPassword } = newUser;
-    res.status(201).json({ 
-      user: userWithoutPassword, 
-      accessToken,
-      refreshToken
+    // Return user data and tokens
+    res.status(201).json({
+      user,
+      ...tokens,
+      message: 'User registered successfully'
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      return res.status(400).json({ 
+        message: 'Invalid input', 
+        errors: error.errors,
+        code: 'VALIDATION_ERROR'
+      });
     }
+    
+    if (error instanceof Error) {
+      if (error.message.includes('already exists') || error.message.includes('already in use')) {
+        return res.status(409).json({ 
+          message: error.message,
+          code: 'DUPLICATE_RESOURCE'
+        });
+      }
+    }
+    
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ 
+      message: 'Server error during registration',
+      code: 'SERVER_ERROR'
+    });
   }
 });
 
-// Login with username and password
-router.post('/login', async (req: Request, res: Response) => {
+/**
+ * @route POST /auth/login
+ * @description Login user and issue tokens
+ * @access Public
+ */
+router.post('/login', async (req, res) => {
   try {
+    // Validate login data
     const loginData = loginSchema.parse(req.body);
     
-    // Find user by username
-    const user = await storage.getUserByUsername(loginData.username);
-    if (!user) {
-      // Use the same message for both username and password errors
-      // to prevent username enumeration
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    // Authenticate user and generate tokens
+    const { user, accessToken, refreshToken } = await authService.loginUser(loginData);
     
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(loginData.password, user.password);
-    if (!isPasswordValid) {
-      // Add a small delay to prevent timing attacks
-      await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 100));
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    // Set refresh token as an HTTP-only cookie for better security
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'strict'
+    });
     
-    // Generate tokens
-    const accessToken = createAccessToken(user.id, user.username);
-    const refreshToken = createRefreshToken(user.id, user.username);
-    
-    // Return user without password and include tokens
-    const { password, ...userWithoutPassword } = user;
-    res.json({ 
-      user: userWithoutPassword, 
+    // Return user data and access token
+    res.json({
+      user,
       accessToken,
-      refreshToken 
+      message: 'Login successful'
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      return res.status(400).json({ 
+        message: 'Invalid input', 
+        errors: error.errors,
+        code: 'VALIDATION_ERROR'
+      });
     }
+    
+    if (error instanceof Error && 
+        (error.message.includes('Invalid username') || error.message.includes('Invalid password'))) {
+      return res.status(401).json({ 
+        message: 'Invalid username or password',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+    
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ 
+      message: 'Server error during login',
+      code: 'SERVER_ERROR'
+    });
   }
 });
 
-// Logout endpoint - invalidate tokens
-router.post('/logout', authenticateToken, async (req: Request, res: Response) => {
+/**
+ * @route POST /auth/refresh
+ * @description Refresh access token using refresh token
+ * @access Public (with refresh token)
+ */
+router.post('/refresh', async (req, res) => {
+  // Get refresh token from cookie or request body
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+  
+  if (!refreshToken) {
+    return res.status(401).json({ 
+      message: 'Refresh token is required',
+      code: 'TOKEN_REQUIRED'
+    });
+  }
+  
   try {
-    // TODO: Implement token revocation when token storage is implemented
-    // Currently, the client is responsible for removing tokens
-
-    res.json({ message: 'Logout successful' });
+    // Generate new tokens
+    const tokens = await authService.refreshTokens(refreshToken);
+    
+    // Set new refresh token cookie
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'strict'
+    });
+    
+    // Return new access token
+    res.json({
+      accessToken: tokens.accessToken,
+      message: 'Token refreshed successfully'
+    });
   } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ message: 'Server error during logout' });
+    console.error('Token refresh error:', error);
+    res.status(401).json({ 
+      message: 'Invalid or expired refresh token',
+      code: 'INVALID_REFRESH_TOKEN'
+    });
   }
 });
 
-// Refresh token endpoint
-router.post('/refresh-token', handleTokenRefresh);
+/**
+ * @route POST /auth/logout
+ * @description Logout user and revoke tokens
+ * @access Public (with refresh token)
+ */
+router.post('/logout', async (req, res) => {
+  // Get refresh token from cookie or request body
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+  
+  if (refreshToken) {
+    // Revoke the token
+    await authService.logoutUser(refreshToken);
+  }
+  
+  // Clear refresh token cookie
+  res.clearCookie('refreshToken');
+  
+  res.json({ message: 'Logged out successfully' });
+});
 
-// Get current user info
-router.get('/me', authenticateToken, async (req: Request, res: Response) => {
+/**
+ * @route POST /auth/logout-all
+ * @description Logout from all devices (revoke all tokens)
+ * @access Private
+ */
+router.post('/logout-all', async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ 
+      message: 'Authentication required',
+      code: 'AUTH_REQUIRED'
+    });
+  }
+  
   try {
-    const userId = req.user.id;
-    const user = await storage.getUser(userId);
+    // Revoke all tokens for the user
+    const count = await authService.revokeAllUserTokens(req.user.id, 'User-initiated logout from all devices');
     
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Clear refresh token cookie
+    res.clearCookie('refreshToken');
     
-    // Return user without password
-    const { password, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
+    res.json({ 
+      message: 'Logged out from all devices successfully',
+      tokenCount: count
+    });
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ message: 'Server error fetching user' });
+    console.error('Logout all error:', error);
+    res.status(500).json({ 
+      message: 'Server error during logout',
+      code: 'SERVER_ERROR'
+    });
   }
 });
 

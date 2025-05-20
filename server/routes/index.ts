@@ -1,30 +1,19 @@
 import { Router } from 'express';
 import authRoutes from './auth-routes';
-import { authenticateToken, requireAdmin, requireOwnership } from '../middleware/auth-middleware';
+import { authenticateToken } from '../security/auth/auth-middleware';
 
 const router = Router();
 
-// Auth routes
+// Public routes
 router.use('/auth', authRoutes);
 
-// Add route protection to other existing routes
-// Example of how to protect routes with our new middleware
-router.get('/user/profile', authenticateToken, async (req, res) => {
-  // This route is now protected by our enhanced JWT validation
-  // The implementation would be moved from the current routes.ts file
-  res.json({ message: 'This is a protected route' });
-});
+// Protected routes - all routes below this middleware require authentication
+router.use(authenticateToken);
 
-// Example of admin-only route
-router.get('/admin/users', authenticateToken, requireAdmin, async (req, res) => {
-  // Only accessible to admin users
-  res.json({ message: 'Admin only route' });
-});
+// User routes will go here
+// router.use('/user', userRoutes);
 
-// Example of resource ownership protection
-router.get('/user/:userId/data', authenticateToken, requireOwnership('userId'), async (req, res) => {
-  // Only accessible to the user who owns this resource
-  res.json({ message: 'User can only access their own data' });
-});
+// Health data routes will go here
+// router.use('/health', healthRoutes);
 
 export default router;
