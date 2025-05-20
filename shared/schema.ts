@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   gender: text("gender"), // e.g. "male", "female", "non-binary", "prefer-not-to-say"
   birthDate: timestamp("birth_date"),
   preferences: text("preferences"), // Stored as JSON string for user preferences
+  roles: text("roles").array(), // User roles for RBAC - e.g. ["patient", "doctor"]
 });
 
 // Health Stats

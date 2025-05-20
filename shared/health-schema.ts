@@ -141,6 +141,102 @@ export const tokenMetadata = pgTable('token_metadata', {
  */
 export const insertTokenMetadataSchema = createInsertSchema(tokenMetadata).omit({ id: true });
 
+/**
+ * User relationships table - for general user relationships
+ */
+export const userRelationships = pgTable('user_relationships', {
+  id: integer('id').primaryKey().notNull(),
+  userId: integer('user_id').notNull(),
+  relatedUserId: integer('related_user_id').notNull(),
+  relationshipType: text('relationship_type').notNull(),
+  status: text('status').default('active'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  metadata: json('metadata')
+});
+
+/**
+ * Insert schema for user relationships
+ */
+export const insertUserRelationshipSchema = createInsertSchema(userRelationships).omit({ id: true });
+
+/**
+ * Healthcare relationships table - for provider-patient relationships
+ */
+export const healthcareRelationships = pgTable('healthcare_relationships', {
+  id: integer('id').primaryKey().notNull(),
+  providerId: integer('provider_id').notNull(),
+  patientId: integer('patient_id').notNull(),
+  relationshipType: text('relationship_type').notNull(), // e.g., primary_care, specialist, etc.
+  startDate: timestamp('start_date').defaultNow().notNull(),
+  endDate: timestamp('end_date'),
+  status: text('status').default('active'),
+  accessLevel: text('access_level').default('standard'), // standard, limited, full
+  notes: text('notes'),
+  metadata: json('metadata')
+});
+
+/**
+ * Insert schema for healthcare relationships
+ */
+export const insertHealthcareRelationshipSchema = createInsertSchema(healthcareRelationships).omit({ id: true });
+
+/**
+ * User roles table
+ */
+export const userRoles = pgTable('user_roles', {
+  id: integer('id').primaryKey().notNull(),
+  userId: integer('user_id').notNull(),
+  role: text('role').notNull(),
+  grantedAt: timestamp('granted_at').defaultNow().notNull(),
+  grantedBy: integer('granted_by'),
+  expiresAt: timestamp('expires_at'),
+  isActive: boolean('is_active').default(true)
+});
+
+/**
+ * Insert schema for user roles
+ */
+export const insertUserRoleSchema = createInsertSchema(userRoles).omit({ id: true });
+
+/**
+ * Resource ownership table - for tracking ownership of resources
+ */
+export const resourceOwnership = pgTable('resource_ownership', {
+  id: integer('id').primaryKey().notNull(),
+  resourceId: integer('resource_id').notNull(),
+  resourceType: text('resource_type').notNull(),
+  ownerId: integer('owner_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+/**
+ * Insert schema for resource ownership
+ */
+export const insertResourceOwnershipSchema = createInsertSchema(resourceOwnership).omit({ id: true });
+
+/**
+ * Resource assignments table - for tracking assignments to resources
+ */
+export const resourceAssignments = pgTable('resource_assignments', {
+  id: integer('id').primaryKey().notNull(),
+  resourceId: integer('resource_id').notNull(),
+  resourceType: text('resource_type').notNull(),
+  assignedUserId: integer('assigned_user_id').notNull(),
+  assignedRole: text('assigned_role').notNull(),
+  assignedBy: integer('assigned_by').notNull(),
+  assignedAt: timestamp('assigned_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'),
+  isActive: boolean('is_active').default(true),
+  metadata: json('metadata')
+});
+
+/**
+ * Insert schema for resource assignments
+ */
+export const insertResourceAssignmentSchema = createInsertSchema(resourceAssignments).omit({ id: true });
+
 // Type exports
 export type HealthMetric = typeof healthMetrics.$inferSelect;
 export type InsertHealthMetric = z.infer<typeof insertHealthMetricSchema>;
@@ -162,3 +258,18 @@ export type InsertTokenRevocation = z.infer<typeof insertTokenRevocationSchema>;
 
 export type TokenMetadata = typeof tokenMetadata.$inferSelect;
 export type InsertTokenMetadata = z.infer<typeof insertTokenMetadataSchema>;
+
+export type UserRelationship = typeof userRelationships.$inferSelect;
+export type InsertUserRelationship = z.infer<typeof insertUserRelationshipSchema>;
+
+export type HealthcareRelationship = typeof healthcareRelationships.$inferSelect;
+export type InsertHealthcareRelationship = z.infer<typeof insertHealthcareRelationshipSchema>;
+
+export type UserRole = typeof userRoles.$inferSelect;
+export type InsertUserRole = z.infer<typeof insertUserRoleSchema>;
+
+export type ResourceOwnership = typeof resourceOwnership.$inferSelect;
+export type InsertResourceOwnership = z.infer<typeof insertResourceOwnershipSchema>;
+
+export type ResourceAssignment = typeof resourceAssignments.$inferSelect;
+export type InsertResourceAssignment = z.infer<typeof insertResourceAssignmentSchema>;

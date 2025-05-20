@@ -1,3 +1,4 @@
+import { IStorage } from './storage-interface';
 import { 
   User, InsertUser, 
   ForumPost, InsertForumPost,
@@ -11,7 +12,11 @@ import {
   Appointment, InsertAppointment,
   HealthDataConnection, InsertHealthDataConnection,
   TokenMetadata, InsertTokenMetadata,
-  TokenRevocation, InsertTokenRevocation
+  UserRelationship, InsertUserRelationship,
+  HealthcareRelationship, InsertHealthcareRelationship,
+  UserRole, InsertUserRole,
+  ResourceOwnership, InsertResourceOwnership,
+  ResourceAssignment, InsertResourceAssignment
 } from '@shared/health-schema';
 
 import {
@@ -21,78 +26,151 @@ import {
   ErrorLog, InsertErrorLog
 } from '@shared/schema-analytics';
 
-import { IStorage } from './storage-interface';
+import { Role } from '../security/permissions/permission-types';
 
 /**
- * In-memory storage implementation for development and testing
+ * In-memory storage implementation
+ * This is useful for development and testing
  */
 export class MemStorage implements IStorage {
   private users: User[] = [];
-  private posts: ForumPost[] = [];
-  private healthNews: HealthNews[] = [];
-  private healthArticles: HealthArticle[] = [];
-  private userEvents: UserEvent[] = [];
-  private userFeedback: UserFeedback[] = [];
-  private errorLogs: ErrorLog[] = [];
-  
-  // Health data
+  private forumPosts: ForumPost[] = [];
   private healthMetrics: HealthMetric[] = [];
   private medications: Medication[] = [];
   private symptoms: Symptom[] = [];
   private appointments: Appointment[] = [];
   private healthDataConnections: HealthDataConnection[] = [];
-  
-  // Security
-  private tokenMetadata: TokenMetadata[] = [];
-  private tokenRevocations: TokenRevocation[] = [];
+  private userEvents: UserEvent[] = [];
+  private userFeedback: UserFeedback[] = [];
+  private errorLogs: ErrorLog[] = [];
+  private healthNews: HealthNews[] = [];
+  private healthArticles: HealthArticle[] = [];
+  private tokenMetadataStore: TokenMetadata[] = [];
+  private userRelationships: UserRelationship[] = [];
+  private healthcareRelationships: HealthcareRelationship[] = [];
+  private userRoles: UserRole[] = [];
+  private resourceOwnerships: ResourceOwnership[] = [];
+  private resourceAssignments: ResourceAssignment[] = [];
 
   constructor() {
-    // Initialize with some test data
-    this.seedTestData();
+    // Initialize with some sample data if needed
+    this.initializeSampleData();
   }
 
-  private seedTestData() {
-    // Add a test user
+  private initializeSampleData() {
+    // Add sample users
     this.users.push({
       id: 1,
-      username: 'testuser',
-      password: '$2a$10$XVxPMY/8hGhLuMVO/BpYL.PJHFZqhIRIrqcm4KrB1KXbMSGjq3aCi', // 'password123'
-      email: 'test@example.com',
-      name: 'Test User',
+      username: 'patient1',
+      password: '$2a$10$eACCYoNOHmIMcGJq8Nnqne7U49dxuGQW9Fh3NexRRbHMZIxRDJ/Pm', // 'password'
+      email: 'patient1@example.com',
+      name: 'John Patient',
+      profilePicture: null,
+      healthData: null,
+      gender: 'male',
+      birthDate: new Date('1985-05-15'),
+      preferences: null,
+      roles: [Role.PATIENT]
+    });
+
+    this.users.push({
+      id: 2,
+      username: 'doctor1',
+      password: '$2a$10$eACCYoNOHmIMcGJq8Nnqne7U49dxuGQW9Fh3NexRRbHMZIxRDJ/Pm', // 'password'
+      email: 'doctor1@example.com',
+      name: 'Dr. Jane Smith',
+      profilePicture: null,
+      healthData: null,
+      gender: 'female',
+      birthDate: new Date('1975-08-20'),
+      preferences: null,
+      roles: [Role.DOCTOR]
+    });
+
+    this.users.push({
+      id: 3,
+      username: 'admin',
+      password: '$2a$10$eACCYoNOHmIMcGJq8Nnqne7U49dxuGQW9Fh3NexRRbHMZIxRDJ/Pm', // 'password'
+      email: 'admin@example.com',
+      name: 'Admin User',
       profilePicture: null,
       healthData: null,
       gender: null,
       birthDate: null,
-      preferences: null
+      preferences: null,
+      roles: [Role.ADMIN]
     });
 
-    // Add some health news
+    // Add sample healthcare relationships
+    this.healthcareRelationships.push({
+      id: 1,
+      providerId: 2, // doctor1
+      patientId: 1, // patient1
+      relationshipType: 'primary_care',
+      startDate: new Date('2022-01-01'),
+      endDate: null,
+      status: 'active',
+      accessLevel: 'full',
+      notes: null,
+      metadata: null
+    });
+
+    // Add sample health metrics
+    this.healthMetrics.push({
+      id: 1,
+      userId: 1,
+      metricType: 'heart_rate',
+      value: '75',
+      unit: 'bpm',
+      timestamp: new Date('2023-01-15T08:30:00'),
+      notes: 'Morning reading',
+      source: 'manual'
+    });
+
+    // Add sample forum posts
+    this.forumPosts.push({
+      id: 1,
+      userId: 1,
+      title: 'Question about heart health',
+      content: 'I recently started exercising more and noticed my resting heart rate is lower. Is this normal?',
+      timestamp: new Date('2023-01-20T14:25:00'),
+      upvotes: 5,
+      downvotes: 0,
+      subreddit: 'Heart Health',
+      tags: ['exercise', 'heart_rate']
+    });
+
+    // Add sample health news
     this.healthNews.push({
       id: 1,
       title: 'New Study Links Zinc Levels to Immune Function',
-      content: 'A recent study has found a significant correlation between zinc levels and immune system function...',
-      publishDate: new Date('2024-01-15'),
-      author: 'Dr. Jane Smith',
-      source: 'Health Journal Today',
-      url: 'https://example.com/health-news/1',
-      imageUrl: 'https://example.com/images/zinc-study.jpg',
-      tags: 'nutrition,immune system,research'
+      content: 'Researchers have found a significant correlation between zinc levels and immune system effectiveness...',
+      publishDate: new Date('2023-02-10'),
+      tags: ['nutrition', 'immune_system', 'research'],
+      source: 'Health Science Journal',
+      author: 'Dr. Maria Rodriguez',
+      url: 'https://example.com/health-news/zinc-study',
+      imageUrl: 'https://example.com/images/zinc-study.jpg'
     });
-    
-    this.healthNews.push({
-      id: 2,
-      title: 'Mediterranean Diet Shows Promise for Heart Health',
-      content: 'Research continues to support the benefits of a Mediterranean diet for cardiovascular health...',
-      publishDate: new Date('2024-01-10'),
-      author: 'Dr. Michael Chen',
-      source: 'Nutrition Science Weekly',
-      url: 'https://example.com/health-news/2',
-      imageUrl: 'https://example.com/images/mediterranean-diet.jpg',
-      tags: 'nutrition,heart health,diet'
+
+    // Add sample health articles
+    this.healthArticles.push({
+      id: 1,
+      title: 'Understanding Heart Rate Variability',
+      content: 'Heart rate variability (HRV) is a measure of the variation in time between consecutive heartbeats...',
+      summary: 'Learn about heart rate variability and why it matters for your overall health.',
+      authorName: 'Dr. James Wilson',
+      publishedAt: new Date('2023-01-05'),
+      category: 'Cardiovascular Health',
+      tags: ['heart_health', 'hrv', 'fitness'],
+      imageUrl: 'https://example.com/images/hrv-article.jpg',
+      sourceName: 'Healthmap Blog',
+      sourceUrl: 'https://healthmap.io/blog/heart-rate-variability',
+      readTime: 8
     });
   }
 
-  // User management methods
+  // User management
   async getUser(id: number): Promise<User | undefined> {
     return this.users.find(user => user.id === id);
   }
@@ -110,30 +188,36 @@ export class MemStorage implements IStorage {
       ? Math.max(...this.users.map(u => u.id)) + 1 
       : 1;
     
+    // Default to PATIENT role if none provided
+    const roles = user.roles || [Role.PATIENT];
+
     const newUser: User = {
-      ...user,
       id: newId,
+      username: user.username,
+      password: user.password,
+      email: user.email,
+      name: user.name,
       profilePicture: user.profilePicture || null,
       healthData: user.healthData || null,
       gender: user.gender || null,
       birthDate: user.birthDate || null,
-      preferences: user.preferences || null
+      preferences: user.preferences || null,
+      roles
     };
     
     this.users.push(newUser);
     return newUser;
   }
 
-  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+  async updateUser(id: number, userUpdates: Partial<User>): Promise<User> {
     const userIndex = this.users.findIndex(user => user.id === id);
-    
     if (userIndex === -1) {
-      throw new Error(`User with ID ${id} not found`);
+      throw new Error(`User with id ${id} not found`);
     }
     
     const updatedUser = {
       ...this.users[userIndex],
-      ...updates
+      ...userUpdates
     };
     
     this.users[userIndex] = updatedUser;
@@ -141,49 +225,68 @@ export class MemStorage implements IStorage {
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    const initialLength = this.users.length;
-    this.users = this.users.filter(user => user.id !== id);
-    return this.users.length < initialLength;
+    const userIndex = this.users.findIndex(user => user.id === id);
+    if (userIndex === -1) {
+      return false;
+    }
+    
+    this.users.splice(userIndex, 1);
+    return true;
   }
 
-  // Forum post methods
+  async getUserRoles(userId: number): Promise<string[]> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      return [];
+    }
+    return user.roles || [];
+  }
+
+  // Forum posts
   async createPost(post: InsertForumPost): Promise<ForumPost> {
-    const newId = this.posts.length > 0 
-      ? Math.max(...this.posts.map(p => p.id)) + 1 
+    const newId = this.forumPosts.length > 0 
+      ? Math.max(...this.forumPosts.map(p => p.id)) + 1 
       : 1;
     
     const newPost: ForumPost = {
-      ...post,
       id: newId,
-      timestamp: new Date(),
+      userId: post.userId,
+      title: post.title,
+      content: post.content,
+      subreddit: post.subreddit,
       upvotes: post.upvotes || 0,
       downvotes: post.downvotes || 0,
-      tags: post.tags || null
+      tags: post.tags || [],
+      timestamp: post.timestamp || new Date()
     };
     
-    this.posts.push(newPost);
+    this.forumPosts.push(newPost);
     return newPost;
   }
 
   async getPosts(): Promise<ForumPost[]> {
-    return [...this.posts];
+    return this.forumPosts;
   }
 
   async getPostById(id: number): Promise<ForumPost | undefined> {
-    return this.posts.find(post => post.id === id);
+    return this.forumPosts.find(post => post.id === id);
   }
 
   async getPostsByUserId(userId: number): Promise<ForumPost[]> {
-    return this.posts.filter(post => post.userId === userId);
+    return this.forumPosts.filter(post => post.userId === userId);
   }
 
   async deletePost(id: number): Promise<boolean> {
-    const initialLength = this.posts.length;
-    this.posts = this.posts.filter(post => post.id !== id);
-    return this.posts.length < initialLength;
+    const postIndex = this.forumPosts.findIndex(post => post.id === id);
+    if (postIndex === -1) {
+      return false;
+    }
+    
+    this.forumPosts.splice(postIndex, 1);
+    return true;
   }
 
-  // Health metrics methods
+  // Health data
   async getHealthMetrics(userId: number): Promise<HealthMetric[]> {
     return this.healthMetrics.filter(metric => metric.userId === userId);
   }
@@ -198,28 +301,40 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newMetric: HealthMetric = {
-      ...metric,
       id: newId,
-      timestamp: metric.timestamp ? new Date(metric.timestamp) : new Date(),
+      userId: metric.userId,
+      metricType: metric.metricType,
+      value: metric.value,
       unit: metric.unit || null,
+      timestamp: metric.timestamp || new Date(),
       notes: metric.notes || null,
       source: metric.source || null
     };
     
     this.healthMetrics.push(newMetric);
+    
+    // Record ownership
+    this.resourceOwnerships.push({
+      id: this.resourceOwnerships.length + 1,
+      resourceId: newId,
+      resourceType: 'health_metric',
+      ownerId: metric.userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
     return newMetric;
   }
 
-  async updateHealthMetric(id: number, updates: Partial<HealthMetric>): Promise<HealthMetric> {
+  async updateHealthMetric(id: number, metricUpdates: Partial<HealthMetric>): Promise<HealthMetric> {
     const metricIndex = this.healthMetrics.findIndex(metric => metric.id === id);
-    
     if (metricIndex === -1) {
-      throw new Error(`Health metric with ID ${id} not found`);
+      throw new Error(`Health metric with id ${id} not found`);
     }
     
     const updatedMetric = {
       ...this.healthMetrics[metricIndex],
-      ...updates
+      ...metricUpdates
     };
     
     this.healthMetrics[metricIndex] = updatedMetric;
@@ -227,12 +342,26 @@ export class MemStorage implements IStorage {
   }
 
   async deleteHealthMetric(id: number): Promise<boolean> {
-    const initialLength = this.healthMetrics.length;
-    this.healthMetrics = this.healthMetrics.filter(metric => metric.id !== id);
-    return this.healthMetrics.length < initialLength;
+    const metricIndex = this.healthMetrics.findIndex(metric => metric.id === id);
+    if (metricIndex === -1) {
+      return false;
+    }
+    
+    this.healthMetrics.splice(metricIndex, 1);
+    
+    // Remove ownership
+    const ownershipIndex = this.resourceOwnerships.findIndex(
+      o => o.resourceId === id && o.resourceType === 'health_metric'
+    );
+    
+    if (ownershipIndex !== -1) {
+      this.resourceOwnerships.splice(ownershipIndex, 1);
+    }
+    
+    return true;
   }
 
-  // Medications methods
+  // Medications
   async getMedications(userId: number): Promise<Medication[]> {
     return this.medications.filter(med => med.userId === userId);
   }
@@ -247,44 +376,69 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newMedication: Medication = {
-      ...medication,
       id: newId,
-      startDate: medication.startDate ? new Date(medication.startDate) : new Date(),
-      endDate: medication.endDate ? new Date(medication.endDate) : null,
-      notes: medication.notes || null,
+      userId: medication.userId,
+      name: medication.name,
       dosage: medication.dosage || null,
       frequency: medication.frequency || null,
+      startDate: medication.startDate,
+      endDate: medication.endDate || null,
+      notes: medication.notes || null,
       prescribedBy: medication.prescribedBy || null,
-      active: medication.active !== undefined ? medication.active : null
+      active: medication.active !== undefined ? medication.active : true
     };
     
     this.medications.push(newMedication);
+    
+    // Record ownership
+    this.resourceOwnerships.push({
+      id: this.resourceOwnerships.length + 1,
+      resourceId: newId,
+      resourceType: 'medication',
+      ownerId: medication.userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
     return newMedication;
   }
 
-  async updateMedication(id: number, updates: Partial<Medication>): Promise<Medication> {
-    const medIndex = this.medications.findIndex(med => med.id === id);
-    
-    if (medIndex === -1) {
-      throw new Error(`Medication with ID ${id} not found`);
+  async updateMedication(id: number, medicationUpdates: Partial<Medication>): Promise<Medication> {
+    const medicationIndex = this.medications.findIndex(med => med.id === id);
+    if (medicationIndex === -1) {
+      throw new Error(`Medication with id ${id} not found`);
     }
     
     const updatedMedication = {
-      ...this.medications[medIndex],
-      ...updates
+      ...this.medications[medicationIndex],
+      ...medicationUpdates
     };
     
-    this.medications[medIndex] = updatedMedication;
+    this.medications[medicationIndex] = updatedMedication;
     return updatedMedication;
   }
 
   async deleteMedication(id: number): Promise<boolean> {
-    const initialLength = this.medications.length;
-    this.medications = this.medications.filter(med => med.id !== id);
-    return this.medications.length < initialLength;
+    const medicationIndex = this.medications.findIndex(med => med.id === id);
+    if (medicationIndex === -1) {
+      return false;
+    }
+    
+    this.medications.splice(medicationIndex, 1);
+    
+    // Remove ownership
+    const ownershipIndex = this.resourceOwnerships.findIndex(
+      o => o.resourceId === id && o.resourceType === 'medication'
+    );
+    
+    if (ownershipIndex !== -1) {
+      this.resourceOwnerships.splice(ownershipIndex, 1);
+    }
+    
+    return true;
   }
 
-  // Symptoms methods
+  // Symptoms
   async getSymptoms(userId: number): Promise<Symptom[]> {
     return this.symptoms.filter(symptom => symptom.userId === userId);
   }
@@ -299,29 +453,41 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newSymptom: Symptom = {
-      ...symptom,
       id: newId,
-      startTime: symptom.startTime ? new Date(symptom.startTime) : new Date(),
-      endTime: symptom.endTime ? new Date(symptom.endTime) : null,
+      userId: symptom.userId,
+      name: symptom.name,
+      severity: symptom.severity,
+      startTime: symptom.startTime,
+      endTime: symptom.endTime || null,
       notes: symptom.notes || null,
       relatedCondition: symptom.relatedCondition || null,
       bodyLocation: symptom.bodyLocation || null
     };
     
     this.symptoms.push(newSymptom);
+    
+    // Record ownership
+    this.resourceOwnerships.push({
+      id: this.resourceOwnerships.length + 1,
+      resourceId: newId,
+      resourceType: 'symptom',
+      ownerId: symptom.userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
     return newSymptom;
   }
 
-  async updateSymptom(id: number, updates: Partial<Symptom>): Promise<Symptom> {
+  async updateSymptom(id: number, symptomUpdates: Partial<Symptom>): Promise<Symptom> {
     const symptomIndex = this.symptoms.findIndex(symptom => symptom.id === id);
-    
     if (symptomIndex === -1) {
-      throw new Error(`Symptom with ID ${id} not found`);
+      throw new Error(`Symptom with id ${id} not found`);
     }
     
     const updatedSymptom = {
       ...this.symptoms[symptomIndex],
-      ...updates
+      ...symptomUpdates
     };
     
     this.symptoms[symptomIndex] = updatedSymptom;
@@ -329,18 +495,32 @@ export class MemStorage implements IStorage {
   }
 
   async deleteSymptom(id: number): Promise<boolean> {
-    const initialLength = this.symptoms.length;
-    this.symptoms = this.symptoms.filter(symptom => symptom.id !== id);
-    return this.symptoms.length < initialLength;
+    const symptomIndex = this.symptoms.findIndex(symptom => symptom.id === id);
+    if (symptomIndex === -1) {
+      return false;
+    }
+    
+    this.symptoms.splice(symptomIndex, 1);
+    
+    // Remove ownership
+    const ownershipIndex = this.resourceOwnerships.findIndex(
+      o => o.resourceId === id && o.resourceType === 'symptom'
+    );
+    
+    if (ownershipIndex !== -1) {
+      this.resourceOwnerships.splice(ownershipIndex, 1);
+    }
+    
+    return true;
   }
 
-  // Appointments methods
+  // Appointments
   async getAppointments(userId: number): Promise<Appointment[]> {
-    return this.appointments.filter(apt => apt.userId === userId);
+    return this.appointments.filter(appointment => appointment.userId === userId);
   }
 
   async getAppointmentById(id: number): Promise<Appointment | undefined> {
-    return this.appointments.find(apt => apt.id === id);
+    return this.appointments.find(appointment => appointment.id === id);
   }
 
   async addAppointment(appointment: InsertAppointment): Promise<Appointment> {
@@ -349,50 +529,76 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newAppointment: Appointment = {
-      ...appointment,
       id: newId,
-      datetime: appointment.datetime ? new Date(appointment.datetime) : new Date(),
-      reminderTime: appointment.reminderTime ? new Date(appointment.reminderTime) : null,
-      notes: appointment.notes || null,
-      type: appointment.type || null,
-      status: appointment.status || null,
+      userId: appointment.userId,
+      title: appointment.title,
+      provider: appointment.provider,
       location: appointment.location || null,
-      duration: appointment.duration || null
+      datetime: appointment.datetime,
+      duration: appointment.duration || null,
+      notes: appointment.notes || null,
+      reminderTime: appointment.reminderTime || null,
+      type: appointment.type || null,
+      status: appointment.status || 'scheduled'
     };
     
     this.appointments.push(newAppointment);
+    
+    // Record ownership
+    this.resourceOwnerships.push({
+      id: this.resourceOwnerships.length + 1,
+      resourceId: newId,
+      resourceType: 'appointment',
+      ownerId: appointment.userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
     return newAppointment;
   }
 
-  async updateAppointment(id: number, updates: Partial<Appointment>): Promise<Appointment> {
-    const aptIndex = this.appointments.findIndex(apt => apt.id === id);
-    
-    if (aptIndex === -1) {
-      throw new Error(`Appointment with ID ${id} not found`);
+  async updateAppointment(id: number, appointmentUpdates: Partial<Appointment>): Promise<Appointment> {
+    const appointmentIndex = this.appointments.findIndex(appointment => appointment.id === id);
+    if (appointmentIndex === -1) {
+      throw new Error(`Appointment with id ${id} not found`);
     }
     
     const updatedAppointment = {
-      ...this.appointments[aptIndex],
-      ...updates
+      ...this.appointments[appointmentIndex],
+      ...appointmentUpdates
     };
     
-    this.appointments[aptIndex] = updatedAppointment;
+    this.appointments[appointmentIndex] = updatedAppointment;
     return updatedAppointment;
   }
 
   async deleteAppointment(id: number): Promise<boolean> {
-    const initialLength = this.appointments.length;
-    this.appointments = this.appointments.filter(apt => apt.id !== id);
-    return this.appointments.length < initialLength;
+    const appointmentIndex = this.appointments.findIndex(appointment => appointment.id === id);
+    if (appointmentIndex === -1) {
+      return false;
+    }
+    
+    this.appointments.splice(appointmentIndex, 1);
+    
+    // Remove ownership
+    const ownershipIndex = this.resourceOwnerships.findIndex(
+      o => o.resourceId === id && o.resourceType === 'appointment'
+    );
+    
+    if (ownershipIndex !== -1) {
+      this.resourceOwnerships.splice(ownershipIndex, 1);
+    }
+    
+    return true;
   }
 
-  // Health data connections methods
+  // Health data connections
   async getHealthDataConnections(userId: number): Promise<HealthDataConnection[]> {
-    return this.healthDataConnections.filter(conn => conn.userId === userId);
+    return this.healthDataConnections.filter(connection => connection.userId === userId);
   }
 
   async getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined> {
-    return this.healthDataConnections.find(conn => conn.id === id);
+    return this.healthDataConnections.find(connection => connection.id === id);
   }
 
   async addHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection> {
@@ -401,151 +607,208 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newConnection: HealthDataConnection = {
-      ...connection,
       id: newId,
-      expiresAt: connection.expiresAt ? new Date(connection.expiresAt) : null,
-      lastSynced: connection.lastSynced ? new Date(connection.lastSynced) : null,
-      active: connection.active !== undefined ? connection.active : null,
+      userId: connection.userId,
+      provider: connection.provider,
       accessToken: connection.accessToken || null,
       refreshToken: connection.refreshToken || null,
+      expiresAt: connection.expiresAt || null,
       scope: connection.scope || null,
-      settings: connection.settings || null
+      lastSynced: connection.lastSynced || null,
+      settings: connection.settings || null,
+      active: connection.active !== undefined ? connection.active : true
     };
     
     this.healthDataConnections.push(newConnection);
     return newConnection;
   }
 
-  async updateHealthDataConnection(id: number, updates: Partial<HealthDataConnection>): Promise<HealthDataConnection> {
-    const connIndex = this.healthDataConnections.findIndex(conn => conn.id === id);
-    
-    if (connIndex === -1) {
-      throw new Error(`Health data connection with ID ${id} not found`);
+  async updateHealthDataConnection(id: number, connectionUpdates: Partial<HealthDataConnection>): Promise<HealthDataConnection> {
+    const connectionIndex = this.healthDataConnections.findIndex(connection => connection.id === id);
+    if (connectionIndex === -1) {
+      throw new Error(`Health data connection with id ${id} not found`);
     }
     
     const updatedConnection = {
-      ...this.healthDataConnections[connIndex],
-      ...updates
+      ...this.healthDataConnections[connectionIndex],
+      ...connectionUpdates
     };
     
-    this.healthDataConnections[connIndex] = updatedConnection;
+    this.healthDataConnections[connectionIndex] = updatedConnection;
     return updatedConnection;
   }
 
   async deleteHealthDataConnection(id: number): Promise<boolean> {
-    const initialLength = this.healthDataConnections.length;
-    this.healthDataConnections = this.healthDataConnections.filter(conn => conn.id !== id);
-    return this.healthDataConnections.length < initialLength;
+    const connectionIndex = this.healthDataConnections.findIndex(connection => connection.id === id);
+    if (connectionIndex === -1) {
+      return false;
+    }
+    
+    this.healthDataConnections.splice(connectionIndex, 1);
+    return true;
   }
 
-  // Security - Token storage
-  async storeTokenMetadata(metadata: InsertTokenMetadata): Promise<void> {
-    const newId = this.tokenMetadata.length > 0 
-      ? Math.max(...this.tokenMetadata.map(t => t.id)) + 1 
+  // Security - Token Management
+  async storeTokenMetadata(metadata: InsertTokenMetadata): Promise<TokenMetadata> {
+    const newId = this.tokenMetadataStore.length > 0 
+      ? Math.max(...this.tokenMetadataStore.map(t => t.id)) + 1 
       : 1;
     
     const newMetadata: TokenMetadata = {
-      ...metadata,
       id: newId,
-      issuedAt: new Date(),
-      expiresAt: metadata.expiresAt ? new Date(metadata.expiresAt) : new Date(Date.now() + 86400000),
-      isRevoked: metadata.isRevoked !== undefined ? metadata.isRevoked : null,
+      tokenId: metadata.tokenId,
+      userId: metadata.userId,
+      issuedAt: metadata.issuedAt || new Date(),
+      expiresAt: metadata.expiresAt,
+      isRevoked: metadata.isRevoked !== undefined ? metadata.isRevoked : false,
       clientInfo: metadata.clientInfo || null
     };
     
-    this.tokenMetadata.push(newMetadata);
+    this.tokenMetadataStore.push(newMetadata);
+    return newMetadata;
+  }
+
+  async getTokenById(tokenId: string): Promise<TokenMetadata | undefined> {
+    return this.tokenMetadataStore.find(token => token.tokenId === tokenId);
   }
 
   async revokeToken(tokenId: string, reason?: string): Promise<boolean> {
-    // Find token metadata
-    const tokenIndex = this.tokenMetadata.findIndex(t => t.tokenId === tokenId);
-    
+    const tokenIndex = this.tokenMetadataStore.findIndex(token => token.tokenId === tokenId);
     if (tokenIndex === -1) {
       return false;
     }
     
-    // Mark token as revoked
-    this.tokenMetadata[tokenIndex].isRevoked = true;
-    
-    // Add to revocation list
-    const newId = this.tokenRevocations.length > 0 
-      ? Math.max(...this.tokenRevocations.map(r => r.id)) + 1 
-      : 1;
-    
-    const revocation: TokenRevocation = {
-      id: newId,
-      tokenId,
-      userId: this.tokenMetadata[tokenIndex].userId,
-      expiresAt: this.tokenMetadata[tokenIndex].expiresAt,
-      revokedAt: new Date(),
-      reason: reason || 'Manual revocation'
+    this.tokenMetadataStore[tokenIndex] = {
+      ...this.tokenMetadataStore[tokenIndex],
+      isRevoked: true
     };
     
-    this.tokenRevocations.push(revocation);
-    
     return true;
-  }
-
-  async getTokenById(tokenId: string): Promise<TokenMetadata | undefined> {
-    return this.tokenMetadata.find(t => t.tokenId === tokenId);
   }
 
   async revokeAllUserTokens(userId: number, reason?: string): Promise<number> {
     let count = 0;
     
-    // Find all tokens for the user
-    const userTokens = this.tokenMetadata.filter(t => t.userId === userId && !t.isRevoked);
-    
-    // Revoke each token
-    for (const token of userTokens) {
-      const success = await this.revokeToken(token.tokenId, reason);
-      if (success) count++;
-    }
+    this.tokenMetadataStore = this.tokenMetadataStore.map(token => {
+      if (token.userId === userId && !token.isRevoked) {
+        count++;
+        return {
+          ...token,
+          isRevoked: true
+        };
+      }
+      return token;
+    });
     
     return count;
   }
 
   async deleteExpiredTokens(): Promise<number> {
     const now = new Date();
-    let count = 0;
+    const initialCount = this.tokenMetadataStore.length;
     
-    // Remove expired metadata
-    const initialMetadataLength = this.tokenMetadata.length;
-    this.tokenMetadata = this.tokenMetadata.filter(t => {
-      if (t.expiresAt <= now) {
-        count++;
-        return false;
-      }
-      return true;
+    this.tokenMetadataStore = this.tokenMetadataStore.filter(token => {
+      // Keep tokens that haven't expired yet
+      return token.expiresAt > now;
     });
     
-    // Remove expired revocations
-    const initialRevocationsLength = this.tokenRevocations.length;
-    this.tokenRevocations = this.tokenRevocations.filter(r => {
-      if (r.expiresAt <= now) {
-        count++;
-        return false;
-      }
-      return true;
-    });
-    
-    return count;
+    return initialCount - this.tokenMetadataStore.length;
   }
 
-  // Analytics methods
+  // Security - RBAC Support
+  async getResourceOwnerId(resourceId: number, resourceType: string): Promise<number | null> {
+    const ownership = this.resourceOwnerships.find(
+      o => o.resourceId === resourceId && o.resourceType === resourceType
+    );
+    
+    return ownership ? ownership.ownerId : null;
+  }
+
+  async isUserAssignedToResource(userId: number, resourceId: number, resourceType: string): Promise<boolean> {
+    const assignment = this.resourceAssignments.find(
+      a => a.assignedUserId === userId && 
+           a.resourceId === resourceId && 
+           a.resourceType === resourceType && 
+           a.isActive
+    );
+    
+    return !!assignment;
+  }
+
+  async hasHealthcareRelationship(providerId: number, patientId: number): Promise<boolean> {
+    const relationship = this.healthcareRelationships.find(
+      r => r.providerId === providerId && 
+           r.patientId === patientId && 
+           r.status === 'active'
+    );
+    
+    return !!relationship;
+  }
+
+  async getUserRelationships(userId: number): Promise<UserRelationship[]> {
+    return this.userRelationships.filter(r => r.userId === userId);
+  }
+
+  async createUserRelationship(relationship: InsertUserRelationship): Promise<UserRelationship> {
+    const newId = this.userRelationships.length > 0 
+      ? Math.max(...this.userRelationships.map(r => r.id)) + 1 
+      : 1;
+    
+    const newRelationship: UserRelationship = {
+      id: newId,
+      userId: relationship.userId,
+      relatedUserId: relationship.relatedUserId,
+      relationshipType: relationship.relationshipType,
+      status: relationship.status || 'active',
+      createdAt: relationship.createdAt || new Date(),
+      updatedAt: relationship.updatedAt || new Date(),
+      metadata: relationship.metadata || null
+    };
+    
+    this.userRelationships.push(newRelationship);
+    return newRelationship;
+  }
+
+  async createHealthcareRelationship(relationship: InsertHealthcareRelationship): Promise<HealthcareRelationship> {
+    const newId = this.healthcareRelationships.length > 0 
+      ? Math.max(...this.healthcareRelationships.map(r => r.id)) + 1 
+      : 1;
+    
+    const newRelationship: HealthcareRelationship = {
+      id: newId,
+      providerId: relationship.providerId,
+      patientId: relationship.patientId,
+      relationshipType: relationship.relationshipType,
+      startDate: relationship.startDate || new Date(),
+      endDate: relationship.endDate || null,
+      status: relationship.status || 'active',
+      accessLevel: relationship.accessLevel || 'standard',
+      notes: relationship.notes || null,
+      metadata: relationship.metadata || null
+    };
+    
+    this.healthcareRelationships.push(newRelationship);
+    return newRelationship;
+  }
+
+  async getHealthcareRelationships(providerId: number): Promise<HealthcareRelationship[]> {
+    return this.healthcareRelationships.filter(r => r.providerId === providerId);
+  }
+
+  // Analytics
   async recordUserEvent(event: InsertUserEvent): Promise<UserEvent> {
     const newId = this.userEvents.length > 0 
       ? Math.max(...this.userEvents.map(e => e.id)) + 1 
       : 1;
     
     const newEvent: UserEvent = {
-      ...event,
       id: newId,
-      timestamp: new Date(),
+      userId: event.userId,
+      eventType: event.eventType,
+      timestamp: event.timestamp || new Date(),
       eventData: event.eventData || null,
-      deviceInfo: event.deviceInfo || null,
-      ipAddress: event.ipAddress || null,
-      sessionId: event.sessionId || null
+      sessionId: event.sessionId || null,
+      deviceInfo: event.deviceInfo || null
     };
     
     this.userEvents.push(newEvent);
@@ -558,13 +821,14 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newFeedback: UserFeedback = {
-      ...feedback,
       id: newId,
-      timestamp: new Date(),
-      deviceInfo: feedback.deviceInfo || null,
-      rating: feedback.rating || null,
-      pageUrl: feedback.pageUrl || null,
-      resolved: feedback.resolved || null
+      userId: feedback.userId,
+      feedbackType: feedback.feedbackType,
+      rating: feedback.rating,
+      timestamp: feedback.timestamp || new Date(),
+      comments: feedback.comments || null,
+      featureId: feedback.featureId || null,
+      resolvedStatus: feedback.resolvedStatus || 'pending'
     };
     
     this.userFeedback.push(newFeedback);
@@ -576,20 +840,20 @@ export class MemStorage implements IStorage {
       ? Math.max(...this.errorLogs.map(e => e.id)) + 1 
       : 1;
     
-    const newErrorLog: ErrorLog = {
-      ...error,
+    const newError: ErrorLog = {
       id: newId,
-      timestamp: new Date(),
-      userId: error.userId || null,
-      pageUrl: error.pageUrl || null,
-      resolved: error.resolved || null,
+      userId: error.userId,
+      errorType: error.errorType,
+      errorMessage: error.errorMessage,
+      timestamp: error.timestamp || new Date(),
       stackTrace: error.stackTrace || null,
-      browserInfo: error.browserInfo || null,
-      componentName: error.componentName || null
+      contextData: error.contextData || null,
+      severity: error.severity || 'error',
+      resolved: error.resolved !== undefined ? error.resolved : false
     };
     
-    this.errorLogs.push(newErrorLog);
-    return newErrorLog;
+    this.errorLogs.push(newError);
+    return newError;
   }
 
   async getUserEvents(userId: number): Promise<UserEvent[]> {
@@ -601,12 +865,12 @@ export class MemStorage implements IStorage {
   }
 
   async getErrorLogs(): Promise<ErrorLog[]> {
-    return [...this.errorLogs];
+    return this.errorLogs;
   }
 
-  // News API methods
+  // News API
   async getHealthNews(): Promise<HealthNews[]> {
-    return [...this.healthNews];
+    return this.healthNews;
   }
 
   async getHealthNewsById(id: number): Promise<HealthNews | undefined> {
@@ -638,7 +902,7 @@ export class MemStorage implements IStorage {
     const newsIndex = this.healthNews.findIndex(news => news.id === id);
     
     if (newsIndex === -1) {
-      throw new Error(`Health news with ID ${id} not found`);
+      throw new Error(`Health news with id ${id} not found`);
     }
     
     const updatedNews = {
@@ -651,14 +915,19 @@ export class MemStorage implements IStorage {
   }
 
   async deleteHealthNews(id: number): Promise<boolean> {
-    const initialLength = this.healthNews.length;
-    this.healthNews = this.healthNews.filter(news => news.id !== id);
-    return this.healthNews.length < initialLength;
+    const newsIndex = this.healthNews.findIndex(news => news.id === id);
+    
+    if (newsIndex === -1) {
+      return false;
+    }
+    
+    this.healthNews.splice(newsIndex, 1);
+    return true;
   }
 
-  // Health Articles methods
+  // Health Articles
   async getHealthArticles(): Promise<HealthArticle[]> {
-    return [...this.healthArticles];
+    return this.healthArticles;
   }
 
   async getHealthArticleById(id: number): Promise<HealthArticle | undefined> {
@@ -675,11 +944,11 @@ export class MemStorage implements IStorage {
       title: article.title,
       content: article.content,
       summary: article.summary,
-      category: article.category,
-      publishedAt: article.publishedAt || new Date(),
-      tags: article.tags || null,
-      imageUrl: article.imageUrl || null,
       authorName: article.authorName || null,
+      publishedAt: article.publishedAt || new Date(),
+      category: article.category,
+      tags: article.tags || [],
+      imageUrl: article.imageUrl || null,
       sourceName: article.sourceName || null,
       sourceUrl: article.sourceUrl || null,
       readTime: article.readTime || null
@@ -693,7 +962,7 @@ export class MemStorage implements IStorage {
     const articleIndex = this.healthArticles.findIndex(article => article.id === id);
     
     if (articleIndex === -1) {
-      throw new Error(`Health article with ID ${id} not found`);
+      throw new Error(`Health article with id ${id} not found`);
     }
     
     const updatedArticle = {
@@ -706,8 +975,13 @@ export class MemStorage implements IStorage {
   }
 
   async deleteHealthArticle(id: number): Promise<boolean> {
-    const initialLength = this.healthArticles.length;
-    this.healthArticles = this.healthArticles.filter(article => article.id !== id);
-    return this.healthArticles.length < initialLength;
+    const articleIndex = this.healthArticles.findIndex(article => article.id === id);
+    
+    if (articleIndex === -1) {
+      return false;
+    }
+    
+    this.healthArticles.splice(articleIndex, 1);
+    return true;
   }
 }

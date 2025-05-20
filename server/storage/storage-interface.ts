@@ -10,7 +10,9 @@ import {
   Symptom, InsertSymptom, 
   Appointment, InsertAppointment,
   HealthDataConnection, InsertHealthDataConnection,
-  TokenMetadata, InsertTokenMetadata
+  TokenMetadata, InsertTokenMetadata,
+  UserRelationship, InsertUserRelationship,
+  HealthcareRelationship, InsertHealthcareRelationship
 } from '@shared/health-schema';
 
 import {
@@ -32,6 +34,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User>;
   deleteUser(id: number): Promise<boolean>;
+  getUserRoles(userId: number): Promise<string[]>;
   
   // Forum posts
   createPost(post: InsertForumPost): Promise<ForumPost>;
@@ -75,12 +78,21 @@ export interface IStorage {
   updateHealthDataConnection(id: number, connection: Partial<HealthDataConnection>): Promise<HealthDataConnection>;
   deleteHealthDataConnection(id: number): Promise<boolean>;
   
-  // Security
-  storeTokenMetadata(metadata: InsertTokenMetadata): Promise<void>;
+  // Security - Token Management
+  storeTokenMetadata(metadata: InsertTokenMetadata): Promise<TokenMetadata>;
   revokeToken(tokenId: string, reason?: string): Promise<boolean>;
   getTokenById(tokenId: string): Promise<TokenMetadata | undefined>;
   revokeAllUserTokens(userId: number, reason?: string): Promise<number>;
   deleteExpiredTokens(): Promise<number>;
+  
+  // Security - RBAC Support
+  getResourceOwnerId(resourceId: number, resourceType: string): Promise<number | null>;
+  isUserAssignedToResource(userId: number, resourceId: number, resourceType: string): Promise<boolean>;
+  hasHealthcareRelationship(providerId: number, patientId: number): Promise<boolean>;
+  getUserRelationships(userId: number): Promise<UserRelationship[]>;
+  createUserRelationship(relationship: InsertUserRelationship): Promise<UserRelationship>;
+  createHealthcareRelationship(relationship: InsertHealthcareRelationship): Promise<HealthcareRelationship>;
+  getHealthcareRelationships(providerId: number): Promise<HealthcareRelationship[]>;
   
   // Analytics
   recordUserEvent(event: InsertUserEvent): Promise<UserEvent>;
