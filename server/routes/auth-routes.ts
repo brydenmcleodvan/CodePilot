@@ -2,15 +2,20 @@ import { Router } from 'express';
 import { ZodError } from 'zod';
 import { insertUserSchema, loginSchema } from '@shared/schema';
 import { authService } from '../security/auth/auth-service';
+import { loginRateLimiter, registrationRateLimiter, passwordResetRateLimiter } from '../security/utils/rate-limiter';
+import { sanitizeInputs, validateWith } from '../security/utils/input-sanitization';
 
 const router = Router();
+
+// Apply sanitization to all routes
+router.use(sanitizeInputs);
 
 /**
  * @route POST /auth/register
  * @description Register a new user with secure password handling
  * @access Public
  */
-router.post('/register', async (req, res) => {
+router.post('/register', registrationRateLimiter, validateWith(insertUserSchema), async (req, res) => {
   try {
     // Validate input with Zod schema
     const userData = insertUserSchema.parse(req.body);
@@ -58,7 +63,7 @@ router.post('/register', async (req, res) => {
  * @description Login user and issue tokens
  * @access Public
  */
-router.post('/login', async (req, res) => {
+router.post('/login', loginRateLimiter, validateWith(loginSchema), async (req, res) => {
   try {
     // Validate login data
     const loginData = loginSchema.parse(req.body);
