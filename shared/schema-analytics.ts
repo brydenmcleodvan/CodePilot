@@ -1,11 +1,8 @@
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
-import { sql } from 'drizzle-orm';
-import { text, integer, timestamp, pgTable, json } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, json } from 'drizzle-orm/pg-core';
 
-/**
- * User events table for tracking user actions
- */
+// User Event Tracking
 export const userEvents = pgTable('user_events', {
   id: integer('id').primaryKey().notNull(),
   userId: integer('user_id').notNull(),
@@ -17,14 +14,9 @@ export const userEvents = pgTable('user_events', {
   sessionId: text('session_id')
 });
 
-/**
- * Insert schema for user events
- */
 export const insertUserEventSchema = createInsertSchema(userEvents).omit({ id: true });
 
-/**
- * User feedback table for tracking feedback submissions
- */
+// User Feedback
 export const userFeedback = pgTable('user_feedback', {
   id: integer('id').primaryKey().notNull(),
   userId: integer('user_id').notNull(),
@@ -37,14 +29,9 @@ export const userFeedback = pgTable('user_feedback', {
   resolved: integer('resolved').default(0)
 });
 
-/**
- * Insert schema for user feedback
- */
 export const insertUserFeedbackSchema = createInsertSchema(userFeedback).omit({ id: true });
 
-/**
- * Error logs table for tracking application errors
- */
+// Error Logging
 export const errorLogs = pgTable('error_logs', {
   id: integer('id').primaryKey().notNull(),
   errorType: text('error_type').notNull(),
@@ -58,14 +45,9 @@ export const errorLogs = pgTable('error_logs', {
   resolved: integer('resolved').default(0)
 });
 
-/**
- * Insert schema for error logs
- */
 export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({ id: true });
 
-/**
- * Health news table for storing health-related news
- */
+// Health News
 export const healthNews = pgTable('health_news', {
   id: integer('id').primaryKey().notNull(),
   title: text('title').notNull(),
@@ -78,12 +60,9 @@ export const healthNews = pgTable('health_news', {
   tags: text('tags')
 });
 
-/**
- * Insert schema for health news
- */
 export const insertHealthNewsSchema = createInsertSchema(healthNews).omit({ id: true });
 
-// Type exports
+// Types
 export type UserEvent = typeof userEvents.$inferSelect;
 export type InsertUserEvent = z.infer<typeof insertUserEventSchema>;
 
