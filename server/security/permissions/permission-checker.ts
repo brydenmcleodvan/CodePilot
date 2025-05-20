@@ -1,181 +1,344 @@
 import { 
+  BASE_PERMISSIONS, 
   Permission, 
+  PermissionContext, 
   ResourceType, 
-  ResourceAction, 
-  ConditionType,
-  SystemRoles
+  Action, 
+  Role, 
+  ConditionType 
 } from './permission-types';
+import { storage } from '../../storage';
 
 /**
- * Interface for a user with role information
- */
-export interface UserWithRoles {
-  id: number;
-  username: string;
-  roles: string[];
-  [key: string]: any;
-}
-
-/**
- * Checks if a user has permission to perform an action on a resource
+ * PermissionChecker class
  * 
- * @param user The user attempting the action
- * @param resourceType The type of resource being accessed
- * @param action The action being performed
- * @param resource Optional resource object for condition checking
- * @returns True if the user has permission, false otherwise
+ * Responsible for checking if a user has permission to perform
+ * an action on a resource based on the defined RBAC rules.
  */
-export function hasPermission(
-  user: UserWithRoles,
-  resourceType: ResourceType,
-  action: ResourceAction,
-  resource?: any
-): boolean {
-  // System admin has all permissions
-  if (user.roles.includes(SystemRoles.ADMIN.id)) {
-    return true;
-  }
-  
-  // Get all permissions from the user's roles
-  const userPermissions: Permission[] = user.roles.flatMap(roleId => {
-    const role = Object.values(SystemRoles).find(r => r.id === roleId);
-    return role ? role.permissions : [];
-  });
-  
-  // Check if the user has a matching permission
-  for (const permission of userPermissions) {
-    // Check if resource type and action match
-    if (permission.resourceType === resourceType && permission.action === action) {
-      // If no conditions, permission is granted
-      if (!permission.conditions || permission.conditions.length === 0) {
-        return true;
+export class PermissionChecker {
+  private permissions: Permission[] = BASE_PERMISSIONS;
+
+  /**
+   * Check if a user has permission to perform an action on a resource
+   * 
+   * @param userId The ID of the user making the request
+   * @param resource The resource being accessed
+   * @param action The action being performed
+   * @param context Additional context for conditional permissions
+   * @returns Boolean indicating if the user has permission
+   */
+  async hasPermission(
+    userId: number,
+    resource: ResourceType,
+    action: Action,
+    context: Partial<PermissionContext> = {}
+  ): Promise<boolean> {
+    // Get user with roles
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return false;
+    }
+
+    // Get user roles
+    const userRoles = user.roles || [Role.PATIENT]; // Default to PATIENT if no roles
+    
+    // Admin role has all permissions
+    if (userRoles.includes(Role.ADMIN)) {
+      return true;
+    }
+
+    // Build full context
+    const fullContext: PermissionContext = {
+      userId,
+      userRoles,
+      resourceId: context.resourceId,
+      resourceOwnerId: context.resourceOwnerId,
+      relationshipIds: context.relationshipIds || [],
+      customData: context.customData || {}
+    };
+
+    // Check permissions
+    for (const role of userRoles) {
+      // Find matching permission
+      const matchingPermissions = this.permissions.filter(
+        p => p.role === role && p.resource === resource && p.action === action
+      );
+
+      // If no matching permissions, continue to next role
+      if (matchingPermissions.length === 0) {
+        continue;
       }
-      
-      // Check all conditions
-      if (resource && checkConditions(permission.conditions, user, resource)) {
-        return true;
+
+      // Check each matching permission
+      for (const permission of matchingPermissions) {
+        // If no condition, permission is granted
+        if (!permission.condition) {
+          return true;
+        }
+
+        // Check condition
+        const hasPermission = await this.checkCondition(permission, fullContext);
+        if (hasPermission) {
+          return true;
+        }
       }
     }
-  }
-  
-  return false;
-}
 
-/**
- * Checks if all conditions are met for a permission
- * 
- * @param conditions List of conditions to check
- * @param user The user attempting the action
- * @param resource The resource being accessed
- * @returns True if all conditions are met, false otherwise
- */
-function checkConditions(conditions: Permission['conditions'], user: UserWithRoles, resource: any): boolean {
-  if (!conditions) return true;
-  
-  // All conditions must be satisfied
-  return conditions.every(condition => {
-    switch (condition.type) {
-      case ConditionType.OWNERSHIP:
-        // Check if the user is the owner of the resource
-        return resource.userId === user.id || resource.ownerId === user.id;
-        
-      case ConditionType.SHARED:
-        // Check if the resource is shared with the user
-        if (resource.sharedWith && Array.isArray(resource.sharedWith)) {
-          return resource.sharedWith.includes(user.id);
+    // Special case: If user has MANAGE permission on the resource, they can perform any action
+    for (const role of userRoles) {
+      const managePermission = this.permissions.find(
+        p => p.role === role && p.resource === resource && p.action === Action.MANAGE
+      );
+
+      if (managePermission) {
+        if (!managePermission.condition) {
+          return true;
         }
-        return false;
-        
-      case ConditionType.FIELD_EQUALS:
-        // Check if a field has a specific value
-        if (condition.field && condition.value !== undefined) {
-          return resource[condition.field] === condition.value;
+
+        const hasPermission = await this.checkCondition(managePermission, fullContext);
+        if (hasPermission) {
+          return true;
         }
-        return false;
-        
-      case ConditionType.FIELD_CONTAINS:
-        // Check if a field contains a specific value
-        if (condition.field && condition.value !== undefined && resource[condition.field]) {
-          if (Array.isArray(resource[condition.field])) {
-            return resource[condition.field].includes(condition.value);
-          } else if (typeof resource[condition.field] === 'string') {
-            return resource[condition.field].includes(String(condition.value));
-          }
+      }
+    }
+
+    // Special case: Admin resource MANAGE permission means all permissions
+    for (const role of userRoles) {
+      const adminPermission = this.permissions.find(
+        p => p.role === role && p.resource === ResourceType.ADMIN && p.action === Action.MANAGE
+      );
+
+      if (adminPermission) {
+        if (!adminPermission.condition) {
+          return true;
         }
-        return false;
+
+        const hasPermission = await this.checkCondition(adminPermission, fullContext);
+        if (hasPermission) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Check a permission condition against the context
+   * 
+   * @param permission The permission to check
+   * @param context The context of the request
+   * @returns Boolean indicating if the condition is satisfied
+   */
+  private async checkCondition(permission: Permission, context: PermissionContext): Promise<boolean> {
+    if (!permission.condition) {
+      return true;
+    }
+
+    switch (permission.condition.type) {
+      case ConditionType.OWNER:
+        return this.checkOwnership(context);
         
-      case ConditionType.RELATION_EQUALS:
-        // More complex relation check (simplified for now)
-        return true;
+      case ConditionType.ASSIGNED:
+        return this.checkAssignment(permission, context);
         
-      case ConditionType.TIME_RANGE:
-        // Time-based condition checking
-        return true;
+      case ConditionType.RELATIONSHIP:
+        return this.checkRelationship(permission, context);
+        
+      case ConditionType.TIMEFRAME:
+        return this.checkTimeframe(permission, context);
+        
+      case ConditionType.CUSTOM:
+        return this.checkCustomCondition(permission, context);
         
       default:
         return false;
     }
-  });
-}
+  }
 
-/**
- * Express middleware to check permissions for a specific resource and action
- * 
- * @param resourceType The type of resource being accessed
- * @param action The action being performed
- * @param getResource Optional function to retrieve the resource
- * @returns Express middleware function
- */
-export function requirePermission(
-  resourceType: ResourceType,
-  action: ResourceAction,
-  getResource?: (req: any) => Promise<any> | any
-) {
-  return async (req: any, res: any, next: any) => {
-    if (!req.user) {
-      return res.status(401).json({
-        message: 'Authentication required',
-        code: 'AUTH_REQUIRED'
-      });
+  /**
+   * Check if the user is the owner of the resource
+   */
+  private async checkOwnership(context: PermissionContext): Promise<boolean> {
+    if (!context.resourceId) {
+      return true; // If no specific resource is being accessed, allow
     }
-    
-    // Add default roles if not present
-    const userWithRoles: UserWithRoles = {
-      ...req.user,
-      roles: req.user.roles || ['user']
-    };
-    
-    let resource = null;
-    
-    // Get the resource if a getter function is provided
-    if (getResource) {
+
+    if (!context.resourceOwnerId) {
+      // Try to get owner ID from storage
       try {
-        resource = await Promise.resolve(getResource(req));
+        const resourceOwnerId = await storage.getResourceOwnerId(
+          context.resourceId,
+          context.customData?.resourceType as string
+        );
         
-        if (!resource) {
-          return res.status(404).json({
-            message: 'Resource not found',
-            code: 'RESOURCE_NOT_FOUND'
-          });
+        if (resourceOwnerId === null || resourceOwnerId === undefined) {
+          return false;
         }
+        
+        return resourceOwnerId === context.userId;
       } catch (error) {
-        console.error('Error retrieving resource for permission check:', error);
-        return res.status(500).json({
-          message: 'Error retrieving resource',
-          code: 'RESOURCE_RETRIEVAL_ERROR'
-        });
+        console.error('Error checking resource ownership', error);
+        return false;
       }
     }
-    
-    // Check if the user has permission
-    if (hasPermission(userWithRoles, resourceType, action, resource)) {
-      next();
-    } else {
-      res.status(403).json({
-        message: 'You do not have permission to perform this action',
-        code: 'PERMISSION_DENIED',
-        requiredPermission: { resourceType, action }
-      });
+
+    return context.resourceOwnerId === context.userId;
+  }
+
+  /**
+   * Check if the user is assigned to the resource
+   */
+  private async checkAssignment(permission: Permission, context: PermissionContext): Promise<boolean> {
+    if (!context.resourceId) {
+      return true; // If no specific resource is being accessed, allow
     }
-  };
+
+    try {
+      const isAssigned = await storage.isUserAssignedToResource(
+        context.userId,
+        context.resourceId,
+        context.customData?.resourceType as string
+      );
+      
+      return isAssigned;
+    } catch (error) {
+      console.error('Error checking resource assignment', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if the user has a relationship with the resource owner
+   */
+  private async checkRelationship(permission: Permission, context: PermissionContext): Promise<boolean> {
+    if (!context.resourceOwnerId) {
+      // Try to get owner ID from storage
+      try {
+        const resourceOwnerId = await storage.getResourceOwnerId(
+          context.resourceId!,
+          context.customData?.resourceType as string
+        );
+        
+        if (resourceOwnerId === null || resourceOwnerId === undefined) {
+          return false;
+        }
+        
+        return this.checkUserRelationship(context.userId, resourceOwnerId);
+      } catch (error) {
+        console.error('Error checking relationship', error);
+        return false;
+      }
+    }
+
+    return this.checkUserRelationship(context.userId, context.resourceOwnerId);
+  }
+
+  /**
+   * Check if user has a relationship with another user
+   */
+  private async checkUserRelationship(userId: number, targetUserId: number): Promise<boolean> {
+    // If it's the same user, the relationship is trivially established
+    if (userId === targetUserId) {
+      return true;
+    }
+
+    try {
+      // Check if there is a healthcare relationship
+      const hasRelationship = await storage.hasHealthcareRelationship(userId, targetUserId);
+      return hasRelationship;
+    } catch (error) {
+      console.error('Error checking healthcare relationship', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if the request is within the allowed timeframe
+   */
+  private checkTimeframe(permission: Permission, context: PermissionContext): boolean {
+    const params = permission.condition?.params;
+    if (!params) {
+      return false;
+    }
+
+    const now = new Date();
+    
+    if (params.startDate && new Date(params.startDate) > now) {
+      return false;
+    }
+    
+    if (params.endDate && new Date(params.endDate) < now) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Check a custom condition
+   */
+  private async checkCustomCondition(permission: Permission, context: PermissionContext): Promise<boolean> {
+    const customFunction = permission.condition?.params?.customFunction;
+    
+    if (!customFunction || typeof customFunction !== 'function') {
+      return false;
+    }
+    
+    try {
+      return await customFunction(context);
+    } catch (error) {
+      console.error('Error in custom permission check', error);
+      return false;
+    }
+  }
+
+  /**
+   * Create a permission middleware for Express
+   * 
+   * @param resource The resource being accessed
+   * @param action The action being performed
+   * @param getContext Optional function to get additional context from the request
+   * @returns Express middleware function
+   */
+  createMiddleware(
+    resource: ResourceType,
+    action: Action,
+    getContext?: (req: any) => Promise<Partial<PermissionContext>> | Partial<PermissionContext>
+  ) {
+    return async (req: any, res: any, next: any) => {
+      try {
+        // If user is not authenticated, deny access
+        if (!req.user || !req.user.id) {
+          return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        // Get additional context if provided
+        let additionalContext: Partial<PermissionContext> = {};
+        if (getContext) {
+          additionalContext = await getContext(req);
+        }
+
+        // Check permission
+        const hasPermission = await this.hasPermission(
+          req.user.id,
+          resource,
+          action,
+          additionalContext
+        );
+
+        if (hasPermission) {
+          return next();
+        } else {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+      } catch (error) {
+        console.error('Permission middleware error:', error);
+        return res.status(500).json({ message: 'Server error' });
+      }
+    };
+  }
 }
+
+// Create and export a singleton instance
+export const permissionChecker = new PermissionChecker();

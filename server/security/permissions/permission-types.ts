@@ -1,242 +1,582 @@
 /**
- * Defines the available permission types within the system
- * Using a resource-based permission model with granular actions
+ * Permission types definition for Role-Based Access Control (RBAC)
+ * 
+ * This module defines the core types and constants for the permission system.
  */
 
 /**
- * Standard resource actions that can be performed
- */
-export enum ResourceAction {
-  CREATE = 'create', 
-  READ = 'read',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  
-  // Special actions
-  SHARE = 'share',
-  ADMIN = 'admin'
-}
-
-/**
- * Resource types available in the system
+ * Resource types that can be protected
  */
 export enum ResourceType {
-  // User data
+  // User resources
   USER = 'user',
-  PROFILE = 'profile',
+  USER_PROFILE = 'user_profile',
   
   // Health data
-  HEALTH_DATA = 'health_data',
-  MEDICAL_RECORD = 'medical_record',
-  APPOINTMENT = 'appointment',
+  HEALTH_METRIC = 'health_metric',
   MEDICATION = 'medication',
   SYMPTOM = 'symptom',
-  DIAGNOSIS = 'diagnosis',
+  APPOINTMENT = 'appointment',
   
-  // Wellness features
-  WELLNESS_CHALLENGE = 'wellness_challenge',
-  HEALTH_JOURNEY = 'health_journey',
-  MEAL_PLAN = 'meal_plan',
-  EXERCISE_PLAN = 'exercise_plan',
-  MEDITATION = 'meditation',
+  // Content
+  FORUM_POST = 'forum_post',
+  HEALTH_ARTICLE = 'health_article',
+  HEALTH_NEWS = 'health_news',
   
-  // Other resources
-  CONTENT = 'content',
-  NOTIFICATION = 'notification',
-  REPORT = 'report',
-  INTEGRATION = 'integration',
-  
-  // System level
+  // System
   SYSTEM = 'system',
   ADMIN = 'admin'
 }
 
 /**
- * Permission object combining resource type, action, and conditions
+ * Actions that can be performed on resources
  */
-export interface Permission {
-  resourceType: ResourceType;
-  action: ResourceAction;
-  conditions?: PermissionCondition[];
+export enum Action {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  MANAGE = 'manage'
 }
 
 /**
- * Conditional permissions that limit the scope of access
+ * User roles within the system
+ */
+export enum Role {
+  PATIENT = 'patient',
+  DOCTOR = 'doctor',
+  NURSE = 'nurse',
+  ADMIN = 'admin',
+  CONTENT_MANAGER = 'content_manager',
+  SYSTEM = 'system'
+}
+
+/**
+ * Permission definition structure
+ */
+export interface Permission {
+  role: Role;
+  resource: ResourceType;
+  action: Action;
+  condition?: PermissionCondition;
+}
+
+/**
+ * Condition types for conditional permissions
+ */
+export enum ConditionType {
+  OWNER = 'owner',
+  ASSIGNED = 'assigned',
+  TIMEFRAME = 'timeframe',
+  RELATIONSHIP = 'relationship',
+  CUSTOM = 'custom'
+}
+
+/**
+ * Permission condition structure
  */
 export interface PermissionCondition {
   type: ConditionType;
-  field?: string;
-  value?: any;
+  params?: Record<string, any>;
 }
 
 /**
- * Types of conditions that can be applied to permissions
+ * Context for permission checks
  */
-export enum ConditionType {
-  // Resource is owned by the user
-  OWNERSHIP = 'ownership',
-  
-  // Resource is shared with the user
-  SHARED = 'shared',
-  
-  // Resource has a specific field value
-  FIELD_EQUALS = 'field_equals',
-  
-  // Resource has a specific field containing a value
-  FIELD_CONTAINS = 'field_contains',
-  
-  // Resource has a related field value
-  RELATION_EQUALS = 'relation_equals',
-  
-  // Time-based condition (e.g., within last 30 days)
-  TIME_RANGE = 'time_range'
+export interface PermissionContext {
+  userId: number;
+  userRoles: Role[];
+  resourceId?: number;
+  resourceOwnerId?: number;
+  relationshipIds?: number[];
+  customData?: Record<string, any>;
 }
 
 /**
- * Role definitions with associated permissions
+ * Base permission definition sets
+ * These define what different roles can do
  */
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: Permission[];
-}
-
-/**
- * Standard system roles
- */
-export const SystemRoles: Record<string, Role> = {
-  ADMIN: {
-    id: 'admin',
-    name: 'Administrator',
-    description: 'Full system access with all permissions',
-    permissions: [
-      {
-        resourceType: ResourceType.SYSTEM,
-        action: ResourceAction.ADMIN
-      }
-    ]
+export const BASE_PERMISSIONS: Permission[] = [
+  // Patient permissions
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.USER_PROFILE,
+    action: Action.READ,
+    condition: { type: ConditionType.OWNER }
   },
-  
-  USER: {
-    id: 'user',
-    name: 'Standard User',
-    description: 'Regular user with access to own data',
-    permissions: [
-      // User permissions
-      {
-        resourceType: ResourceType.USER,
-        action: ResourceAction.READ,
-        conditions: [{ type: ConditionType.OWNERSHIP }]
-      },
-      {
-        resourceType: ResourceType.USER,
-        action: ResourceAction.UPDATE,
-        conditions: [{ type: ConditionType.OWNERSHIP }]
-      },
-      
-      // Health data permissions
-      {
-        resourceType: ResourceType.HEALTH_DATA,
-        action: ResourceAction.CREATE
-      },
-      {
-        resourceType: ResourceType.HEALTH_DATA,
-        action: ResourceAction.READ,
-        conditions: [{ type: ConditionType.OWNERSHIP }]
-      },
-      {
-        resourceType: ResourceType.HEALTH_DATA,
-        action: ResourceAction.UPDATE,
-        conditions: [{ type: ConditionType.OWNERSHIP }]
-      },
-      {
-        resourceType: ResourceType.HEALTH_DATA,
-        action: ResourceAction.DELETE,
-        conditions: [{ type: ConditionType.OWNERSHIP }]
-      },
-      
-      // Access to shared content
-      {
-        resourceType: ResourceType.CONTENT,
-        action: ResourceAction.READ
-      }
-    ]
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.USER_PROFILE,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
   },
-  
-  GUEST: {
-    id: 'guest',
-    name: 'Guest',
-    description: 'Limited access for unauthenticated users',
-    permissions: [
-      {
-        resourceType: ResourceType.CONTENT,
-        action: ResourceAction.READ,
-        conditions: [{ 
-          type: ConditionType.FIELD_EQUALS,
-          field: 'isPublic',
-          value: true
-        }]
-      }
-    ]
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.CREATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.READ,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.DELETE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.LIST,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.MEDICATION,
+    action: Action.CREATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.MEDICATION,
+    action: Action.READ,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.MEDICATION,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.MEDICATION,
+    action: Action.DELETE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.MEDICATION,
+    action: Action.LIST,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.SYMPTOM,
+    action: Action.CREATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.SYMPTOM,
+    action: Action.READ,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.SYMPTOM,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.SYMPTOM,
+    action: Action.DELETE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.SYMPTOM,
+    action: Action.LIST,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.CREATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.READ,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.DELETE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.LIST,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.FORUM_POST,
+    action: Action.CREATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.FORUM_POST,
+    action: Action.READ
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.FORUM_POST,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.FORUM_POST,
+    action: Action.DELETE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.FORUM_POST,
+    action: Action.LIST
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.READ
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.LIST
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.READ
+  },
+  {
+    role: Role.PATIENT,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.LIST
+  },
+
+  // Doctor permissions
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.USER_PROFILE,
+    action: Action.READ
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.MEDICATION,
+    action: Action.CREATE
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.MEDICATION,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.MEDICATION,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.MEDICATION,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.SYMPTOM,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.SYMPTOM,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.CREATE
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.READ,
+    condition: { type: ConditionType.ASSIGNED }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.ASSIGNED }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.LIST,
+    condition: { type: ConditionType.ASSIGNED }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.FORUM_POST,
+    action: Action.CREATE
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.FORUM_POST,
+    action: Action.READ
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.FORUM_POST,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.FORUM_POST,
+    action: Action.LIST
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.CREATE
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.READ
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.UPDATE,
+    condition: { type: ConditionType.OWNER }
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.LIST
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.READ
+  },
+  {
+    role: Role.DOCTOR,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.LIST
+  },
+
+  // Nurse permissions
+  {
+    role: Role.NURSE,
+    resource: ResourceType.USER_PROFILE,
+    action: Action.READ
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_METRIC,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.MEDICATION,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.MEDICATION,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.SYMPTOM,
+    action: Action.READ,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.SYMPTOM,
+    action: Action.LIST,
+    condition: { type: ConditionType.RELATIONSHIP }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.READ,
+    condition: { type: ConditionType.ASSIGNED }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.APPOINTMENT,
+    action: Action.LIST,
+    condition: { type: ConditionType.ASSIGNED }
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.FORUM_POST,
+    action: Action.READ
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.FORUM_POST,
+    action: Action.LIST
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.READ
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.LIST
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.READ
+  },
+  {
+    role: Role.NURSE,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.LIST
+  },
+
+  // Content Manager permissions
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.FORUM_POST,
+    action: Action.READ
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.FORUM_POST,
+    action: Action.UPDATE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.FORUM_POST,
+    action: Action.DELETE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.FORUM_POST,
+    action: Action.LIST
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.CREATE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.READ
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.UPDATE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.DELETE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_ARTICLE,
+    action: Action.LIST
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.CREATE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.READ
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.UPDATE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.DELETE
+  },
+  {
+    role: Role.CONTENT_MANAGER,
+    resource: ResourceType.HEALTH_NEWS,
+    action: Action.LIST
+  },
+
+  // Admin permissions - has access to everything
+  {
+    role: Role.ADMIN,
+    resource: ResourceType.ADMIN,
+    action: Action.MANAGE
+  },
+
+  // System permissions
+  {
+    role: Role.SYSTEM,
+    resource: ResourceType.SYSTEM,
+    action: Action.MANAGE
   }
-};
-
-// Adding healthcare provider role separately to avoid circular references
-SystemRoles.HEALTHCARE_PROVIDER = {
-  id: 'healthcare_provider',
-  name: 'Healthcare Provider',
-  description: 'Medical professional with additional access to patient data',
-  permissions: [
-    // Basic permissions similar to user
-    {
-      resourceType: ResourceType.USER,
-      action: ResourceAction.READ,
-      conditions: [{ type: ConditionType.OWNERSHIP }]
-    },
-    {
-      resourceType: ResourceType.USER,
-      action: ResourceAction.UPDATE,
-      conditions: [{ type: ConditionType.OWNERSHIP }]
-    },
-    {
-      resourceType: ResourceType.HEALTH_DATA,
-      action: ResourceAction.CREATE
-    },
-    {
-      resourceType: ResourceType.HEALTH_DATA,
-      action: ResourceAction.READ,
-      conditions: [{ type: ConditionType.OWNERSHIP }]
-    },
-    {
-      resourceType: ResourceType.HEALTH_DATA,
-      action: ResourceAction.UPDATE,
-      conditions: [{ type: ConditionType.OWNERSHIP }]
-    },
-    {
-      resourceType: ResourceType.HEALTH_DATA,
-      action: ResourceAction.DELETE,
-      conditions: [{ type: ConditionType.OWNERSHIP }]
-    },
-    {
-      resourceType: ResourceType.CONTENT,
-      action: ResourceAction.READ
-    },
-    
-    // Additional provider permissions
-    {
-      resourceType: ResourceType.MEDICAL_RECORD,
-      action: ResourceAction.READ,
-      conditions: [{ type: ConditionType.SHARED }]
-    },
-    {
-      resourceType: ResourceType.APPOINTMENT,
-      action: ResourceAction.CREATE
-    },
-    {
-      resourceType: ResourceType.APPOINTMENT,
-      action: ResourceAction.READ,
-      conditions: [{ type: ConditionType.RELATION_EQUALS }]
-    }
-  ]
-};
+];
