@@ -182,14 +182,14 @@ export const generateTokens = async (user: User) => {
   // Generate access token
   const accessToken = jwt.sign(
     { userId: user.id, tokenId },
-    AUTH_CONFIG.jwtSecret,
+    AUTH_CONFIG.jwtSecret as jwt.Secret,
     { expiresIn: AUTH_CONFIG.accessTokenExpiry }
   );
   
   // Generate refresh token
   const refreshToken = jwt.sign(
     { userId: user.id, tokenId },
-    AUTH_CONFIG.jwtSecret,
+    AUTH_CONFIG.jwtSecret as jwt.Secret,
     { expiresIn: AUTH_CONFIG.refreshTokenExpiry }
   );
 
