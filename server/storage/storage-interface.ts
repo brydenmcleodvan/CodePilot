@@ -12,7 +12,10 @@ import {
   HealthDataConnection, InsertHealthDataConnection,
   TokenMetadata, InsertTokenMetadata,
   UserRelationship, InsertUserRelationship,
-  HealthcareRelationship, InsertHealthcareRelationship
+  HealthcareRelationship, InsertHealthcareRelationship,
+  UserRole, InsertUserRole,
+  ResourceOwnership, InsertResourceOwnership,
+  ResourceAssignment, InsertResourceAssignment
 } from '@shared/health-schema';
 
 import {

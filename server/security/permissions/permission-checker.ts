@@ -40,7 +40,7 @@ export class PermissionChecker {
     }
 
     // Get user roles
-    const userRoles = user.roles || [Role.PATIENT]; // Default to PATIENT if no roles
+    const userRoles = (user.roles?.map(role => role as Role) || [Role.PATIENT]); // Default to PATIENT if no roles
     
     // Admin role has all permissions
     if (userRoles.includes(Role.ADMIN)) {

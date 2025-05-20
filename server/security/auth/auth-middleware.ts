@@ -43,7 +43,7 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
     }
 
     // Verify token
-    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as TokenPayload;
+    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
     
     // Check if token has been revoked
     const tokenMetadata = await storage.getTokenById(decoded.tokenId);
@@ -87,7 +87,7 @@ export const handleTokenRefresh = async (req: Request, res: Response, next: Next
     }
 
     // Verify refresh token
-    const decoded = jwt.verify(refreshToken, AUTH_CONFIG.jwtSecret) as TokenPayload;
+    const decoded = jwt.verify(refreshToken, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
     
     // Check if token has been revoked
     const tokenMetadata = await storage.getTokenById(decoded.tokenId);
@@ -147,7 +147,7 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
     }
 
     // Verify token
-    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret) as TokenPayload;
+    const decoded = jwt.verify(token, AUTH_CONFIG.jwtSecret as jwt.Secret) as TokenPayload;
     
     // Check if token has been revoked
     const tokenMetadata = await storage.getTokenById(decoded.tokenId);
