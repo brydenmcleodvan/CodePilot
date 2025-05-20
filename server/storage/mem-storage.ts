@@ -541,7 +541,11 @@ export class MemStorage implements IStorage {
     const newEvent: UserEvent = {
       ...event,
       id: newId,
-      timestamp: new Date()
+      timestamp: new Date(),
+      eventData: event.eventData || null,
+      deviceInfo: event.deviceInfo || null,
+      ipAddress: event.ipAddress || null,
+      sessionId: event.sessionId || null
     };
     
     this.userEvents.push(newEvent);
@@ -556,7 +560,11 @@ export class MemStorage implements IStorage {
     const newFeedback: UserFeedback = {
       ...feedback,
       id: newId,
-      timestamp: new Date()
+      timestamp: new Date(),
+      deviceInfo: feedback.deviceInfo || null,
+      rating: feedback.rating || null,
+      pageUrl: feedback.pageUrl || null,
+      resolved: feedback.resolved || null
     };
     
     this.userFeedback.push(newFeedback);
@@ -571,7 +579,13 @@ export class MemStorage implements IStorage {
     const newErrorLog: ErrorLog = {
       ...error,
       id: newId,
-      timestamp: new Date()
+      timestamp: new Date(),
+      userId: error.userId || null,
+      pageUrl: error.pageUrl || null,
+      resolved: error.resolved || null,
+      stackTrace: error.stackTrace || null,
+      browserInfo: error.browserInfo || null,
+      componentName: error.componentName || null
     };
     
     this.errorLogs.push(newErrorLog);
@@ -605,9 +619,15 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newNews: HealthNews = {
-      ...news,
       id: newId,
-      publishDate: news.publishDate || new Date()
+      title: news.title,
+      content: news.content,
+      publishDate: news.publishDate || new Date(),
+      tags: news.tags || null,
+      source: news.source || null,
+      author: news.author || null,
+      url: news.url || null,
+      imageUrl: news.imageUrl || null
     };
     
     this.healthNews.push(newNews);
@@ -651,9 +671,18 @@ export class MemStorage implements IStorage {
       : 1;
     
     const newArticle: HealthArticle = {
-      ...article,
       id: newId,
-      publishDate: article.publishDate || new Date()
+      title: article.title,
+      content: article.content,
+      summary: article.summary,
+      category: article.category,
+      publishedAt: article.publishedAt || new Date(),
+      tags: article.tags || null,
+      imageUrl: article.imageUrl || null,
+      authorName: article.authorName || null,
+      sourceName: article.sourceName || null,
+      sourceUrl: article.sourceUrl || null,
+      readTime: article.readTime || null
     };
     
     this.healthArticles.push(newArticle);
