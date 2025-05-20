@@ -1,11 +1,7 @@
 import { 
   User, InsertUser, 
   ForumPost, InsertForumPost,
-  HealthNews, InsertHealthNews,
-  HealthArticle, InsertHealthArticle,
-  UserEvent, InsertUserEvent,
-  UserFeedback, InsertUserFeedback,
-  ErrorLog, InsertErrorLog
+  HealthArticle, InsertHealthArticle
 } from '@shared/schema';
 
 import {
@@ -17,6 +13,13 @@ import {
   TokenMetadata, InsertTokenMetadata,
   TokenRevocation, InsertTokenRevocation
 } from '@shared/health-schema';
+
+import {
+  HealthNews, InsertHealthNews,
+  UserEvent, InsertUserEvent,
+  UserFeedback, InsertUserFeedback,
+  ErrorLog, InsertErrorLog
+} from '@shared/schema-analytics';
 
 import { IStorage } from './storage-interface';
 
@@ -109,7 +112,12 @@ export class MemStorage implements IStorage {
     
     const newUser: User = {
       ...user,
-      id: newId
+      id: newId,
+      profilePicture: user.profilePicture || null,
+      healthData: user.healthData || null,
+      gender: user.gender || null,
+      birthDate: user.birthDate || null,
+      preferences: user.preferences || null
     };
     
     this.users.push(newUser);
@@ -147,7 +155,10 @@ export class MemStorage implements IStorage {
     const newPost: ForumPost = {
       ...post,
       id: newId,
-      createdAt: new Date()
+      timestamp: new Date(),
+      upvotes: post.upvotes || 0,
+      downvotes: post.downvotes || 0,
+      tags: post.tags || null
     };
     
     this.posts.push(newPost);
@@ -189,7 +200,10 @@ export class MemStorage implements IStorage {
     const newMetric: HealthMetric = {
       ...metric,
       id: newId,
-      timestamp: metric.timestamp ? new Date(metric.timestamp) : new Date()
+      timestamp: metric.timestamp ? new Date(metric.timestamp) : new Date(),
+      unit: metric.unit || null,
+      notes: metric.notes || null,
+      source: metric.source || null
     };
     
     this.healthMetrics.push(newMetric);
@@ -236,7 +250,12 @@ export class MemStorage implements IStorage {
       ...medication,
       id: newId,
       startDate: medication.startDate ? new Date(medication.startDate) : new Date(),
-      endDate: medication.endDate ? new Date(medication.endDate) : null
+      endDate: medication.endDate ? new Date(medication.endDate) : null,
+      notes: medication.notes || null,
+      dosage: medication.dosage || null,
+      frequency: medication.frequency || null,
+      prescribedBy: medication.prescribedBy || null,
+      active: medication.active !== undefined ? medication.active : null
     };
     
     this.medications.push(newMedication);
@@ -283,7 +302,10 @@ export class MemStorage implements IStorage {
       ...symptom,
       id: newId,
       startTime: symptom.startTime ? new Date(symptom.startTime) : new Date(),
-      endTime: symptom.endTime ? new Date(symptom.endTime) : null
+      endTime: symptom.endTime ? new Date(symptom.endTime) : null,
+      notes: symptom.notes || null,
+      relatedCondition: symptom.relatedCondition || null,
+      bodyLocation: symptom.bodyLocation || null
     };
     
     this.symptoms.push(newSymptom);
@@ -330,7 +352,12 @@ export class MemStorage implements IStorage {
       ...appointment,
       id: newId,
       datetime: appointment.datetime ? new Date(appointment.datetime) : new Date(),
-      reminderTime: appointment.reminderTime ? new Date(appointment.reminderTime) : null
+      reminderTime: appointment.reminderTime ? new Date(appointment.reminderTime) : null,
+      notes: appointment.notes || null,
+      type: appointment.type || null,
+      status: appointment.status || null,
+      location: appointment.location || null,
+      duration: appointment.duration || null
     };
     
     this.appointments.push(newAppointment);
@@ -377,7 +404,12 @@ export class MemStorage implements IStorage {
       ...connection,
       id: newId,
       expiresAt: connection.expiresAt ? new Date(connection.expiresAt) : null,
-      lastSynced: connection.lastSynced ? new Date(connection.lastSynced) : null
+      lastSynced: connection.lastSynced ? new Date(connection.lastSynced) : null,
+      active: connection.active !== undefined ? connection.active : null,
+      accessToken: connection.accessToken || null,
+      refreshToken: connection.refreshToken || null,
+      scope: connection.scope || null,
+      settings: connection.settings || null
     };
     
     this.healthDataConnections.push(newConnection);
@@ -416,7 +448,9 @@ export class MemStorage implements IStorage {
       ...metadata,
       id: newId,
       issuedAt: new Date(),
-      expiresAt: metadata.expiresAt ? new Date(metadata.expiresAt) : new Date(Date.now() + 86400000)
+      expiresAt: metadata.expiresAt ? new Date(metadata.expiresAt) : new Date(Date.now() + 86400000),
+      isRevoked: metadata.isRevoked !== undefined ? metadata.isRevoked : null,
+      clientInfo: metadata.clientInfo || null
     };
     
     this.tokenMetadata.push(newMetadata);
