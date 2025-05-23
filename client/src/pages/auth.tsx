@@ -15,6 +15,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { insertUserSchema } from "@shared/schema";
 
@@ -26,7 +33,11 @@ const loginSchema = z.object({
 
 const registerSchema = insertUserSchema
   .extend({
-    confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" })
+    confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
+    role: z.enum(['patient', 'provider'], { 
+      required_error: "Please select your role",
+      invalid_type_error: "Please select a valid role" 
+    })
   })
   .refine(data => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -77,7 +88,8 @@ const Auth = () => {
       password: "",
       confirmPassword: "",
       profilePicture: "",
-      healthData: ""
+      healthData: "",
+      role: "patient"
     }
   });
 
@@ -104,17 +116,16 @@ const Auth = () => {
   const handleRegisterSubmit = async (values: RegisterFormValues) => {
     setIsSubmitting(true);
     try {
-      const { confirmPassword, ...userData } = values;
+      const { confirmPassword, role, ...userData } = values;
       
-      // Default profile picture if none provided
-      if (!userData.profilePicture) {
-        userData.profilePicture = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80";
-      }
+      // Set up user data with role array
+      const userDataToSubmit = {
+        ...userData,
+        roles: [role], // Convert single role to array
+        profileImage: userData.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+      };
       
-      // Initialize empty health data
-      userData.healthData = JSON.stringify({});
-      
-      await register(userData);
+      await register(userDataToSubmit);
       toast({
         title: "Registration successful",
         description: "Welcome to Healthmap!"

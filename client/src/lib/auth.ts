@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         // Fetch user data
-        const response = await fetch("/api/user/profile", {
+        const response = await fetch("/api/user", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     try {
       console.log("Attempting login with username:", username);
-      const response = await apiRequest("POST", "/api/auth/login", {
+      const response = await apiRequest("POST", "/api/login", {
         username,
         password,
       });
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
-      const response = await apiRequest("POST", "/api/auth/register", userData);
+      const response = await apiRequest("POST", "/api/register", userData);
       const data = await response.json();
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
