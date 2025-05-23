@@ -126,7 +126,7 @@ export class SecurityValidator {
         patientCreate: patientCreateHealth,
         patientDelete: !patientDeleteHealth, // Should NOT have delete
         providerRead: providerReadHealth,
-        providerCreate: providerCreateHealth,
+        providerCreate: providerCreateHealth, // Should have create
         adminRead: adminReadHealth,
         adminDelete: adminDeleteHealth
       };
