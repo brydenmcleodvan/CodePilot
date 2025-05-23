@@ -72,7 +72,21 @@ export interface IStorage {
 
 // In-memory implementation
 class MemStorage implements IStorage {
-  private users: User[] = [];
+  private users: User[] = [
+    {
+      id: 1,
+      username: "johndoe",
+      email: "john@healthmap.com",
+      name: "John Doe",
+      password: "$2b$12$yw/SHgEJaEnjqkKJ6y2wu.4Bttnz0cNDwGfcPm0BbinRPGn.rMkZC", // "password123"
+      roles: ["patient"],
+      createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
+      preferences: null,
+      profileImage: null,
+      bio: null
+    }
+  ];
   private forumPosts: ForumPost[] = [];
   private healthMetrics: HealthMetric[] = [];
   private medications: Medication[] = [];
