@@ -1,2037 +1,443 @@
-import {
-  users,
-  healthStats,
-  medications,
-  medicationHistory,
-  connections,
-  forumPosts,
-  newsUpdates,
-  products,
-  symptoms,
-  symptomChecks,
-  appointments,
-  healthDataConnections,
-  healthJourneyEntries,
-  healthCoachingPlans,
-  wellnessChallenges,
-  userChallengeProgress,
-  mentalHealthAssessments,
-  moodEntries,
-  healthArticles,
-  mealPlans,
-  mealPlanEntries,
-  cycleEntries,
-  cycleAnalysis,
-  type User,
-  type InsertUser,
-  type HealthStat,
-  type InsertHealthStat,
-  type Medication,
-  type InsertMedication,
-  type MedicationHistory,
-  type InsertMedicationHistory,
-  type Connection,
-  type InsertConnection,
-  type ForumPost,
-  type InsertForumPost,
-  type NewsUpdate,
-  type InsertNewsUpdate,
-  type Product,
-  type InsertProduct,
-  type Symptom,
-  type InsertSymptom,
-  type SymptomCheck,
-  type InsertSymptomCheck,
-  type Appointment,
-  type InsertAppointment,
-  type HealthDataConnection,
-  type InsertHealthDataConnection,
-  type HealthJourneyEntry,
-  type InsertHealthJourneyEntry,
-  type HealthCoachingPlan,
-  type InsertHealthCoachingPlan,
-  type WellnessChallenge,
-  type InsertWellnessChallenge,
-  type UserChallengeProgress,
-  type InsertUserChallengeProgress,
-  type MentalHealthAssessment,
-  type InsertMentalHealthAssessment,
-  type MoodEntry,
-  type InsertMoodEntry,
-  type HealthArticle,
-  type InsertHealthArticle,
-  type MealPlan,
-  type InsertMealPlan,
-  type MealPlanEntry,
-  type InsertMealPlanEntry,
-  type CycleEntry,
-  type InsertCycleEntry,
-  type CycleAnalysis,
-  type InsertCycleAnalysis
-} from "@shared/schema";
-import {
-  type UserFeedback,
-  type InsertUserFeedback,
-  type ErrorLog,
-  type InsertErrorLog,
-  type UserEvent,
-  type InsertUserEvent
-} from "@shared/analytics-schema";
-import bcrypt from "bcryptjs";
+import { 
+  User, 
+  HealthMetric, 
+  Medication, 
+  Symptom, 
+  Appointment, 
+  HealthDataConnection, 
+  HealthArticle,
+  ForumPost
+} from '@shared/schema';
 
-// Modify the interface with any CRUD methods you might need
+// Define the storage interface for authentication and data operations
 export interface IStorage {
-  // User Management
+  // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
-  updateUserPreferences(id: number, preferences: string): Promise<User | undefined>;
-
-  // Health Stats
-  getUserHealthStats(userId: number): Promise<HealthStat[]>;
-  addHealthStat(stat: InsertHealthStat): Promise<HealthStat>;
+  createUser(userData: Omit<User, 'id'>): Promise<User>;
+  updateUser(id: number, userData: Partial<User>): Promise<User>;
+  
+  // Health metrics
+  getHealthMetrics(userId: number): Promise<HealthMetric[]>;
+  getHealthMetric(id: number): Promise<HealthMetric | undefined>;
+  addHealthMetric(metricData: Omit<HealthMetric, 'id'>): Promise<HealthMetric>;
   
   // Medications
-  getUserMedications(userId: number): Promise<Medication[]>;
-  addMedication(medication: InsertMedication): Promise<Medication>;
-  getMedicationById(id: number): Promise<Medication | undefined>;
-  markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined>;
-  updateMedication(id: number, medicationData: Partial<Medication>): Promise<Medication | undefined>;
+  getMedications(userId: number): Promise<Medication[]>;
+  getMedication(id: number): Promise<Medication | undefined>;
+  addMedication(medicationData: Omit<Medication, 'id'>): Promise<Medication>;
   
-  // Medication History
-  getMedicationHistory(medicationId: number): Promise<MedicationHistory[]>;
-  getUserMedicationHistory(userId: number): Promise<MedicationHistory[]>;
-  addMedicationHistory(entry: InsertMedicationHistory): Promise<MedicationHistory>;
-  getMedicationAdherenceRate(medicationId: number): Promise<number>; // Returns percentage of medication taken on time
-
-  // Connections
-  getUserConnections(userId: number): Promise<{ connection: User, relationship: string, specific: string }[]>;
-  addConnection(connection: InsertConnection): Promise<Connection>;
-  removeConnection(userId: number, connectionId: number): Promise<boolean>;
-
-  // Forum Posts
-  getForumPosts(subreddit?: string): Promise<ForumPost[]>;
-  getUserForumPosts(userId: number): Promise<ForumPost[]>;
-  createForumPost(post: InsertForumPost): Promise<ForumPost>;
-  updateForumPostVotes(id: number, upvote: boolean): Promise<ForumPost | undefined>;
-
-  // News & Updates
-  getNewsUpdates(limit?: number, category?: string): Promise<NewsUpdate[]>;
-  createNewsUpdate(update: InsertNewsUpdate): Promise<NewsUpdate>;
-
-  // Products
-  getProducts(category?: string, recommendedFor?: string[]): Promise<Product[]>;
-  getProductById(id: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  getProductRecommendations(userId: number): Promise<Product[]>;
-  
-  // Symptom Checker
-  getSymptoms(bodyArea?: string, severity?: string): Promise<Symptom[]>;
-  getSymptomById(id: number): Promise<Symptom | undefined>;
-  createSymptom(symptom: InsertSymptom): Promise<Symptom>;
-  
-  // Symptom Checks
-  getUserSymptomChecks(userId: number): Promise<SymptomCheck[]>;
-  getSymptomCheckById(id: number): Promise<SymptomCheck | undefined>;
-  createSymptomCheck(check: InsertSymptomCheck): Promise<SymptomCheck>;
+  // Symptoms
+  getSymptoms(userId: number): Promise<Symptom[]>;
+  getSymptom(id: number): Promise<Symptom | undefined>;
+  addSymptom(symptomData: Omit<Symptom, 'id'>): Promise<Symptom>;
   
   // Appointments
-  getUserAppointments(userId: number): Promise<Appointment[]>;
-  getAppointmentById(id: number): Promise<Appointment | undefined>;
-  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
-  updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment | undefined>;
+  getAppointments(userId: number): Promise<Appointment[]>;
+  getAppointment(id: number): Promise<Appointment | undefined>;
+  addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<Appointment>;
   
-  // Health Data Connections
-  getUserHealthDataConnections(userId: number): Promise<HealthDataConnection[]>;
-  getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined>;
-  createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection>;
-  updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined>;
+  // Health data connections
+  getHealthDataConnections(userId: number): Promise<HealthDataConnection[]>;
+  getHealthDataConnection(id: number): Promise<HealthDataConnection | undefined>;
+  addHealthDataConnection(connectionData: Omit<HealthDataConnection, 'id'>): Promise<HealthDataConnection>;
   
-  // Health Journey Tracking
-  getUserHealthJourneyEntries(userId: number): Promise<HealthJourneyEntry[]>;
-  getHealthJourneyEntryById(id: number): Promise<HealthJourneyEntry | undefined>;
-  createHealthJourneyEntry(entry: InsertHealthJourneyEntry): Promise<HealthJourneyEntry>;
-  updateHealthJourneyEntry(id: number, entryData: Partial<HealthJourneyEntry>): Promise<HealthJourneyEntry | undefined>;
+  // Forum posts
+  getForumPosts(): Promise<ForumPost[]>;
+  getForumPost(id: number): Promise<ForumPost | undefined>;
+  addForumPost(postData: Omit<ForumPost, 'id'>): Promise<ForumPost>;
   
-  // Health Coaching
-  getUserHealthCoachingPlans(userId: number): Promise<HealthCoachingPlan[]>;
-  getHealthCoachingPlanById(id: number): Promise<HealthCoachingPlan | undefined>;
-  createHealthCoachingPlan(plan: InsertHealthCoachingPlan): Promise<HealthCoachingPlan>;
-  updateHealthCoachingPlan(id: number, planData: Partial<HealthCoachingPlan>): Promise<HealthCoachingPlan | undefined>;
+  // Health articles and news
+  getHealthArticles(): Promise<HealthArticle[]>;
+  getHealthArticle(id: number): Promise<HealthArticle | undefined>;
+  getHealthNews(): Promise<any[]>; // Simplified news structure
   
-  // Wellness Challenges & Gamification
-  getWellnessChallenges(category?: string): Promise<WellnessChallenge[]>;
-  getWellnessChallengeById(id: number): Promise<WellnessChallenge | undefined>;
-  createWellnessChallenge(challenge: InsertWellnessChallenge): Promise<WellnessChallenge>;
+  // Security and permissions
   
-  // User Challenge Progress
-  getUserChallengeProgresses(userId: number): Promise<(UserChallengeProgress & { challenge: WellnessChallenge })[]>;
-  getUserChallengeProgressById(id: number): Promise<UserChallengeProgress | undefined>;
-  createUserChallengeProgress(progress: InsertUserChallengeProgress): Promise<UserChallengeProgress>;
-  updateUserChallengeProgress(id: number, progressData: Partial<UserChallengeProgress>): Promise<UserChallengeProgress | undefined>;
+  // Token management
+  getTokenById(tokenId: string): Promise<any>;
+  storeTokenMetadata(tokenData: any): Promise<void>;
+  revokeToken(tokenId: string): Promise<void>;
+  revokeAllUserTokens(userId: number): Promise<void>;
   
-  // Mental Health Integration
-  getUserMentalHealthAssessments(userId: number): Promise<MentalHealthAssessment[]>;
-  getMentalHealthAssessmentById(id: number): Promise<MentalHealthAssessment | undefined>;
-  createMentalHealthAssessment(assessment: InsertMentalHealthAssessment): Promise<MentalHealthAssessment>;
+  // Resource ownership
+  getResourceOwnerId(resourceId: number, resourceType: string): Promise<number | null>;
+  isUserAssignedToResource(userId: number, resourceId: number, resourceType: string): Promise<boolean>;
   
-  // Mood Tracking
-  getUserMoodEntries(userId: number): Promise<MoodEntry[]>;
-  getMoodEntryById(id: number): Promise<MoodEntry | undefined>;
-  createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry>;
-  updateMoodEntry(id: number, entryData: Partial<MoodEntry>): Promise<MoodEntry | undefined>;
-  deleteMoodEntry(id: number): Promise<boolean>;
-  
-  // Health Library
-  getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]>;
-  getHealthArticleById(id: number): Promise<HealthArticle | undefined>;
-  createHealthArticle(article: InsertHealthArticle): Promise<HealthArticle>;
-  
-  // Meal Planning
-  getUserMealPlans(userId: number): Promise<MealPlan[]>;
-  getMealPlanById(id: number): Promise<MealPlan | undefined>;
-  createMealPlan(plan: InsertMealPlan): Promise<MealPlan>;
-  updateMealPlan(id: number, planData: Partial<MealPlan>): Promise<MealPlan | undefined>;
-  
-  // Meal Plan Entries
-  getMealPlanEntries(mealPlanId: number): Promise<MealPlanEntry[]>;
-  getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
-  createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
-  updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
-  
-  // Women's Health - Cycle Tracking
-  getUserCycleEntries(userId: number, startDate?: Date, endDate?: Date): Promise<CycleEntry[]>;
-  getCycleEntryById(id: number): Promise<CycleEntry | undefined>;
-  createCycleEntry(entry: InsertCycleEntry): Promise<CycleEntry>;
-  updateCycleEntry(id: number, entryData: Partial<CycleEntry>): Promise<CycleEntry | undefined>;
-  deleteCycleEntry(id: number): Promise<boolean>;
-  getUserCycleAnalysis(userId: number): Promise<CycleAnalysis | undefined>;
-  createCycleAnalysis(analysis: InsertCycleAnalysis): Promise<CycleAnalysis>;
-  updateCycleAnalysis(id: number, analysisData: Partial<CycleAnalysis>): Promise<CycleAnalysis | undefined>;
-  
-  // Analytics & Feedback
-  getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]>;
-  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
-  
-  // Error Logging
-  getErrorLogs(limit?: number): Promise<ErrorLog[]>;
-  createErrorLog(error: InsertErrorLog): Promise<ErrorLog>;
-  
-  // User Event Tracking
-  getUserEvents(userId?: number, category?: string): Promise<UserEvent[]>;
-  createUserEvent(event: InsertUserEvent): Promise<UserEvent>;
-  
-  // Analytics & Feedback
-  getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]>;
-  createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback>;
-  getErrorLogs(limit?: number): Promise<ErrorLog[]>;
-  createErrorLog(error: InsertErrorLog): Promise<ErrorLog>;
+  // Healthcare relationships
+  hasHealthcareRelationship(providerId: number, patientId: number): Promise<boolean>;
+  getHealthcareRelationships(providerId: number): Promise<any[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private healthStats: Map<number, HealthStat>;
-  private medications: Map<number, Medication>;
-  private medicationHistories: Map<number, MedicationHistory>;
-  private connections: Map<number, Connection>;
-  private forumPosts: Map<number, ForumPost>;
-  private newsUpdates: Map<number, NewsUpdate>;
-  private products: Map<number, Product>;
-  private symptoms: Map<number, Symptom>;
-  private symptomChecks: Map<number, SymptomCheck>;
-  private appointments: Map<number, Appointment>;
-  private healthDataConnections: Map<number, HealthDataConnection>;
-  private healthJourneyEntries: Map<number, HealthJourneyEntry>;
-  private healthCoachingPlans: Map<number, HealthCoachingPlan>;
+// In-memory implementation
+class MemStorage implements IStorage {
+  private users: User[] = [];
+  private forumPosts: ForumPost[] = [];
+  private healthMetrics: HealthMetric[] = [];
+  private medications: Medication[] = [];
+  private symptoms: Symptom[] = [];
+  private appointments: Appointment[] = [];
+  private healthConnections: HealthDataConnection[] = [];
+  private healthArticles: HealthArticle[] = [];
+  private tokenMetadata: any[] = [];
+  private healthcareRelationships: any[] = [];
+  private resourceOwnership: { resourceId: number; resourceType: string; ownerId: number }[] = [];
+  private resourceAssignments: { resourceId: number; resourceType: string; userId: number }[] = [];
   
-  private wellnessChallenges: Map<number, WellnessChallenge>;
-  private userChallengeProgresses: Map<number, UserChallengeProgress>;
-  private mentalHealthAssessments: Map<number, MentalHealthAssessment>;
-  private moodEntries: Map<number, MoodEntry>;
-  private healthArticles: Map<number, HealthArticle>;
-  private mealPlans: Map<number, MealPlan>;
-  private mealPlanEntries: Map<number, MealPlanEntry>;
-  private cycleEntries: Map<number, CycleEntry>;
-  private cycleAnalyses: Map<number, CycleAnalysis>;
-  
-  // Analytics collections
-  private userFeedbacks: Map<number, UserFeedback>;
-  private errorLogs: Map<number, ErrorLog>;
-  private userEvents: Map<number, UserEvent>;
-
-  private userIdCounter: number;
-  private healthStatIdCounter: number;
-  private medicationIdCounter: number;
-  private medicationHistoryIdCounter: number;
-  private connectionIdCounter: number;
-  private forumPostIdCounter: number;
-  private newsUpdateIdCounter: number;
-  private productIdCounter: number;
-  private symptomIdCounter: number;
-  private symptomCheckIdCounter: number;
-  private appointmentIdCounter: number;
-  private healthDataConnectionIdCounter: number;
-  private healthJourneyEntryIdCounter: number;
-  private healthCoachingPlanIdCounter: number;
-  private wellnessChallengeIdCounter: number;
-  private userChallengeProgressIdCounter: number;
-  private mentalHealthAssessmentIdCounter: number;
-  private moodEntryIdCounter: number;
-  private healthArticleIdCounter: number;
-  private mealPlanIdCounter: number;
-  private mealPlanEntryIdCounter: number;
-  private cycleEntryIdCounter: number;
-  private cycleAnalysisIdCounter: number;
-  
-  // Analytics counters
-  private userFeedbackIdCounter: number;
-  private errorLogIdCounter: number;
-  private userEventIdCounter: number;
-
-  constructor() {
-    this.users = new Map();
-    this.healthStats = new Map();
-    this.medications = new Map();
-    this.medicationHistories = new Map();
-    this.connections = new Map();
-    this.forumPosts = new Map();
-    this.newsUpdates = new Map();
-    this.products = new Map();
-    this.symptoms = new Map();
-    this.symptomChecks = new Map();
-    this.appointments = new Map();
-    this.healthDataConnections = new Map();
-    this.healthJourneyEntries = new Map();
-    this.healthCoachingPlans = new Map();
-    this.wellnessChallenges = new Map();
-    this.userChallengeProgresses = new Map();
-    this.mentalHealthAssessments = new Map();
-    this.moodEntries = new Map();
-    this.healthArticles = new Map();
-    this.mealPlans = new Map();
-    this.mealPlanEntries = new Map();
-    this.cycleEntries = new Map();
-    this.cycleAnalyses = new Map();
-    
-    // Initialize analytics collections
-    this.userFeedbacks = new Map();
-    this.errorLogs = new Map();
-    this.userEvents = new Map();
-
-    this.userIdCounter = 1;
-    this.healthStatIdCounter = 1;
-    this.medicationIdCounter = 1;
-    this.medicationHistoryIdCounter = 1;
-    this.connectionIdCounter = 1;
-    this.forumPostIdCounter = 1;
-    this.newsUpdateIdCounter = 1;
-    this.productIdCounter = 1;
-    this.symptomIdCounter = 1;
-    this.symptomCheckIdCounter = 1;
-    this.appointmentIdCounter = 1;
-    this.healthDataConnectionIdCounter = 1;
-    this.healthJourneyEntryIdCounter = 1;
-    this.healthCoachingPlanIdCounter = 1;
-    this.wellnessChallengeIdCounter = 1;
-    this.userChallengeProgressIdCounter = 1;
-    this.mentalHealthAssessmentIdCounter = 1;
-    this.moodEntryIdCounter = 1;
-    this.healthArticleIdCounter = 1;
-    this.mealPlanIdCounter = 1;
-    this.mealPlanEntryIdCounter = 1;
-    this.cycleEntryIdCounter = 1;
-    this.cycleAnalysisIdCounter = 1;
-    
-    // Initialize analytics counters
-    this.userFeedbackIdCounter = 1;
-    this.errorLogIdCounter = 1;
-    this.userEventIdCounter = 1;
-
-    // Add some initial data
-    this.initializeData();
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.find(user => user.id === id);
   }
-
-  private async initializeData() {
-    // Create a reference date
+  
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return this.users.find(user => user.username === username);
+  }
+  
+  async createUser(userData: Omit<User, 'id'>): Promise<User> {
+    const id = this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1;
     const now = new Date();
     
-    // Create some initial users
-    const user1 = await this.createUser({
-      username: "johndoe",
-      password: await bcrypt.hash("password123", 10),
-      email: "john.doe@example.com",
-      name: "John Doe",
-      profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      gender: "male",
-      healthData: JSON.stringify({}),
-      preferences: JSON.stringify({
-        darkMode: true,
-        notifications: true,
-        dataSharingLevel: "minimal"
-      })
-    });
+    const user: User = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...userData,
+      // Ensure required fields have default values
+      name: userData.name ?? null,
+      roles: userData.roles ?? ['patient'],
+      preferences: userData.preferences ?? {},
+      profileImage: userData.profileImage ?? null,
+      bio: userData.bio ?? null
+    };
     
-    // Create Sarah Doe user (female profile)
-    const user2 = await this.createUser({
-      username: "sarahdoe",
-      password: await bcrypt.hash("password123", 10),
-      email: "sarah.doe@example.com",
-      name: "Sarah Doe",
-      profilePicture: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      gender: "female",
-      healthData: JSON.stringify({}),
-      preferences: JSON.stringify({
-        darkMode: true,
-        notifications: true,
-        dataSharingLevel: "minimal",
-        womenHealthTracking: {
-          cycleTracking: true,
-          fertileWindowAlerts: true,
-          periodPrediction: true,
-          symptomLogging: true
-        }
-      })
-    });
-
-    // Add health stats
-    await this.addHealthStat({
-      userId: 1,
-      statType: "heart_rate",
-      value: "72",
-      unit: "bpm",
-      icon: "ri-heart-pulse-line",
-      colorScheme: "primary",
-      timestamp: new Date()
-    });
-
-    await this.addHealthStat({
-      userId: 1,
-      statType: "sleep_quality",
-      value: "7.8",
-      unit: "hrs",
-      icon: "ri-zzz-line",
-      colorScheme: "warning",
-      timestamp: new Date()
-    });
-
-    await this.addHealthStat({
-      userId: 1,
-      statType: "nutrient_status",
-      value: "Zinc Deficient",
-      icon: "ri-capsule-line",
-      colorScheme: "accent",
-      timestamp: new Date()
-    });
-    
-    // Add Sarah's women's health stats
-    await this.addHealthStat({
-      userId: 2,
-      statType: "iron_level",
-      value: "63",
-      unit: "μg/dL",
-      icon: "ri-test-tube-line",
-      colorScheme: "red",
-      timestamp: new Date(now.getTime() - 16 * 24 * 60 * 60 * 1000) // 16 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "estrogen_level",
-      value: "125",
-      unit: "pg/mL",
-      icon: "ri-heart-pulse-line",
-      colorScheme: "purple",
-      timestamp: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "progesterone_level",
-      value: "8.5",
-      unit: "ng/mL",
-      icon: "ri-heart-pulse-line",
-      colorScheme: "pink",
-      timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "fsh_level",
-      value: "6.2",
-      unit: "mIU/mL",
-      icon: "ri-pulse-line",
-      colorScheme: "indigo",
-      timestamp: new Date(now.getTime() - 11 * 24 * 60 * 60 * 1000) // 11 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "lh_level",
-      value: "24.5",
-      unit: "mIU/mL",
-      icon: "ri-pulse-line",
-      colorScheme: "amber",
-      timestamp: new Date(now.getTime() - 9 * 24 * 60 * 60 * 1000) // 9 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "bone_density",
-      value: "1.2",
-      unit: "g/cm²",
-      icon: "ri-bone-line",
-      colorScheme: "sky",
-      timestamp: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) // 30 days ago
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "heart_rate",
-      value: "68",
-      unit: "bpm",
-      icon: "ri-heart-pulse-line",
-      colorScheme: "primary",
-      timestamp: new Date()
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "sleep_quality",
-      value: "8.2",
-      unit: "hrs",
-      icon: "ri-zzz-line",
-      colorScheme: "warning",
-      timestamp: new Date()
-    });
-    
-    await this.addHealthStat({
-      userId: 2,
-      statType: "calcium_level",
-      value: "9.5",
-      unit: "mg/dL",
-      icon: "ri-medicine-bottle-line",
-      colorScheme: "blue",
-      timestamp: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) // 14 days ago
-    });
-    
-    // Add sample medications
-    const tomorrowMorning = new Date(now);
-    tomorrowMorning.setDate(tomorrowMorning.getDate() + 1);
-    tomorrowMorning.setHours(8, 0, 0, 0);
-    
-    const eveningTime = new Date(now);
-    eveningTime.setHours(20, 0, 0, 0);
-    if (eveningTime < now) {
-      eveningTime.setDate(eveningTime.getDate() + 1);
+    this.users.push(user);
+    return user;
+  }
+  
+  async updateUser(id: number, userData: Partial<User>): Promise<User> {
+    const userIndex = this.users.findIndex(user => user.id === id);
+    if (userIndex === -1) {
+      throw new Error('User not found');
     }
     
-    await this.addMedication({
-      userId: 1,
-      name: "Zinc Supplement",
-      dosage: "50mg",
-      schedule: "Every morning",
-      nextDose: tomorrowMorning,
-      lastTaken: new Date(now.getTime() - 24 * 60 * 60 * 1000), // yesterday
-      instructions: "Take with food",
-      active: true
-    });
+    const updatedUser = {
+      ...this.users[userIndex],
+      ...userData,
+      updatedAt: new Date()
+    };
     
-    await this.addMedication({
-      userId: 1,
-      name: "Vitamin D3",
-      dosage: "2000 IU",
-      schedule: "Daily",
-      nextDose: tomorrowMorning,
-      lastTaken: new Date(now.getTime() - 24 * 60 * 60 * 1000), // yesterday
-      instructions: "Take with breakfast",
-      active: true
-    });
-    
-    await this.addMedication({
-      userId: 1,
-      name: "Magnesium Glycinate",
-      dosage: "200mg",
-      schedule: "Every evening",
-      nextDose: eveningTime,
-      lastTaken: null,
-      instructions: "Take 1 hour before bedtime",
-      active: true
-    });
-
-    // Add news updates
-    await this.createNewsUpdate({
-      title: "New Study Links Zinc Levels to Immune Function",
-      content: "Recent research shows strong correlation between zinc levels and overall immune system performance in adults.",
-      thumbnail: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-      category: "Nutrition",
-      timestamp: new Date()
-    });
-
-    await this.createNewsUpdate({
-      title: "The Connection Between Sleep and Mental Wellbeing",
-      content: "Experts highlight how quality sleep directly impacts mental health and cognitive function.",
-      thumbnail: "https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-      category: "Mental Health",
-      timestamp: new Date()
-    });
-
-    await this.createNewsUpdate({
-      title: "How Genetics Influence Exercise Results",
-      content: "New research reveals how genetic factors may explain varying results from identical exercise routines.",
-      thumbnail: "https://images.unsplash.com/photo-1579126038374-6064e9370f0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-      category: "Fitness",
-      timestamp: new Date()
-    });
-
-    // Add products
-    await this.createProduct({
-      name: "Zinc Complex",
-      description: "High-absorption zinc supplement with copper to support immune function.",
-      price: "$24.99",
-      image: "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-      category: "Supplements",
-      tags: ["zinc", "immune", "recommended"],
-      recommendedFor: ["zinc_deficiency"]
-    });
-
-    await this.createProduct({
-      name: "Complete Multivitamin",
-      description: "All-in-one vitamin formula with extra zinc for comprehensive support.",
-      price: "$32.99",
-      image: "https://images.unsplash.com/photo-1565071559227-20ab25b7685e?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-      category: "Supplements",
-      tags: ["multivitamin", "zinc", "recommended"],
-      recommendedFor: ["zinc_deficiency", "general_health"]
-    });
-
-    await this.createProduct({
-      name: "Immune Defense",
-      description: "Comprehensive immune support with zinc, vitamin C, and elderberry.",
-      price: "$29.99",
-      image: "https://images.unsplash.com/photo-1584362917137-56406a73241c?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-      category: "Supplements",
-      tags: ["immune", "zinc", "vitamin c", "popular"],
-      recommendedFor: ["immune_support", "zinc_deficiency"]
-    });
-
-    await this.createProduct({
-      name: "Zinc-Rich Foods Guide",
-      description: "Comprehensive guide to incorporating zinc-rich foods into your diet.",
-      price: "$12.99",
-      image: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
-      category: "Books",
-      tags: ["zinc", "food guide", "nutrition"],
-      recommendedFor: ["zinc_deficiency", "nutrition_education"]
-    });
-
-    // Add forum posts
-    await this.createForumPost({
-      userId: 1,
-      title: "Best food sources for zinc that aren't seafood or red meat?",
-      content: "I recently found out I'm zinc deficient but I don't eat seafood or red meat. Looking for plant-based options that can help increase my zinc levels. Any advice appreciated!",
-      subreddit: "Nutrition",
-      upvotes: 128,
-      downvotes: 5,
-      tags: ["Zinc", "Plant-based", "Deficiency"],
-      timestamp: new Date()
-    });
-
-    await this.createForumPost({
-      userId: 1,
-      title: "STUDY: New research links zinc levels to immune function and metabolism",
-      content: "A new study published in the Journal of Nutritional Science has found significant correlations between zinc levels and both immune function and metabolic health. Here's what you need to know...",
-      subreddit: "Nutrition",
-      upvotes: 95,
-      downvotes: 2,
-      tags: ["Research", "Zinc", "Immunity"],
-      timestamp: new Date()
-    });
-
-    await this.createForumPost({
-      userId: 1,
-      title: "My 30-day experience with zinc supplementation [Before & After]",
-      content: "I decided to document my experience with zinc supplementation after discovering I had low levels. Here's how it affected my energy, skin health, and immune function over 30 days...",
-      subreddit: "Nutrition",
-      upvotes: 64,
-      downvotes: 1,
-      tags: ["Experience", "Zinc", "Supplements"],
-      timestamp: new Date()
-    });
-    
-    // Add sample symptoms
-    await this.createSymptom({
-      name: "Headache",
-      description: "Pain or discomfort in the head, scalp, or neck",
-      bodyArea: "head",
-      severity: "moderate",
-      commonCauses: ["Stress", "Dehydration", "Lack of sleep", "Eye strain"],
-      recommendedActions: ["Rest", "Hydrate", "Over-the-counter pain relievers"]
-    });
-    
-    await this.createSymptom({
-      name: "Fatigue",
-      description: "Feeling of tiredness, lack of energy, or exhaustion",
-      bodyArea: "full_body",
-      severity: "moderate",
-      commonCauses: ["Poor sleep", "Stress", "Nutrient deficiencies", "Anemia"],
-      recommendedActions: ["Rest", "Balanced diet", "Stress management", "Check for deficiencies"]
-    });
-    
-    await this.createSymptom({
-      name: "Chest Pain",
-      description: "Discomfort or pain in the chest area",
-      bodyArea: "chest",
-      severity: "severe",
-      commonCauses: ["Heart issues", "Muscle strain", "Anxiety", "Acid reflux"],
-      recommendedActions: ["Seek immediate medical attention", "Call emergency services"]
-    });
-    
-    // Add sample symptom check for the user
-    await this.createSymptomCheck({
-      userId: 1,
-      timestamp: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      reportedSymptoms: ["Headache", "Fatigue"],
-      preliminaryAssessment: "Possible dehydration or stress-related symptoms",
-      recommendedActions: ["Increase water intake", "Rest", "Over-the-counter pain relievers if needed"],
-      severity: "routine",
-      notes: "Symptoms appeared after long work session with limited water intake"
-    });
-    
-    // Add sample appointments
-    const nextWeek = new Date(now);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(10, 30, 0, 0);
-    
-    const nextWeekEnd = new Date(nextWeek);
-    nextWeekEnd.setHours(11, 15, 0, 0);
-    
-    await this.createAppointment({
-      userId: 1,
-      title: "Annual Physical Checkup",
-      description: "Regular annual physical examination with primary care physician",
-      startTime: nextWeek, 
-      endTime: nextWeekEnd,
-      location: "Dr. Smith's Clinic, 123 Health St",
-      provider: "Dr. James Smith",
-      status: "scheduled",
-      type: "checkup",
-      reminderSent: false
-    });
-    
-    const twoWeeksLater = new Date(now);
-    twoWeeksLater.setDate(twoWeeksLater.getDate() + 14);
-    twoWeeksLater.setHours(14, 0, 0, 0);
-    
-    const twoWeeksLaterEnd = new Date(twoWeeksLater);
-    twoWeeksLaterEnd.setHours(14, 45, 0, 0);
-    
-    await this.createAppointment({
-      userId: 1,
-      title: "Nutritional Consultation",
-      description: "Follow-up appointment to discuss zinc deficiency and nutritional plan",
-      startTime: twoWeeksLater,
-      endTime: twoWeeksLaterEnd,
-      location: "Wellness Nutrition Center, 456 Healthy Blvd",
-      provider: "Dr. Sarah Johnson, RD",
-      status: "scheduled",
-      type: "specialist",
-      reminderSent: false
-    });
-    
-    // Add health data connection
-    await this.createHealthDataConnection({
-      userId: 1,
-      provider: "apple_health",
-      connected: false,
-      lastSynced: null,
-      accessToken: null,
-      refreshToken: null,
-      scope: ["activity", "heart_rate", "sleep"],
-      expiresAt: null
-    });
-    
-    // Add health journey entries
-    await this.createHealthJourneyEntry({
-      userId: 1,
-      timestamp: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      category: "nutrition",
-      title: "Started Zinc Supplements",
-      description: "Started taking zinc supplements to improve my immune function after recent blood tests showed deficiency.",
-      metrics: JSON.stringify({
-        "supplement": "Zinc",
-        "dosage": "50mg",
-        "frequency": "daily"
-      }),
-      mediaUrl: null,
-      sentiment: "positive"
-    });
-
-    await this.createHealthJourneyEntry({
-      userId: 1,
-      timestamp: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      category: "exercise",
-      title: "Increased daily steps goal",
-      description: "Increased my daily step goal from 8,000 to 10,000 steps. Feeling more energetic lately.",
-      metrics: JSON.stringify({
-        "previous_goal": 8000,
-        "new_goal": 10000,
-        "current_average": 7500
-      }),
-      mediaUrl: null,
-      sentiment: "positive"
-    });
-    
-    // Add a health coaching plan
-    await this.createHealthCoachingPlan({
-      userId: 1,
-      title: "Zinc Deficiency Improvement Plan",
-      description: "A personalized plan to address your zinc deficiency and boost your immune system",
-      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      updatedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-      goals: [
-        "Increase zinc levels to normal range within 3 months",
-        "Reduce frequency of seasonal illness",
-        "Improve energy levels"
-      ],
-      recommendations: [
-        "Take zinc supplement daily with food",
-        "Increase consumption of zinc-rich foods (oysters, beef, pumpkin seeds)",
-        "Monitor for improvements in immune function",
-        "Retest zinc levels after 3 months"
-      ],
-      progress: 25,
-      active: true
-    });
-    
-    // Add wellness challenges
-    const walkingChallenge = await this.createWellnessChallenge({
-      title: "10K Steps Challenge",
-      description: "Walk at least 10,000 steps every day for 30 days to boost cardiovascular health and energy levels",
-      category: "fitness",
-      pointsReward: 500,
-      startDate: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000), // Started 15 days ago
-      endDate: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000), // Ends in 15 days
-      requirementType: "steps",
-      requirementTarget: 10000,
-      image: "https://images.unsplash.com/photo-1510021115607-c94b84bcb73a?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
-    });
-    
-    // Add user's progress in challenge
-    await this.createUserChallengeProgress({
-      userId: 1,
-      challengeId: walkingChallenge.id,
-      joined: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000), // Joined 10 days ago
-      currentProgress: 7500, // Average 7500 steps so far
-      completed: false,
-      completedAt: null
-    });
-    
-    // Add mental health assessment
-    await this.createMentalHealthAssessment({
-      userId: 1,
-      timestamp: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      assessmentType: "stress",
-      score: 7, // Scale of 1-10
-      notes: "Feeling moderately stressed due to work deadlines and health concerns",
-      recommendations: [
-        "Practice mindfulness meditation for 10 minutes daily",
-        "Take short breaks during work hours",
-        "Prioritize 7-8 hours of sleep",
-        "Consider speaking with a mental health professional if stress persists"
-      ]
-    });
-    
-    // Add mood entries
-    await this.createMoodEntry({
-      userId: 1,
-      date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
-      mood: 6,
-      energy: 5,
-      sleep: 6.5,
-      categories: ["work", "health"],
-      notes: "Feeling tired after a long day at work. Stress about upcoming health appointment.",
-      factors: ["work stress", "health issue"]
-    });
-    
-    await this.createMoodEntry({
-      userId: 1,
-      date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      mood: 8,
-      energy: 7,
-      sleep: 7.5,
-      categories: ["personal", "social"],
-      notes: "Had a good night's sleep and spent time with friends. Feeling much better.",
-      factors: ["good sleep", "social connection", "relaxation"]
-    });
-    
-    await this.createMoodEntry({
-      userId: 1,
-      date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // Yesterday
-      mood: 7,
-      energy: 8,
-      sleep: 8,
-      categories: ["personal", "health"],
-      notes: "Started morning with exercise and took zinc supplement. Feeling energized.",
-      factors: ["exercise", "nutrition"]
-    });
-    
-    // Add Sarah's menstrual cycle entries
-    // Past 3 cycles
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 62 * 24 * 60 * 60 * 1000), // 62 days ago
-      cycleDay: 1,
-      period: true,
-      flow: "heavy",
-      symptoms: ["cramps", "headache", "fatigue"],
-      mood: "irritable",
-      notes: "First day of period, heavy flow with cramps"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 61 * 24 * 60 * 60 * 1000), // 61 days ago
-      cycleDay: 2,
-      period: true,
-      flow: "heavy",
-      symptoms: ["cramps", "bloating"],
-      mood: "tired",
-      notes: "Still heavy flow, cramps less intense"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
-      cycleDay: 3,
-      period: true,
-      flow: "medium",
-      symptoms: ["bloating"],
-      mood: "neutral",
-      notes: "Flow decreasing"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 59 * 24 * 60 * 60 * 1000), // 59 days ago
-      cycleDay: 4,
-      period: true,
-      flow: "light",
-      symptoms: [],
-      mood: "improving",
-      notes: "Light flow, feeling better"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 58 * 24 * 60 * 60 * 1000), // 58 days ago
-      cycleDay: 5,
-      period: true,
-      flow: "spotting",
-      symptoms: [],
-      mood: "good",
-      notes: "Almost done with period"
-    });
-    
-    // Ovulation data from previous cycle
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000), // 49 days ago (day 14 of cycle)
-      cycleDay: 14,
-      period: false,
-      ovulation: true,
-      cervicalMucus: "egg white",
-      basalTemperature: 98.6,
-      symptoms: ["mild cramps", "increased libido"],
-      mood: "energetic",
-      notes: "Ovulation signs present"
-    });
-    
-    // Second cycle
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 34 * 24 * 60 * 60 * 1000), // 34 days ago
-      cycleDay: 1,
-      period: true,
-      flow: "heavy",
-      symptoms: ["cramps", "backache", "fatigue"],
-      mood: "irritable",
-      notes: "First day of period, heavier than usual"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 33 * 24 * 60 * 60 * 1000), // 33 days ago
-      cycleDay: 2,
-      period: true,
-      flow: "heavy",
-      symptoms: ["cramps", "bloating"],
-      mood: "tired",
-      notes: "Still heavy flow"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 32 * 24 * 60 * 60 * 1000), // 32 days ago
-      cycleDay: 3,
-      period: true,
-      flow: "medium",
-      symptoms: ["mild cramps"],
-      mood: "neutral",
-      notes: "Flow decreasing"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000), // 31 days ago
-      cycleDay: 4,
-      period: true,
-      flow: "light",
-      symptoms: [],
-      mood: "improving",
-      notes: "Light flow"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      cycleDay: 5,
-      period: true,
-      flow: "spotting",
-      symptoms: [],
-      mood: "good",
-      notes: "Almost done"
-    });
-    
-    // Ovulation data from current cycle
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000), // 21 days ago (day 14 of cycle)
-      cycleDay: 14,
-      period: false,
-      ovulation: true,
-      cervicalMucus: "egg white",
-      basalTemperature: 98.7,
-      symptoms: ["mild cramps", "increased energy", "increased libido"],
-      mood: "energetic",
-      notes: "Ovulation confirmed with OPK test"
-    });
-    
-    // Current cycle
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
-      cycleDay: 1,
-      period: true,
-      flow: "medium",
-      symptoms: ["mild cramps", "fatigue"],
-      mood: "tired",
-      notes: "First day of period, lighter than usual"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      cycleDay: 2,
-      period: true,
-      flow: "medium",
-      symptoms: ["mild cramps"],
-      mood: "neutral",
-      notes: "Medium flow"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
-      cycleDay: 3,
-      period: true,
-      flow: "light",
-      symptoms: [],
-      mood: "improving",
-      notes: "Flow decreasing"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      cycleDay: 4,
-      period: true,
-      flow: "light",
-      symptoms: [],
-      mood: "good",
-      notes: "Light flow"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      cycleDay: 5,
-      period: true,
-      flow: "spotting",
-      symptoms: [],
-      mood: "good",
-      notes: "Just spotting"
-    });
-    
-    await this.createCycleEntry({
-      userId: 2,
-      date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // yesterday
-      cycleDay: 6,
-      period: false,
-      flow: "none",
-      symptoms: [],
-      mood: "great",
-      notes: "Period finished"
-    });
-    
-    // Add cycle analysis for Sarah
-    await this.createCycleAnalysis({
-      userId: 2,
-      averageCycleLength: 28,
-      averagePeriodLength: 5,
-      lastPeriodStart: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
-      nextPeriodPrediction: new Date(now.getTime() + 22 * 24 * 60 * 60 * 1000), // 22 days from now
-      nextFertileWindowStart: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
-      nextFertileWindowEnd: new Date(now.getTime() + 12 * 24 * 60 * 60 * 1000), // 12 days from now
-      nextOvulationPrediction: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
-      cycleRegularity: "regular",
-      pmsSymptomsSummary: JSON.stringify(["mood swings", "cramps", "bloating", "headache", "fatigue"]),
-      notes: "Cycle has been regular for the past 3 months with consistent symptoms"
-    });
-    
-    // Add health articles
-    await this.createHealthArticle({
-      title: "Understanding Zinc's Role in Immune Function",
-      summary: "A comprehensive guide to how zinc affects your immune system and what deficiency means for your health",
-      content: "Zinc is an essential micronutrient that plays a vital role in immune function, protein synthesis, wound healing, DNA synthesis, and cell division. Although the body does not naturally produce zinc, this essential nutrient is readily available in many food sources and supplements.\n\nResearch has consistently shown that zinc is critical for normal development and function of cells mediating innate immunity, neutrophils, and natural killer cells. It also affects the development of acquired immunity, particularly T-lymphocyte function.\n\nZinc deficiency, even mild to moderate, can impair immune function, making the body more susceptible to infections. Studies have found that zinc supplementation can reduce the duration and severity of common colds and other respiratory infections.\n\nGood dietary sources of zinc include oysters, red meat, poultry, beans, nuts, and fortified cereals. For those with deficiencies, supplements may be necessary, but should be taken under medical supervision as excessive zinc can interfere with the absorption of other essential minerals.\n\nIf you're experiencing symptoms such as frequent infections, slow wound healing, loss of taste or smell, or unexplained fatigue, consider having your zinc levels tested.",
-      authorName: "Dr. Emily Chen, PhD",
-      publishedAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-      category: "Nutrition",
-      tags: ["zinc", "immunity", "nutrition", "micronutrients"],
-      imageUrl: "https://images.unsplash.com/photo-1505253758473-96b7015fcd40?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-      sourceName: "Journal of Nutritional Science",
-      sourceUrl: "https://example.com/jns/zinc-immune-function",
-      readTime: 8 // minutes
-    });
-    
-    // Add meal plan
-    const mealPlan = await this.createMealPlan({
-      userId: 1,
-      title: "Zinc-Rich Diet Plan",
-      createdAt: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
-      startDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      endDate: new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000), // 9 days from now
-      dietaryPreferences: ["balanced", "omnivore"],
-      healthGoals: ["increase zinc intake", "boost immunity"],
-      allergies: ["shellfish"],
-      active: true
-    });
-    
-    // Add meal plan entries
-    await this.createMealPlanEntry({
-      mealPlanId: mealPlan.id,
-      dayOfWeek: 1, // Monday
-      mealType: "breakfast",
-      name: "Pumpkin Seed Oatmeal",
-      recipe: "Combine 1/2 cup rolled oats with 1 cup milk, cook for 5 minutes. Top with 2 tbsp pumpkin seeds, 1 tbsp honey, and cinnamon.",
-      ingredients: ["rolled oats", "milk", "pumpkin seeds", "honey", "cinnamon"],
-      nutritionalInfo: JSON.stringify({
-        "calories": 380,
-        "protein": 15,
-        "carbs": 48,
-        "fat": 16,
-        "zinc": "3.5mg (32% DV)"
-      }),
-      preparationTime: 10,
-      imageUrl: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
-    });
-    
-    await this.createMealPlanEntry({
-      mealPlanId: mealPlan.id,
-      dayOfWeek: 1, // Monday
-      mealType: "lunch",
-      name: "Beef and Spinach Salad",
-      recipe: "Grill 4oz lean beef steak. Slice and serve over 2 cups spinach, 1/4 cup chickpeas, cherry tomatoes, and cucumber with balsamic vinaigrette.",
-      ingredients: ["lean beef", "spinach", "chickpeas", "cherry tomatoes", "cucumber", "balsamic vinaigrette"],
-      nutritionalInfo: JSON.stringify({
-        "calories": 420,
-        "protein": 35,
-        "carbs": 22,
-        "fat": 23,
-        "zinc": "6.2mg (56% DV)"
-      }),
-      preparationTime: 20,
-      imageUrl: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
-    });
-  }
-
-  // User Management
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
-  }
-
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.email === email
-    );
-  }
-
-  async createUser(user: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const newUser: User = { ...user, id };
-    this.users.set(id, newUser);
-    return newUser;
-  }
-
-  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
-    const user = await this.getUser(id);
-    if (!user) return undefined;
-    
-    const updatedUser = { ...user, ...userData };
-    this.users.set(id, updatedUser);
+    this.users[userIndex] = updatedUser;
     return updatedUser;
   }
   
-  async updateUserPreferences(id: number, preferences: string): Promise<User | undefined> {
-    const user = await this.getUser(id);
-    if (!user) return undefined;
+  // Health metrics
+  async getHealthMetrics(userId: number): Promise<HealthMetric[]> {
+    return this.healthMetrics.filter(metric => metric.userId === userId);
+  }
+  
+  async getHealthMetric(id: number): Promise<HealthMetric | undefined> {
+    return this.healthMetrics.find(metric => metric.id === id);
+  }
+  
+  async addHealthMetric(metricData: Omit<HealthMetric, 'id'>): Promise<HealthMetric> {
+    const id = this.healthMetrics.length > 0 ? Math.max(...this.healthMetrics.map(m => m.id)) + 1 : 1;
     
-    const updatedUser = { ...user, preferences };
-    this.users.set(id, updatedUser);
-    return updatedUser;
-  }
-
-  // Health Stats
-  async getUserHealthStats(userId: number): Promise<HealthStat[]> {
-    return Array.from(this.healthStats.values()).filter(
-      (stat) => stat.userId === userId
-    );
-  }
-
-  async addHealthStat(stat: InsertHealthStat): Promise<HealthStat> {
-    const id = this.healthStatIdCounter++;
-    const newStat: HealthStat = { ...stat, id };
-    this.healthStats.set(id, newStat);
-    return newStat;
+    const metric: HealthMetric = {
+      id,
+      ...metricData,
+      // Ensure required fields have default values
+      unit: metricData.unit ?? null,
+      notes: metricData.notes ?? null,
+      source: metricData.source ?? null
+    };
+    
+    this.healthMetrics.push(metric);
+    
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'health-metric',
+      ownerId: metricData.userId
+    });
+    
+    return metric;
   }
   
   // Medications
-  async getUserMedications(userId: number): Promise<Medication[]> {
-    return Array.from(this.medications.values()).filter(
-      (medication) => medication.userId === userId && medication.active
-    );
+  async getMedications(userId: number): Promise<Medication[]> {
+    return this.medications.filter(med => med.userId === userId);
   }
   
-  async getMedicationById(id: number): Promise<Medication | undefined> {
-    return this.medications.get(id);
+  async getMedication(id: number): Promise<Medication | undefined> {
+    return this.medications.find(med => med.id === id);
   }
   
-  async addMedication(medication: InsertMedication): Promise<Medication> {
-    const id = this.medicationIdCounter++;
-    const newMedication: Medication = { ...medication, id };
-    this.medications.set(id, newMedication);
-    return newMedication;
-  }
-  
-  async updateMedication(id: number, medicationData: Partial<Medication>): Promise<Medication | undefined> {
-    const medication = this.medications.get(id);
-    if (!medication) return undefined;
+  async addMedication(medicationData: Omit<Medication, 'id'>): Promise<Medication> {
+    const id = this.medications.length > 0 ? Math.max(...this.medications.map(m => m.id)) + 1 : 1;
     
-    const updatedMedication = { ...medication, ...medicationData };
-    this.medications.set(id, updatedMedication);
-    return updatedMedication;
-  }
-
-  async markMedicationTaken(userId: number, medicationId: number): Promise<Medication | undefined> {
-    const medication = this.medications.get(medicationId);
-    if (!medication || medication.userId !== userId) return undefined;
+    const medication: Medication = {
+      id,
+      ...medicationData,
+      // Ensure required fields have default values
+      notes: medicationData.notes ?? null,
+      dosage: medicationData.dosage ?? null,
+      frequency: medicationData.frequency ?? null,
+      endDate: medicationData.endDate ?? null,
+      prescribedBy: medicationData.prescribedBy ?? null,
+      active: medicationData.active ?? null
+    };
     
+    this.medications.push(medication);
+    
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'medication',
+      ownerId: medicationData.userId
+    });
+    
+    return medication;
+  }
+  
+  // Symptoms
+  async getSymptoms(userId: number): Promise<Symptom[]> {
+    return this.symptoms.filter(symptom => symptom.userId === userId);
+  }
+  
+  async getSymptom(id: number): Promise<Symptom | undefined> {
+    return this.symptoms.find(symptom => symptom.id === id);
+  }
+  
+  async addSymptom(symptomData: Omit<Symptom, 'id'>): Promise<Symptom> {
+    const id = this.symptoms.length > 0 ? Math.max(...this.symptoms.map(s => s.id)) + 1 : 1;
+    
+    const symptom: Symptom = {
+      id,
+      ...symptomData,
+      // Ensure required fields have default values
+      notes: symptomData.notes ?? null,
+      endTime: symptomData.endTime ?? null,
+      relatedCondition: symptomData.relatedCondition ?? null,
+      bodyLocation: symptomData.bodyLocation ?? null
+    };
+    
+    this.symptoms.push(symptom);
+    
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'symptom',
+      ownerId: symptomData.userId
+    });
+    
+    return symptom;
+  }
+  
+  // Appointments
+  async getAppointments(userId: number): Promise<Appointment[]> {
+    return this.appointments.filter(appointment => appointment.userId === userId);
+  }
+  
+  async getAppointment(id: number): Promise<Appointment | undefined> {
+    return this.appointments.find(appointment => appointment.id === id);
+  }
+  
+  async addAppointment(appointmentData: Omit<Appointment, 'id'>): Promise<Appointment> {
+    const id = this.appointments.length > 0 ? Math.max(...this.appointments.map(a => a.id)) + 1 : 1;
+    
+    const appointment: Appointment = {
+      id,
+      ...appointmentData,
+      // Ensure required fields have default values
+      type: appointmentData.type ?? null,
+      status: appointmentData.status ?? null,
+      notes: appointmentData.notes ?? null,
+      location: appointmentData.location ?? null,
+      duration: appointmentData.duration ?? null,
+      reminderTime: appointmentData.reminderTime ?? null
+    };
+    
+    this.appointments.push(appointment);
+    
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'appointment',
+      ownerId: appointmentData.userId
+    });
+    
+    return appointment;
+  }
+  
+  // Health data connections
+  async getHealthDataConnections(userId: number): Promise<HealthDataConnection[]> {
+    return this.healthConnections.filter(connection => connection.userId === userId);
+  }
+  
+  async getHealthDataConnection(id: number): Promise<HealthDataConnection | undefined> {
+    return this.healthConnections.find(connection => connection.id === id);
+  }
+  
+  async addHealthDataConnection(connectionData: Omit<HealthDataConnection, 'id'>): Promise<HealthDataConnection> {
+    const id = this.healthConnections.length > 0 ? Math.max(...this.healthConnections.map(c => c.id)) + 1 : 1;
+    
+    const connection: HealthDataConnection = {
+      id,
+      ...connectionData,
+      // Ensure required fields have default values
+      accessToken: connectionData.accessToken ?? null,
+      refreshToken: connectionData.refreshToken ?? null,
+      active: connectionData.active ?? null,
+      expiresAt: connectionData.expiresAt ?? null,
+      scope: connectionData.scope ?? null,
+      lastSynced: connectionData.lastSynced ?? null,
+      settings: connectionData.settings ?? {}
+    };
+    
+    this.healthConnections.push(connection);
+    
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'health-connection',
+      ownerId: connectionData.userId
+    });
+    
+    return connection;
+  }
+  
+  // Forum posts
+  async getForumPosts(): Promise<ForumPost[]> {
+    return this.forumPosts;
+  }
+  
+  async getForumPost(id: number): Promise<ForumPost | undefined> {
+    return this.forumPosts.find(post => post.id === id);
+  }
+  
+  async addForumPost(postData: Omit<ForumPost, 'id'>): Promise<ForumPost> {
+    const id = this.forumPosts.length > 0 ? Math.max(...this.forumPosts.map(p => p.id)) + 1 : 1;
     const now = new Date();
-    // Calculate next dose time based on schedule
-    let nextDose: Date | null = null;
     
-    if (medication.schedule.includes('daily')) {
-      nextDose = new Date(now);
-      nextDose.setDate(nextDose.getDate() + 1);
-    } else if (medication.schedule.includes('twice daily')) {
-      nextDose = new Date(now);
-      nextDose.setHours(nextDose.getHours() + 12);
-    } else if (medication.schedule.includes('weekly')) {
-      nextDose = new Date(now);
-      nextDose.setDate(nextDose.getDate() + 7);
-    } else {
-      // Default to next day if schedule is not recognized
-      nextDose = new Date(now);
-      nextDose.setDate(nextDose.getDate() + 1);
-    }
-    
-    // Calculate if it was taken on time
-    const onTime = medication.nextDose ? 
-      Math.abs(now.getTime() - medication.nextDose.getTime()) < 2 * 60 * 60 * 1000 : // Within 2 hours
-      true;
-    
-    // Add to medication history
-    this.addMedicationHistory({
-      medicationId,
-      userId,
-      takenAt: now,
-      scheduled: medication.nextDose || null,
-      skipped: false,
-      note: onTime ? "Taken on time" : "Taken late"
-    });
-    
-    // Update medication total taken counter
-    const totalTaken = (medication.totalTaken || 0) + 1;
-    
-    const updatedMedication: Medication = {
-      ...medication,
-      lastTaken: now,
-      nextDose,
-      totalTaken
+    const post: ForumPost = {
+      id,
+      createdAt: now,
+      updatedAt: now,
+      ...postData,
+      // Ensure required fields have default values
+      tags: postData.tags ?? null,
+      isPinned: postData.isPinned ?? null,
+      isLocked: postData.isLocked ?? null,
+      viewCount: postData.viewCount ?? null
     };
     
-    this.medications.set(medicationId, updatedMedication);
-    return updatedMedication;
-  }
-  
-  // Medication History Methods
-  async getMedicationHistory(medicationId: number): Promise<MedicationHistory[]> {
-    return Array.from(this.medicationHistories.values())
-      .filter(history => history.medicationId === medicationId)
-      .sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
-  }
-  
-  async getUserMedicationHistory(userId: number): Promise<MedicationHistory[]> {
-    return Array.from(this.medicationHistories.values())
-      .filter(history => history.userId === userId)
-      .sort((a, b) => new Date(b.takenAt).getTime() - new Date(a.takenAt).getTime());
-  }
-  
-  async addMedicationHistory(entry: InsertMedicationHistory): Promise<MedicationHistory> {
-    const id = this.medicationHistoryIdCounter++;
-    const newEntry: MedicationHistory = { ...entry, id };
-    this.medicationHistories.set(id, newEntry);
-    return newEntry;
-  }
-  
-  async getMedicationAdherenceRate(medicationId: number): Promise<number> {
-    const history = await this.getMedicationHistory(medicationId);
-    if (history.length === 0) return 0;
+    this.forumPosts.push(post);
     
-    // Count entries that were taken on time (not skipped and taken within 2 hours of scheduled time)
-    const takenOnTime = history.filter(entry => {
-      if (entry.skipped) return false;
-      if (!entry.scheduled) return true; // If no scheduled time, count as on time
-      
-      const scheduledTime = new Date(entry.scheduled).getTime();
-      const takenTime = new Date(entry.takenAt).getTime();
-      const timeDiff = Math.abs(takenTime - scheduledTime);
-      
-      // Consider "on time" if within 2 hours of scheduled time
-      return timeDiff < 2 * 60 * 60 * 1000;
+    // Add to ownership table
+    this.resourceOwnership.push({
+      resourceId: id,
+      resourceType: 'forum-post',
+      ownerId: postData.userId
     });
     
-    return (takenOnTime.length / history.length) * 100;
+    return post;
   }
-
-  // Connections
-  async getUserConnections(userId: number): Promise<{ connection: User, relationship: string, specific: string }[]> {
-    const userConnections = Array.from(this.connections.values()).filter(
-      (connection) => connection.userId === userId
-    );
-    
-    const connectionsWithUsers = [];
-    for (const connection of userConnections) {
-      const connectedUser = await this.getUser(connection.connectionId);
-      if (connectedUser) {
-        connectionsWithUsers.push({
-          connection: connectedUser,
-          relationship: connection.relationshipType || "",
-          specific: connection.relationshipSpecific || ""
-        });
+  
+  // Health articles and news
+  async getHealthArticles(): Promise<HealthArticle[]> {
+    return this.healthArticles;
+  }
+  
+  async getHealthArticle(id: number): Promise<HealthArticle | undefined> {
+    return this.healthArticles.find(article => article.id === id);
+  }
+  
+  async getHealthNews(): Promise<any[]> {
+    // Sample news data
+    return [
+      {
+        title: "New Study Links Zinc Levels to Immune Function",
+        content: "Researchers have discovered a direct correlation between zinc levels and immune system effectiveness...",
+        publishDate: new Date("2025-03-15"),
+        source: "Medical Journal Weekly",
+        author: "Dr. Sarah Johnson",
+        url: "https://example.com/health-news/zinc-study"
+      },
+      {
+        title: "Breakthrough in Alzheimer's Treatment Shows Promise",
+        content: "A new medication targeting amyloid plaque buildup has shown significant results in early trials...",
+        publishDate: new Date("2025-04-02"),
+        source: "Health Science Today",
+        author: "Dr. Michael Chen",
+        url: "https://example.com/health-news/alzheimers-breakthrough"
+      },
+      {
+        title: "FDA Approves New Diabetes Management Device",
+        content: "The FDA has approved a revolutionary new continuous glucose monitoring system that doesn't require finger pricks...",
+        publishDate: new Date("2025-04-10"),
+        source: "Medical Technology Review",
+        author: "Lisa Martinez, MPH",
+        url: "https://example.com/health-news/diabetes-device"
       }
-    }
-    
-    return connectionsWithUsers;
-  }
-
-  async addConnection(connection: InsertConnection): Promise<Connection> {
-    const id = this.connectionIdCounter++;
-    const newConnection: Connection = { ...connection, id };
-    this.connections.set(id, newConnection);
-    return newConnection;
-  }
-
-  async removeConnection(userId: number, connectionId: number): Promise<boolean> {
-    const connectionsToRemove = Array.from(this.connections.entries()).filter(
-      ([_, connection]) => 
-        connection.userId === userId && connection.connectionId === connectionId
-    );
-    
-    for (const [id] of connectionsToRemove) {
-      this.connections.delete(id);
-    }
-    
-    return connectionsToRemove.length > 0;
-  }
-
-  // Forum Posts
-  async getForumPosts(subreddit?: string): Promise<ForumPost[]> {
-    let posts = Array.from(this.forumPosts.values());
-    
-    if (subreddit) {
-      posts = posts.filter(post => post.subreddit === subreddit);
-    }
-    
-    // Sort by newest first
-    return posts.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  }
-
-  async getUserForumPosts(userId: number): Promise<ForumPost[]> {
-    return Array.from(this.forumPosts.values()).filter(
-      (post) => post.userId === userId
-    );
-  }
-
-  async createForumPost(post: InsertForumPost): Promise<ForumPost> {
-    const id = this.forumPostIdCounter++;
-    const newPost: ForumPost = { ...post, id };
-    this.forumPosts.set(id, newPost);
-    return newPost;
-  }
-
-  async updateForumPostVotes(id: number, upvote: boolean): Promise<ForumPost | undefined> {
-    const post = this.forumPosts.get(id);
-    if (!post) return undefined;
-    
-    const updatedPost = { 
-      ...post, 
-      upvotes: upvote ? post.upvotes + 1 : post.upvotes,
-      downvotes: !upvote ? post.downvotes + 1 : post.downvotes
-    };
-    
-    this.forumPosts.set(id, updatedPost);
-    return updatedPost;
-  }
-
-  // News & Updates
-  async getNewsUpdates(limit?: number, category?: string): Promise<NewsUpdate[]> {
-    let updates = Array.from(this.newsUpdates.values());
-    
-    if (category) {
-      updates = updates.filter(update => update.category === category);
-    }
-    
-    // Sort by newest first
-    updates = updates.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-    
-    if (limit && limit > 0) {
-      updates = updates.slice(0, limit);
-    }
-    
-    return updates;
-  }
-
-  async createNewsUpdate(update: InsertNewsUpdate): Promise<NewsUpdate> {
-    const id = this.newsUpdateIdCounter++;
-    const newUpdate: NewsUpdate = { ...update, id };
-    this.newsUpdates.set(id, newUpdate);
-    return newUpdate;
-  }
-
-  // Products
-  async getProducts(category?: string, recommendedFor?: string[]): Promise<Product[]> {
-    let productList = Array.from(this.products.values());
-    
-    if (category) {
-      productList = productList.filter(product => product.category === category);
-    }
-    
-    if (recommendedFor && recommendedFor.length > 0) {
-      productList = productList.filter(product => 
-        product.recommendedFor && 
-        recommendedFor.some(tag => product.recommendedFor.includes(tag))
-      );
-    }
-    
-    return productList;
-  }
-
-  async getProductById(id: number): Promise<Product | undefined> {
-    return this.products.get(id);
+    ];
   }
   
-  async getProductRecommendations(userId: number): Promise<Product[]> {
-    // Get user health stats to determine recommendations
-    const healthStats = await this.getUserHealthStats(userId);
+  // Token management
+  async getTokenById(tokenId: string): Promise<any> {
+    return this.tokenMetadata.find(token => token.tokenId === tokenId);
+  }
+  
+  async storeTokenMetadata(tokenData: any): Promise<void> {
+    const id = this.tokenMetadata.length > 0 ? Math.max(...this.tokenMetadata.map(t => t.id)) + 1 : 1;
     
-    // Extract health conditions that need recommendations
-    const recommendationTags = healthStats.map(stat => {
-      if (stat.statType === 'nutrient_status' && stat.value === 'Zinc Deficient') {
-        return 'zinc_deficiency';
-      }
-      if (stat.statType === 'sleep_quality' && parseFloat(stat.value) < 7) {
-        return 'sleep_quality';
-      }
-      return null;
-    }).filter(Boolean) as string[];
-    
-    if (recommendationTags.length === 0) {
-      // Default recommendations if no specific health conditions
-      recommendationTags.push('general_health');
-    }
-    
-    // Filter products based on tags
-    return this.getProducts(undefined, recommendationTags);
-  }
-
-  async createProduct(product: InsertProduct): Promise<Product> {
-    const id = this.productIdCounter++;
-    const newProduct: Product = { ...product, id };
-    this.products.set(id, newProduct);
-    return newProduct;
-  }
-
-  // Symptom Checker Methods
-  async getSymptoms(bodyArea?: string, severity?: string): Promise<Symptom[]> {
-    let symptoms = Array.from(this.symptoms.values());
-    
-    if (bodyArea) {
-      symptoms = symptoms.filter(symptom => symptom.bodyArea === bodyArea);
-    }
-    
-    if (severity) {
-      symptoms = symptoms.filter(symptom => symptom.severity === severity);
-    }
-    
-    return symptoms;
-  }
-  
-  async getSymptomById(id: number): Promise<Symptom | undefined> {
-    return this.symptoms.get(id);
-  }
-  
-  async createSymptom(symptom: InsertSymptom): Promise<Symptom> {
-    const id = this.symptomIdCounter++;
-    const newSymptom: Symptom = { ...symptom, id };
-    this.symptoms.set(id, newSymptom);
-    return newSymptom;
-  }
-  
-  // Symptom Checks Methods
-  async getUserSymptomChecks(userId: number): Promise<SymptomCheck[]> {
-    return Array.from(this.symptomChecks.values())
-      .filter(check => check.userId === userId)
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }
-  
-  async getSymptomCheckById(id: number): Promise<SymptomCheck | undefined> {
-    return this.symptomChecks.get(id);
-  }
-  
-  async createSymptomCheck(check: InsertSymptomCheck): Promise<SymptomCheck> {
-    const id = this.symptomCheckIdCounter++;
-    const newCheck: SymptomCheck = { ...check, id };
-    this.symptomChecks.set(id, newCheck);
-    return newCheck;
-  }
-  
-  // Appointment Methods
-  async getUserAppointments(userId: number): Promise<Appointment[]> {
-    return Array.from(this.appointments.values())
-      .filter(appointment => appointment.userId === userId)
-      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }
-  
-  async getAppointmentById(id: number): Promise<Appointment | undefined> {
-    return this.appointments.get(id);
-  }
-  
-  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
-    const id = this.appointmentIdCounter++;
-    const newAppointment: Appointment = { ...appointment, id };
-    this.appointments.set(id, newAppointment);
-    return newAppointment;
-  }
-  
-  async updateAppointment(id: number, appointmentData: Partial<Appointment>): Promise<Appointment | undefined> {
-    const appointment = this.appointments.get(id);
-    if (!appointment) return undefined;
-    
-    const updatedAppointment = { ...appointment, ...appointmentData };
-    this.appointments.set(id, updatedAppointment);
-    return updatedAppointment;
-  }
-  
-  // Health Data Connection Methods
-  async getUserHealthDataConnections(userId: number): Promise<HealthDataConnection[]> {
-    return Array.from(this.healthDataConnections.values())
-      .filter(connection => connection.userId === userId);
-  }
-  
-  async getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined> {
-    return this.healthDataConnections.get(id);
-  }
-  
-  async createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection> {
-    const id = this.healthDataConnectionIdCounter++;
-    const newConnection: HealthDataConnection = { ...connection, id };
-    this.healthDataConnections.set(id, newConnection);
-    return newConnection;
-  }
-  
-  async updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined> {
-    const connection = this.healthDataConnections.get(id);
-    if (!connection) return undefined;
-    
-    const updatedConnection = { ...connection, ...connectionData };
-    this.healthDataConnections.set(id, updatedConnection);
-    return updatedConnection;
-  }
-  
-  // Health Journey Entries
-  async getUserHealthJourneyEntries(userId: number): Promise<HealthJourneyEntry[]> {
-    return Array.from(this.healthJourneyEntries.values()).filter(
-      (entry) => entry.userId === userId
-    ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }
-  
-  async getHealthJourneyEntryById(id: number): Promise<HealthJourneyEntry | undefined> {
-    return this.healthJourneyEntries.get(id);
-  }
-  
-  async createHealthJourneyEntry(entry: InsertHealthJourneyEntry): Promise<HealthJourneyEntry> {
-    const id = this.healthJourneyEntryIdCounter++;
-    const newEntry: HealthJourneyEntry = { ...entry, id };
-    this.healthJourneyEntries.set(id, newEntry);
-    return newEntry;
-  }
-  
-  async updateHealthJourneyEntry(id: number, entryData: Partial<HealthJourneyEntry>): Promise<HealthJourneyEntry | undefined> {
-    const entry = this.healthJourneyEntries.get(id);
-    if (!entry) return undefined;
-    
-    const updatedEntry = { ...entry, ...entryData };
-    this.healthJourneyEntries.set(id, updatedEntry);
-    return updatedEntry;
-  }
-  
-  // Health Coaching Plans
-  async getUserHealthCoachingPlans(userId: number): Promise<HealthCoachingPlan[]> {
-    return Array.from(this.healthCoachingPlans.values()).filter(
-      (plan) => plan.userId === userId
-    ).sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-  }
-  
-  async getHealthCoachingPlanById(id: number): Promise<HealthCoachingPlan | undefined> {
-    return this.healthCoachingPlans.get(id);
-  }
-  
-  async createHealthCoachingPlan(plan: InsertHealthCoachingPlan): Promise<HealthCoachingPlan> {
-    const id = this.healthCoachingPlanIdCounter++;
-    const newPlan: HealthCoachingPlan = { ...plan, id };
-    this.healthCoachingPlans.set(id, newPlan);
-    return newPlan;
-  }
-  
-  async updateHealthCoachingPlan(id: number, planData: Partial<HealthCoachingPlan>): Promise<HealthCoachingPlan | undefined> {
-    const plan = this.healthCoachingPlans.get(id);
-    if (!plan) return undefined;
-    
-    const updatedPlan = { ...plan, ...planData, updatedAt: new Date() };
-    this.healthCoachingPlans.set(id, updatedPlan);
-    return updatedPlan;
-  }
-  
-  // Wellness Challenges
-  async getWellnessChallenges(category?: string): Promise<WellnessChallenge[]> {
-    let challenges = Array.from(this.wellnessChallenges.values());
-    
-    // Filter by category if provided
-    if (category) {
-      challenges = challenges.filter(challenge => challenge.category === category);
-    }
-    
-    // Sort by start date (newest first)
-    return challenges.sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
-  }
-  
-  async getWellnessChallengeById(id: number): Promise<WellnessChallenge | undefined> {
-    return this.wellnessChallenges.get(id);
-  }
-  
-  async createWellnessChallenge(challenge: InsertWellnessChallenge): Promise<WellnessChallenge> {
-    const id = this.wellnessChallengeIdCounter++;
-    const newChallenge: WellnessChallenge = { ...challenge, id };
-    this.wellnessChallenges.set(id, newChallenge);
-    return newChallenge;
-  }
-  
-  // User Challenge Progress
-  async getUserChallengeProgresses(userId: number): Promise<(UserChallengeProgress & { challenge: WellnessChallenge })[]> {
-    const progresses = Array.from(this.userChallengeProgresses.values())
-      .filter(progress => progress.userId === userId);
-    
-    // Join with challenge data
-    return progresses.map(progress => {
-      const challenge = this.wellnessChallenges.get(progress.challengeId);
-      if (!challenge) {
-        throw new Error(`Challenge not found: ${progress.challengeId}`);
-      }
-      return { ...progress, challenge };
+    this.tokenMetadata.push({
+      id,
+      ...tokenData,
+      isRevoked: tokenData.isRevoked ?? false,
+      clientInfo: tokenData.clientInfo ?? {}
     });
   }
   
-  async getUserChallengeProgressById(id: number): Promise<UserChallengeProgress | undefined> {
-    return this.userChallengeProgresses.get(id);
+  async revokeToken(tokenId: string): Promise<void> {
+    const tokenIndex = this.tokenMetadata.findIndex(token => token.tokenId === tokenId);
+    if (tokenIndex !== -1) {
+      this.tokenMetadata[tokenIndex].isRevoked = true;
+    }
   }
   
-  async createUserChallengeProgress(progress: InsertUserChallengeProgress): Promise<UserChallengeProgress> {
-    const id = this.userChallengeProgressIdCounter++;
-    const newProgress: UserChallengeProgress = { ...progress, id };
-    this.userChallengeProgresses.set(id, newProgress);
-    return newProgress;
-  }
-  
-  async updateUserChallengeProgress(id: number, progressData: Partial<UserChallengeProgress>): Promise<UserChallengeProgress | undefined> {
-    const progress = this.userChallengeProgresses.get(id);
-    if (!progress) return undefined;
-    
-    // Check if challenge is completed
-    let updatedProgress = { ...progress, ...progressData };
-    
-    // If currentProgress meets or exceeds the challenge target, mark as completed
-    if (progressData.currentProgress !== undefined) {
-      const challenge = this.wellnessChallenges.get(progress.challengeId);
-      if (challenge && progressData.currentProgress >= challenge.requirementTarget && !progress.completed) {
-        updatedProgress = { 
-          ...updatedProgress, 
-          completed: true,
-          completedAt: new Date()
-        };
+  async revokeAllUserTokens(userId: number): Promise<void> {
+    this.tokenMetadata.forEach(token => {
+      if (token.userId === userId) {
+        token.isRevoked = true;
       }
-    }
-    
-    this.userChallengeProgresses.set(id, updatedProgress);
-    return updatedProgress;
+    });
   }
   
-  // Mental Health Integration
-  async getUserMentalHealthAssessments(userId: number): Promise<MentalHealthAssessment[]> {
-    return Array.from(this.mentalHealthAssessments.values())
-      .filter(assessment => assessment.userId === userId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  // Resource ownership
+  async getResourceOwnerId(resourceId: number, resourceType: string): Promise<number | null> {
+    const ownership = this.resourceOwnership.find(
+      o => o.resourceId === resourceId && o.resourceType === resourceType
+    );
+    return ownership ? ownership.ownerId : null;
   }
   
-  async getMentalHealthAssessmentById(id: number): Promise<MentalHealthAssessment | undefined> {
-    return this.mentalHealthAssessments.get(id);
-  }
-  
-  async createMentalHealthAssessment(assessment: InsertMentalHealthAssessment): Promise<MentalHealthAssessment> {
-    const id = this.mentalHealthAssessmentIdCounter++;
-    const newAssessment: MentalHealthAssessment = { ...assessment, id };
-    this.mentalHealthAssessments.set(id, newAssessment);
-    return newAssessment;
-  }
-
-  // Mood Entry methods
-  async getUserMoodEntries(userId: number): Promise<MoodEntry[]> {
-    return Array.from(this.moodEntries.values()).filter(entry => entry.userId === userId);
-  }
-
-  async getMoodEntryById(id: number): Promise<MoodEntry | undefined> {
-    return this.moodEntries.get(id);
-  }
-
-  async createMoodEntry(entry: InsertMoodEntry): Promise<MoodEntry> {
-    const id = this.moodEntryIdCounter++;
-    const newEntry: MoodEntry = { ...entry, id };
-    this.moodEntries.set(id, newEntry);
-    return newEntry;
-  }
-
-  async updateMoodEntry(id: number, entryData: Partial<MoodEntry>): Promise<MoodEntry | undefined> {
-    const entry = this.moodEntries.get(id);
-    if (!entry) return undefined;
-    
-    const updatedEntry: MoodEntry = { ...entry, ...entryData };
-    this.moodEntries.set(id, updatedEntry);
-    return updatedEntry;
-  }
-
-  async deleteMoodEntry(id: number): Promise<boolean> {
-    return this.moodEntries.delete(id);
-  }
-  
-  // Health Library
-  async getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]> {
-    let articles = Array.from(this.healthArticles.values());
-    
-    // Filter by category if provided
-    if (category) {
-      articles = articles.filter(article => article.category === category);
-    }
-    
-    // Filter by tags if provided
-    if (tags && tags.length > 0) {
-      articles = articles.filter(article => 
-        article.tags && tags.some(tag => article.tags?.includes(tag))
-      );
-    }
-    
-    // Sort by published date (newest first)
-    return articles.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
-  }
-  
-  async getHealthArticleById(id: number): Promise<HealthArticle | undefined> {
-    return this.healthArticles.get(id);
-  }
-  
-  async createHealthArticle(article: InsertHealthArticle): Promise<HealthArticle> {
-    const id = this.healthArticleIdCounter++;
-    const newArticle: HealthArticle = { ...article, id };
-    this.healthArticles.set(id, newArticle);
-    return newArticle;
-  }
-  
-  // Meal Planning
-  async getUserMealPlans(userId: number): Promise<MealPlan[]> {
-    return Array.from(this.mealPlans.values())
-      .filter(plan => plan.userId === userId && plan.active)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-  
-  async getMealPlanById(id: number): Promise<MealPlan | undefined> {
-    return this.mealPlans.get(id);
-  }
-  
-  async createMealPlan(plan: InsertMealPlan): Promise<MealPlan> {
-    const id = this.mealPlanIdCounter++;
-    const newPlan: MealPlan = { ...plan, id };
-    this.mealPlans.set(id, newPlan);
-    return newPlan;
-  }
-  
-  async updateMealPlan(id: number, planData: Partial<MealPlan>): Promise<MealPlan | undefined> {
-    const plan = this.mealPlans.get(id);
-    if (!plan) return undefined;
-    
-    const updatedPlan = { ...plan, ...planData };
-    this.mealPlans.set(id, updatedPlan);
-    return updatedPlan;
-  }
-  
-  // Meal Plan Entries
-  async getMealPlanEntries(mealPlanId: number): Promise<MealPlanEntry[]> {
-    return Array.from(this.mealPlanEntries.values())
-      .filter(entry => entry.mealPlanId === mealPlanId)
-      .sort((a, b) => {
-        // Sort by day of week, then by meal type
-        if (a.dayOfWeek !== b.dayOfWeek) {
-          return a.dayOfWeek - b.dayOfWeek;
-        }
-        
-        // Custom order for meal types
-        const mealOrder = { breakfast: 0, lunch: 1, dinner: 2, snack: 3 };
-        const aOrder = mealOrder[a.mealType as keyof typeof mealOrder] || 999;
-        const bOrder = mealOrder[b.mealType as keyof typeof mealOrder] || 999;
-        return aOrder - bOrder;
-      });
-  }
-  
-  async getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined> {
-    return this.mealPlanEntries.get(id);
-  }
-  
-  async createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry> {
-    const id = this.mealPlanEntryIdCounter++;
-    const newEntry: MealPlanEntry = { ...entry, id };
-    this.mealPlanEntries.set(id, newEntry);
-    return newEntry;
-  }
-  
-  async updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined> {
-    const entry = this.mealPlanEntries.get(id);
-    if (!entry) return undefined;
-    
-    const updatedEntry = { ...entry, ...entryData };
-    this.mealPlanEntries.set(id, updatedEntry);
-    return updatedEntry;
-  }
-  
-  // Women's Health - Cycle Tracking
-  async getUserCycleEntries(userId: number, startDate?: Date, endDate?: Date): Promise<CycleEntry[]> {
-    let entries = Array.from(this.cycleEntries.values())
-      .filter(entry => entry.userId === userId);
-    
-    // Filter by date range if provided
-    if (startDate) {
-      entries = entries.filter(entry => new Date(entry.date) >= startDate);
-    }
-    
-    if (endDate) {
-      entries = entries.filter(entry => new Date(entry.date) <= endDate);
-    }
-    
-    // Sort by date (newest first)
-    return entries.sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
+  async isUserAssignedToResource(userId: number, resourceId: number, resourceType: string): Promise<boolean> {
+    return this.resourceAssignments.some(
+      a => a.userId === userId && a.resourceId === resourceId && a.resourceType === resourceType
     );
   }
   
-  async getCycleEntryById(id: number): Promise<CycleEntry | undefined> {
-    return this.cycleEntries.get(id);
+  // Healthcare relationships
+  async hasHealthcareRelationship(providerId: number, patientId: number): Promise<boolean> {
+    return this.healthcareRelationships.some(
+      r => r.providerId === providerId && r.patientId === patientId
+    );
   }
   
-  async createCycleEntry(entry: InsertCycleEntry): Promise<CycleEntry> {
-    const id = this.cycleEntryIdCounter++;
-    const newEntry: CycleEntry = {
-      id,
-      ...entry
-    };
-    
-    this.cycleEntries.set(id, newEntry);
-    return newEntry;
-  }
-  
-  async updateCycleEntry(id: number, entryData: Partial<CycleEntry>): Promise<CycleEntry | undefined> {
-    const entry = this.cycleEntries.get(id);
-    if (!entry) return undefined;
-    
-    const updatedEntry = { ...entry, ...entryData };
-    this.cycleEntries.set(id, updatedEntry);
-    return updatedEntry;
-  }
-  
-  async deleteCycleEntry(id: number): Promise<boolean> {
-    if (!this.cycleEntries.has(id)) return false;
-    return this.cycleEntries.delete(id);
-  }
-  
-  async getUserCycleAnalysis(userId: number): Promise<CycleAnalysis | undefined> {
-    return Array.from(this.cycleAnalyses.values())
-      .find(analysis => analysis.userId === userId);
-  }
-  
-  async createCycleAnalysis(analysis: InsertCycleAnalysis): Promise<CycleAnalysis> {
-    const id = this.cycleAnalysisIdCounter++;
-    const newAnalysis: CycleAnalysis = {
-      id,
-      ...analysis
-    };
-    
-    this.cycleAnalyses.set(id, newAnalysis);
-    return newAnalysis;
-  }
-  
-  async updateCycleAnalysis(id: number, analysisData: Partial<CycleAnalysis>): Promise<CycleAnalysis | undefined> {
-    const analysis = this.cycleAnalyses.get(id);
-    if (!analysis) return undefined;
-    
-    const updatedAnalysis = { ...analysis, ...analysisData };
-    this.cycleAnalyses.set(id, updatedAnalysis);
-    return updatedAnalysis;
-  }
-
-  // Analytics & Feedback methods
-  
-  async getUserFeedback(userId?: number, source?: string): Promise<UserFeedback[]> {
-    const feedbacks = Array.from(this.userFeedbacks.values());
-    
-    // Filter by userId if provided
-    let filtered = feedbacks;
-    if (userId !== undefined) {
-      filtered = filtered.filter(feedback => feedback.userId === userId);
-    }
-    
-    // Filter by source if provided
-    if (source) {
-      filtered = filtered.filter(feedback => feedback.source === source);
-    }
-    
-    // Sort by newest first
-    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }
-  
-  async createUserFeedback(feedback: InsertUserFeedback): Promise<UserFeedback> {
-    const id = this.userFeedbackIdCounter++;
-    const timestamp = feedback.timestamp || new Date();
-    
-    const newFeedback: UserFeedback = {
-      id,
-      ...feedback,
-      timestamp
-    };
-    
-    this.userFeedbacks.set(id, newFeedback);
-    return newFeedback;
-  }
-  
-  async getErrorLogs(limit?: number): Promise<ErrorLog[]> {
-    // Get all error logs sorted by timestamp (newest first)
-    const logs = Array.from(this.errorLogs.values())
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-    
-    // Limit the results if requested
-    return limit ? logs.slice(0, limit) : logs;
-  }
-  
-  async createErrorLog(error: InsertErrorLog): Promise<ErrorLog> {
-    const id = this.errorLogIdCounter++;
-    const timestamp = error.timestamp || new Date();
-    
-    const newErrorLog: ErrorLog = {
-      id,
-      ...error,
-      timestamp
-    };
-    
-    this.errorLogs.set(id, newErrorLog);
-    return newErrorLog;
-  }
-  
-  async getUserEvents(userId?: number, category?: string): Promise<UserEvent[]> {
-    const events = Array.from(this.userEvents.values());
-    
-    // Filter by userId if provided
-    let filtered = events;
-    if (userId !== undefined) {
-      filtered = filtered.filter(event => event.userId === userId);
-    }
-    
-    // Filter by category if provided
-    if (category) {
-      filtered = filtered.filter(event => event.eventCategory === category);
-    }
-    
-    // Sort by newest first
-    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }
-  
-  async createUserEvent(event: InsertUserEvent): Promise<UserEvent> {
-    const id = this.userEventIdCounter++;
-    const timestamp = event.timestamp || new Date();
-    
-    const newEvent: UserEvent = {
-      id,
-      ...event,
-      timestamp
-    };
-    
-    this.userEvents.set(id, newEvent);
-    return newEvent;
+  async getHealthcareRelationships(providerId: number): Promise<any[]> {
+    return this.healthcareRelationships.filter(r => r.providerId === providerId);
   }
 }
 
+// Export the storage implementation
 export const storage = new MemStorage();
