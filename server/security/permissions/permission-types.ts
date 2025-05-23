@@ -44,9 +44,9 @@ export const rolePermissions: Record<Role, Record<ResourceType, Action[]>> = {
   },
   [Role.PROVIDER]: {
     [ResourceType.USER]: ['read'],
-    [ResourceType.HEALTH_METRIC]: ['read'],
+    [ResourceType.HEALTH_METRIC]: ['create', 'read', 'update'],
     [ResourceType.MEDICATION]: ['create', 'read', 'update'],
-    [ResourceType.SYMPTOM]: ['read'],
+    [ResourceType.SYMPTOM]: ['create', 'read', 'update'],
     [ResourceType.APPOINTMENT]: ['create', 'read', 'update'],
     [ResourceType.HEALTH_CONNECTION]: ['read'],
     [ResourceType.PATIENT]: ['read', 'update'],
