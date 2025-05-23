@@ -314,6 +314,43 @@ const Auth = () => {
                         </FormItem>
                       )}
                     />
+                    <FormField
+                      control={registerForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select your account type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="patient">
+                                <div className="flex items-center space-x-2">
+                                  <i className="ri-user-heart-line text-blue-600"></i>
+                                  <div>
+                                    <div className="font-medium">Patient</div>
+                                    <div className="text-sm text-gray-500">Track your personal health journey</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="provider">
+                                <div className="flex items-center space-x-2">
+                                  <i className="ri-stethoscope-line text-green-600"></i>
+                                  <div>
+                                    <div className="font-medium">Healthcare Provider</div>
+                                    <div className="text-sm text-gray-500">Manage and monitor patient care</div>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting ? "Creating Account..." : "Create Account"}
                     </Button>
