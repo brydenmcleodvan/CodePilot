@@ -740,6 +740,233 @@ USER QUESTION: ${message}
     }
   });
 
+  // ===========================================
+  // HEALTH GOALS API ENDPOINTS
+  // ===========================================
+
+  // Get all health goals for user
+  app.get('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      
+      // Calculate progress for each goal
+      const goalsWithProgress = await Promise.all(goals.map(async (goal) => {
+        const progress = await storage.getGoalProgress(goal.id);
+        
+        // Calculate current progress based on timeframe
+        const now = new Date();
+        let startDate = new Date();
+        
+        switch (goal.timeframe) {
+          case 'daily':
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case 'weekly':
+            startDate.setDate(now.getDate() - 7);
+            break;
+          case 'monthly':
+            startDate.setMonth(now.getMonth() - 1);
+            break;
+        }
+        
+        const recentProgress = await storage.getGoalProgressForPeriod(goal.id, startDate, now);
+        const achievedDays = recentProgress.filter(p => p.achieved).length;
+        const totalDays = goal.timeframe === 'daily' ? 1 : 
+                         goal.timeframe === 'weekly' ? 7 : 30;
+        
+        const currentValue = recentProgress.length > 0 ? 
+          parseFloat(recentProgress[recentProgress.length - 1].value) : 0;
+        
+        const targetValue = typeof goal.goalValue === 'object' ? 
+          (goal.goalValue as any).max || (goal.goalValue as any).min : 
+          goal.goalValue as number;
+        
+        const percentage = goal.timeframe === 'daily' ? 
+          (currentValue / targetValue) * 100 :
+          (achievedDays / totalDays) * 100;
+        
+        let status: 'on_track' | 'behind' | 'ahead' | 'completed' | 'at_risk' = 'on_track';
+        
+        if (percentage >= 100) status = 'completed';
+        else if (percentage >= 80) status = 'on_track';
+        else if (percentage >= 50) status = 'behind';
+        else status = 'at_risk';
+        
+        return {
+          ...goal,
+          progress: {
+            current: currentValue,
+            target: targetValue,
+            percentage: Math.min(percentage, 100)
+          },
+          status,
+          daysCompleted: achievedDays,
+          totalDays,
+          streak: calculateStreak(recentProgress)
+        };
+      }));
+      
+      res.json(goalsWithProgress);
+    } catch (error) {
+      console.error('Error fetching health goals:', error);
+      res.status(500).json({ message: 'Failed to fetch health goals' });
+    }
+  });
+
+  // Create new health goal
+  app.post('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goalData = {
+        ...req.body,
+        userId: user.id,
+        status: 'active',
+        startDate: new Date()
+      };
+
+      const newGoal = await storage.createHealthGoal(goalData);
+      res.status(201).json(newGoal);
+    } catch (error) {
+      console.error('Error creating health goal:', error);
+      res.status(500).json({ message: 'Failed to create health goal' });
+    }
+  });
+
+  // Update health goal
+  app.put('/api/health-goals/:goalId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const updatedGoal = await storage.updateHealthGoal(parseInt(goalId), req.body);
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error('Error updating health goal:', error);
+      res.status(500).json({ message: 'Failed to update health goal' });
+    }
+  });
+
+  // Delete health goal
+  app.delete('/api/health-goals/:goalId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const deleted = await storage.deleteHealthGoal(parseInt(goalId));
+      
+      if (deleted) {
+        res.json({ message: 'Goal deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to delete goal' });
+      }
+    } catch (error) {
+      console.error('Error deleting health goal:', error);
+      res.status(500).json({ message: 'Failed to delete health goal' });
+    }
+  });
+
+  // Add goal progress entry
+  app.post('/api/health-goals/:goalId/progress', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const { value, achieved, notes } = req.body;
+      
+      const progressData = {
+        goalId: parseInt(goalId),
+        date: new Date(),
+        value: value.toString(),
+        achieved: achieved || false,
+        notes: notes || null
+      };
+
+      const newProgress = await storage.addGoalProgress(progressData);
+      res.status(201).json(newProgress);
+    } catch (error) {
+      console.error('Error adding goal progress:', error);
+      res.status(500).json({ message: 'Failed to add goal progress' });
+    }
+  });
+
+  // Get goal progress history
+  app.get('/api/health-goals/:goalId/progress', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const progress = await storage.getGoalProgress(parseInt(goalId));
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching goal progress:', error);
+      res.status(500).json({ message: 'Failed to fetch goal progress' });
+    }
+  });
+
+  // Helper function to calculate streak
+  function calculateStreak(progressEntries: any[]): number {
+    if (progressEntries.length === 0) return 0;
+    
+    const sortedEntries = progressEntries
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    let streak = 0;
+    for (const entry of sortedEntries) {
+      if (entry.achieved) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
   // Helper function to generate contextual follow-up suggestions
   function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
     const message = userMessage.toLowerCase();

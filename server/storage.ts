@@ -6,7 +6,11 @@ import {
   Appointment, 
   HealthDataConnection, 
   HealthArticle,
-  ForumPost
+  ForumPost,
+  HealthGoal,
+  GoalProgress,
+  InsertHealthGoal,
+  InsertGoalProgress
 } from '@shared/schema';
 
 // Define the storage interface for authentication and data operations
@@ -52,6 +56,18 @@ export interface IStorage {
   getHealthArticles(): Promise<HealthArticle[]>;
   getHealthArticle(id: number): Promise<HealthArticle | undefined>;
   getHealthNews(): Promise<any[]>; // Simplified news structure
+  
+  // Health Goals Management
+  createHealthGoal(goalData: InsertHealthGoal): Promise<HealthGoal>;
+  getHealthGoals(userId: number): Promise<HealthGoal[]>;
+  getHealthGoal(goalId: number): Promise<HealthGoal | undefined>;
+  updateHealthGoal(goalId: number, updates: Partial<InsertHealthGoal>): Promise<HealthGoal | undefined>;
+  deleteHealthGoal(goalId: number): Promise<boolean>;
+  
+  // Goal Progress Management
+  addGoalProgress(progressData: InsertGoalProgress): Promise<GoalProgress>;
+  getGoalProgress(goalId: number): Promise<GoalProgress[]>;
+  getGoalProgressForPeriod(goalId: number, startDate: Date, endDate: Date): Promise<GoalProgress[]>;
   
   // Security and permissions
   
@@ -432,6 +448,168 @@ class MemStorage implements IStorage {
   
   async revokeAllUserTokens(userId: number): Promise<void> {
     this.tokenMetadata.forEach(token => {
+      if (token.userId === userId) {
+        token.isRevoked = true;
+      }
+    });
+  }
+
+  // Health Goals Management Implementation
+  async createHealthGoal(goalData: InsertHealthGoal): Promise<HealthGoal> {
+    const id = this.healthGoals.length > 0 ? Math.max(...this.healthGoals.map(g => g.id)) + 1 : 1;
+    const newGoal: HealthGoal = {
+      id,
+      ...goalData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.healthGoals.push(newGoal);
+    return newGoal;
+  }
+
+  async getHealthGoals(userId: number): Promise<HealthGoal[]> {
+    return this.healthGoals.filter(goal => goal.userId === userId);
+  }
+
+  async getHealthGoal(goalId: number): Promise<HealthGoal | undefined> {
+    return this.healthGoals.find(goal => goal.id === goalId);
+  }
+
+  async updateHealthGoal(goalId: number, updates: Partial<InsertHealthGoal>): Promise<HealthGoal | undefined> {
+    const goalIndex = this.healthGoals.findIndex(goal => goal.id === goalId);
+    if (goalIndex !== -1) {
+      this.healthGoals[goalIndex] = {
+        ...this.healthGoals[goalIndex],
+        ...updates,
+        updatedAt: new Date()
+      };
+      return this.healthGoals[goalIndex];
+    }
+    return undefined;
+  }
+
+  async deleteHealthGoal(goalId: number): Promise<boolean> {
+    const goalIndex = this.healthGoals.findIndex(goal => goal.id === goalId);
+    if (goalIndex !== -1) {
+      this.healthGoals.splice(goalIndex, 1);
+      // Also remove associated progress entries
+      this.goalProgress = this.goalProgress.filter(progress => progress.goalId !== goalId);
+      return true;
+    }
+    return false;
+  }
+
+  // Goal Progress Management Implementation
+  async addGoalProgress(progressData: InsertGoalProgress): Promise<GoalProgress> {
+    const id = this.goalProgress.length > 0 ? Math.max(...this.goalProgress.map(p => p.id)) + 1 : 1;
+    const newProgress: GoalProgress = {
+      id,
+      ...progressData,
+      createdAt: new Date()
+    };
+    this.goalProgress.push(newProgress);
+    return newProgress;
+  }
+
+  async getGoalProgress(goalId: number): Promise<GoalProgress[]> {
+    return this.goalProgress.filter(progress => progress.goalId === goalId);
+  }
+
+  async getGoalProgressForPeriod(goalId: number, startDate: Date, endDate: Date): Promise<GoalProgress[]> {
+    return this.goalProgress.filter(progress => 
+      progress.goalId === goalId &&
+      new Date(progress.date) >= startDate &&
+      new Date(progress.date) <= endDate
+    );
+  }
+
+  private healthGoals: HealthGoal[] = [
+    {
+      id: 1,
+      userId: 1,
+      metricType: 'sleep',
+      goalType: 'minimum',
+      goalValue: 7,
+      unit: 'hours',
+      timeframe: 'daily',
+      status: 'active',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+      notes: 'Goal to get at least 7 hours of sleep per night'
+    },
+    {
+      id: 2,
+      userId: 1,
+      metricType: 'steps',
+      goalType: 'target',
+      goalValue: 10000,
+      unit: 'steps',
+      timeframe: 'daily',
+      status: 'active',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+      notes: 'Daily step goal for better cardiovascular health'
+    },
+    {
+      id: 3,
+      userId: 1,
+      metricType: 'heart_rate',
+      goalType: 'maximum',
+      goalValue: 75,
+      unit: 'bpm',
+      timeframe: 'weekly',
+      status: 'active',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+      notes: 'Keep average resting heart rate under 75 bpm'
+    }
+  ];
+
+  private goalProgress: GoalProgress[] = [
+    {
+      id: 1,
+      goalId: 1,
+      date: new Date('2025-01-20'),
+      value: '7.5',
+      achieved: true,
+      notes: 'Good sleep quality',
+      createdAt: new Date('2025-01-20')
+    },
+    {
+      id: 2,
+      goalId: 1,
+      date: new Date('2025-01-21'),
+      value: '6.8',
+      achieved: false,
+      notes: 'Stayed up late working',
+      createdAt: new Date('2025-01-21')
+    },
+    {
+      id: 3,
+      goalId: 2,
+      date: new Date('2025-01-20'),
+      value: '12500',
+      achieved: true,
+      notes: 'Went for a long walk',
+      createdAt: new Date('2025-01-20')
+    },
+    {
+      id: 4,
+      goalId: 2,
+      date: new Date('2025-01-21'),
+      value: '8750',
+      achieved: false,
+      notes: 'Mostly sedentary day',
+      createdAt: new Date('2025-01-21')
+    }
+  ];
+}
       if (token.userId === userId) {
         token.isRevoked = true;
       }
