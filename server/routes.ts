@@ -508,6 +508,147 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // ===========================================
+  // HEALTH AI CHAT ENDPOINT
+  // ===========================================
+
+  app.post('/api/health-ai/chat', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { message, healthContext, conversationHistory } = req.body;
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ 
+          message: 'OpenAI API key not configured. Please contact support to enable AI features.' 
+        });
+      }
+
+      // Build context from user's health data
+      const contextPrompt = `
+You are a helpful health AI assistant analyzing personalized health data. Respond with empathy, accuracy, and actionable insights.
+
+USER'S CURRENT HEALTH DATA:
+- Heart Rate: Average ${healthContext.heartRate.avg} bpm, Recent ${healthContext.heartRate.recent} bpm (${healthContext.heartRate.trend})
+- Sleep: Average ${healthContext.sleep.avgHours} hours, Quality: ${healthContext.sleep.quality}
+- Activity: Average ${healthContext.activity.avgSteps.toLocaleString()} steps, Weekly active days: ${healthContext.activity.weeklyActive}
+- Heart Rate Variability: Average ${healthContext.hrv.avg}ms, Status: ${healthContext.hrv.status}
+- Blood Glucose: Average ${healthContext.glucose.avg} mg/dL, Recent ${healthContext.glucose.recent} mg/dL
+- Connected Devices: ${healthContext.connectedDevices.join(', ')}
+
+GUIDELINES:
+- Provide personalized insights based on their specific data
+- Be encouraging and supportive
+- Suggest actionable improvements
+- Explain health concepts simply
+- Never provide medical diagnosis or replace professional medical advice
+- Focus on general wellness and lifestyle improvements
+- Reference their specific metrics when relevant
+
+USER QUESTION: ${message}
+`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: 'system', content: contextPrompt },
+            ...conversationHistory.slice(-4).map((msg: any) => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            { role: 'user', content: message }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+
+      // Generate follow-up suggestions based on the conversation
+      const suggestions = generateFollowUpSuggestions(message, healthContext);
+
+      res.json({
+        response: aiResponse,
+        suggestions: suggestions.slice(0, 3), // Limit to 3 suggestions
+      });
+
+    } catch (error) {
+      console.error('Health AI chat error:', error);
+      res.status(500).json({ 
+        message: 'Failed to get AI response. Please try again or contact support if the issue persists.' 
+      });
+    }
+  });
+
+  // Helper function to generate contextual follow-up suggestions
+  function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
+    const message = userMessage.toLowerCase();
+    const suggestions: string[] = [];
+
+    // Sleep-related suggestions
+    if (message.includes('sleep') || message.includes('tired') || message.includes('rest')) {
+      if (healthContext.sleep.avgHours < 7) {
+        suggestions.push("Want to set a sleep goal to reach 7-8 hours nightly?");
+      }
+      suggestions.push("Should we create a bedtime routine for better sleep quality?");
+      suggestions.push("Would you like tips for improving sleep hygiene?");
+    }
+
+    // Heart rate and fitness suggestions
+    if (message.includes('heart') || message.includes('fitness') || message.includes('exercise')) {
+      if (healthContext.activity.avgSteps < 8000) {
+        suggestions.push("Want to set a daily step goal to boost your activity?");
+      }
+      suggestions.push("Should we create a cardio plan to improve heart health?");
+      suggestions.push("Would you like breathing exercises for heart rate variability?");
+    }
+
+    // Activity and movement suggestions
+    if (message.includes('activity') || message.includes('steps') || message.includes('exercise')) {
+      suggestions.push("Want to set up activity reminders throughout your day?");
+      suggestions.push("Should we plan a weekly workout schedule?");
+      suggestions.push("Would you like to track progress with activity challenges?");
+    }
+
+    // General wellness suggestions
+    if (message.includes('stress') || message.includes('recovery') || message.includes('wellness')) {
+      suggestions.push("Want to explore meditation techniques for better recovery?");
+      suggestions.push("Should we set up stress tracking and management?");
+      suggestions.push("Would you like personalized wellness recommendations?");
+    }
+
+    // Nutrition and glucose suggestions
+    if (message.includes('glucose') || message.includes('blood sugar') || message.includes('nutrition')) {
+      suggestions.push("Want to track how meals affect your glucose levels?");
+      suggestions.push("Should we create meal timing recommendations?");
+      suggestions.push("Would you like nutrition tips for stable blood sugar?");
+    }
+
+    // Default suggestions if no specific topic detected
+    if (suggestions.length === 0) {
+      suggestions.push("Want to set personalized health goals based on your data?");
+      suggestions.push("Should we create a weekly wellness check-in reminder?");
+      suggestions.push("Would you like tips to optimize your current health metrics?");
+    }
+
+    return suggestions;
+  }
+
   // Create HTTP server
   const httpServer = createServer(app);
 
