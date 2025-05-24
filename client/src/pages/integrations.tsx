@@ -423,149 +423,135 @@ export default function IntegrationsPage() {
           </TabsContent>
 
           <TabsContent value="available" className="space-y-6">
-            {/* Enhanced Device Connections Section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium mb-4 dark:text-white">Enhanced Device Integrations</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Advanced device connections with real-time data sync and professional health monitoring.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(enhancedDeviceConfig).map(([deviceType, config]) => {
-                  const connection = deviceConnections.find(conn => conn.deviceType === deviceType);
-                  const Icon = config.icon;
-                  const isConnected = connection?.status === 'connected';
-                  const isPending = connection?.status === 'pending';
-                  
-                  return (
-                    <motion.div 
-                      key={deviceType}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="dark:border-gray-700 h-full flex flex-col relative">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-lg ${config.color}`}>
-                                <Icon className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
-                                <div className="flex items-center space-x-2 mt-1">
-                                  {isConnected && <CheckCircle className="h-4 w-4 text-green-500" />}
-                                  {isPending && <Clock className="h-4 w-4 text-yellow-500" />}
-                                  {!connection && <XCircle className="h-4 w-4 text-gray-400" />}
-                                  <Badge className={
-                                    isConnected ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                                    isPending ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                                    'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-                                  }>
-                                    {connection?.status || 'Available'}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Enhanced Device Integrations with unified style */}
+              {Object.entries(enhancedDeviceConfig).map(([deviceType, config]) => {
+                const connection = deviceConnections.find(conn => conn.deviceType === deviceType);
+                const Icon = config.icon;
+                const isConnected = connection?.status === 'connected';
+                const isPending = connection?.status === 'pending';
+                
+                return (
+                  <motion.div 
+                    key={deviceType}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="dark:border-gray-700 h-full flex flex-col">
+                      <CardHeader className={`${config.color} pb-3`}>
+                        <div className="flex items-center space-x-3">
+                          <div className="rounded-full p-2 bg-white dark:bg-gray-800 flex items-center justify-center">
+                            <Icon className="text-xl" />
                           </div>
-                        </CardHeader>
-                        <CardContent className="py-4 flex-grow">
-                          <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                            {config.description}
-                          </p>
-                          <div className="flex flex-wrap gap-1 mb-4">
-                            {config.capabilities.map((capability) => (
-                              <Badge key={capability} variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800">
-                                {capability}
+                          <div>
+                            <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
+                            <div className="flex items-center space-x-2 mt-1">
+                              {isConnected && <CheckCircle className="h-4 w-4 text-green-500" />}
+                              {isPending && <Clock className="h-4 w-4 text-yellow-500" />}
+                              {!connection && <XCircle className="h-4 w-4 text-gray-400" />}
+                              <Badge className={
+                                isConnected ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                isPending ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+                              }>
+                                {connection?.status || 'Available'}
                               </Badge>
-                            ))}
-                          </div>
-                          {connection && connection.lastSync && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Last sync: {new Date(connection.lastSync).toLocaleDateString()}
-                            </p>
-                          )}
-                        </CardContent>
-                        <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
-                          {isConnected ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => connection && disconnectDeviceMutation.mutate(connection.id)}
-                              disabled={disconnectDeviceMutation.isPending}
-                              className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/20"
-                            >
-                              Disconnect
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => connectDeviceMutation.mutate(deviceType)}
-                              disabled={connectDeviceMutation.isPending || isPending}
-                              className="w-full"
-                            >
-                              {isPending ? 'Connecting...' : 'Connect'}
-                            </Button>
-                          )}
-                        </CardFooter>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Original Health Services Section */}
-            <div>
-              <h3 className="text-lg font-medium mb-4 dark:text-white">Health Platform Integrations</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Connect with major health and fitness platforms to sync your existing data.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {getAvailableServices().map((service) => {
-                  const config = getServiceConfig(service);
-                  return (
-                    <motion.div 
-                      key={service}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="dark:border-gray-700 h-full flex flex-col">
-                        <CardHeader className={`${config.color} pb-3`}>
-                          <div className="flex items-center space-x-3">
-                            <div className="rounded-full p-2 bg-white dark:bg-gray-800 flex items-center justify-center">
-                              <i className={`${config.icon} text-xl`}></i>
-                            </div>
-                            <div>
-                              <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardContent className="py-4 flex-grow">
-                          <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                            {config.description}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="py-4 flex-grow">
+                        <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                          {config.description}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {config.capabilities.map((capability) => (
+                            <Badge key={capability} variant="outline" className="bg-gray-50 dark:bg-gray-800">
+                              {capability}
+                            </Badge>
+                          ))}
+                        </div>
+                        {connection && connection.lastSync && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            Last sync: {new Date(connection.lastSync).toLocaleDateString()}
                           </p>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {config.scopes.map(scope => (
-                              <Badge key={scope} variant="outline" className="bg-gray-50 dark:bg-gray-800">
-                                {scope.charAt(0).toUpperCase() + scope.slice(1)}
-                              </Badge>
-                            ))}
-                          </div>
-                        </CardContent>
-                        <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
+                        )}
+                      </CardContent>
+                      <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
+                        {isConnected ? (
                           <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => connection && disconnectDeviceMutation.mutate(connection.id)}
+                            disabled={disconnectDeviceMutation.isPending}
+                            className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/20"
+                          >
+                            <i className="ri-delete-bin-line mr-1"></i>
+                            Disconnect
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => connectDeviceMutation.mutate(deviceType)}
+                            disabled={connectDeviceMutation.isPending || isPending}
                             className="w-full"
-                            onClick={() => handleConnect(service)}
                           >
                             <i className="ri-link mr-1"></i>
-                            Connect
+                            {isPending ? 'Connecting...' : 'Connect'}
                           </Button>
-                        </CardFooter>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+              
+              {/* Original Health Platform Services */}
+              {getAvailableServices().map((service) => {
+                const config = getServiceConfig(service);
+                return (
+                  <motion.div 
+                    key={service}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="dark:border-gray-700 h-full flex flex-col">
+                      <CardHeader className={`${config.color} pb-3`}>
+                        <div className="flex items-center space-x-3">
+                          <div className="rounded-full p-2 bg-white dark:bg-gray-800 flex items-center justify-center">
+                            <i className={`${config.icon} text-xl`}></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-medium">{config.name}</CardTitle>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="py-4 flex-grow">
+                        <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                          {config.description}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {config.scopes.map(scope => (
+                            <Badge key={scope} variant="outline" className="bg-gray-50 dark:bg-gray-800">
+                              {scope.charAt(0).toUpperCase() + scope.slice(1)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0 border-t border-gray-100 dark:border-gray-800">
+                        <Button
+                          className="w-full"
+                          onClick={() => handleConnect(service)}
+                        >
+                          <i className="ri-link mr-1"></i>
+                          Connect
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           </TabsContent>
         </Tabs>
