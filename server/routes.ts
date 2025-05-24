@@ -645,6 +645,48 @@ USER QUESTION: ${message}
     }
   });
 
+  // ===========================================
+  // METRICS ENGINE ENDPOINT
+  // ===========================================
+
+  app.get('/api/metrics/analysis', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = '30d' } = req.query;
+      
+      // Get user's health metrics from storage
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Convert to metrics engine format
+      const metricsData = healthMetrics.map(metric => ({
+        type: metric.type as any,
+        value: typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value,
+        timestamp: new Date(metric.timestamp),
+        source: metric.source || 'Manual Entry',
+        quality: 'high' as const
+      }));
+
+      // Import metrics engine
+      const { metricsEngine } = await import('./metrics-engine');
+      
+      // Analyze metrics
+      const analysis = metricsEngine.analyzeUserMetrics(
+        metricsData, 
+        user.id, 
+        timeframe as '7d' | '30d' | '90d'
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing metrics:', error);
+      res.status(500).json({ message: 'Failed to analyze health metrics' });
+    }
+  });
+
   // Helper function to generate contextual follow-up suggestions
   function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
     const message = userMessage.toLowerCase();
