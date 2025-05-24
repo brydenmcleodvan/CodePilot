@@ -80,7 +80,13 @@ export function setupAuth(app: Express) {
         
         // Test account bypass
         if (username === 'johndoe' && password === 'password123') {
-          // Return user with only the fields needed for authentication
+          return done(null, {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            name: user.name,
+            roles: user.roles
+          });
         } else if (!(await comparePasswords(password, user.password))) {
           return done(null, false, { message: 'Invalid username or password' });
         } else {
