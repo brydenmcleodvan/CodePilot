@@ -663,7 +663,7 @@ USER QUESTION: ${message}
       
       // Convert to metrics engine format
       const metricsData = healthMetrics.map(metric => ({
-        type: metric.type as any,
+        type: metric.metricType as any,
         value: typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value,
         timestamp: new Date(metric.timestamp),
         source: metric.source || 'Manual Entry',
@@ -684,6 +684,59 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error analyzing metrics:', error);
       res.status(500).json({ message: 'Failed to analyze health metrics' });
+    }
+  });
+
+  // Get detailed metric data for graph views
+  app.get('/api/metrics/detailed', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { type, timeframe = '7d' } = req.query;
+      
+      if (!type) {
+        return res.status(400).json({ message: 'Metric type is required' });
+      }
+
+      // Get user's health metrics from storage filtered by type
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const filteredMetrics = healthMetrics.filter(metric => 
+        metric.metricType === type
+      );
+
+      // Filter by timeframe
+      const now = new Date();
+      let cutoffDate = new Date();
+      switch (timeframe) {
+        case '7d':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          cutoffDate.setDate(now.getDate() - 30);
+          break;
+        case '90d':
+          cutoffDate.setDate(now.getDate() - 90);
+          break;
+      }
+
+      const timeFilteredMetrics = filteredMetrics.filter(metric => 
+        new Date(metric.timestamp) >= cutoffDate
+      );
+
+      // Format for frontend
+      const detailedData = timeFilteredMetrics.map(metric => ({
+        date: metric.timestamp.toISOString(),
+        value: typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value,
+        quality: 'good' as const // This could be determined by various factors
+      })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      res.json(detailedData);
+    } catch (error) {
+      console.error('Error fetching detailed metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch detailed metrics' });
     }
   });
 
