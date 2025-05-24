@@ -334,6 +334,180 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // ===========================================
+  // DEVICE INTEGRATION ENDPOINTS
+  // ===========================================
+
+  // Get user's connected devices
+  app.get('/api/devices/connections', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connections = deviceManager.getUserConnections(user.id);
+      res.json(connections);
+    } catch (error) {
+      console.error('Error fetching device connections:', error);
+      res.status(500).json({ message: 'Failed to fetch device connections' });
+    }
+  });
+
+  // Connect Apple HealthKit/Apple Watch
+  app.post('/api/devices/connect/apple', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { permissions } = req.body;
+      const connection = await deviceManager.connectAppleHealthKit(user.id, permissions || [
+        'heart_rate', 'steps', 'sleep', 'workouts', 'blood_oxygen'
+      ]);
+
+      // In real implementation, this would redirect to Apple's OAuth or handle HealthKit authorization
+      // For prototype, we'll simulate a successful connection
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain Apple's OAuth URL in real implementation
+        message: 'Apple HealthKit connection initiated. Please authorize in your Health app.'
+      });
+    } catch (error) {
+      console.error('Error connecting Apple HealthKit:', error);
+      res.status(500).json({ message: 'Failed to connect Apple HealthKit' });
+    }
+  });
+
+  // Connect Oura Ring
+  app.post('/api/devices/connect/oura', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connection = await deviceManager.connectOuraRing(user.id);
+
+      // In real implementation, this would redirect to Oura's OAuth
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain Oura's OAuth URL in real implementation
+        message: 'Oura Ring connection initiated. Redirecting to Oura authorization...'
+      });
+    } catch (error) {
+      console.error('Error connecting Oura Ring:', error);
+      res.status(500).json({ message: 'Failed to connect Oura Ring' });
+    }
+  });
+
+  // Connect WHOOP
+  app.post('/api/devices/connect/whoop', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connection = await deviceManager.connectWhoop(user.id);
+
+      // In real implementation, this would redirect to WHOOP's OAuth
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain WHOOP's OAuth URL in real implementation
+        message: 'WHOOP connection initiated. Redirecting to WHOOP authorization...'
+      });
+    } catch (error) {
+      console.error('Error connecting WHOOP:', error);
+      res.status(500).json({ message: 'Failed to connect WHOOP' });
+    }
+  });
+
+  // Get aggregated health metrics from all connected devices
+  app.get('/api/devices/metrics', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = '7d', metric } = req.query;
+      
+      // Get user's connected devices
+      const connections = deviceManager.getUserConnections(user.id);
+      const connectedDevices = connections.filter(conn => conn.status === 'connected');
+
+      // Generate sample metrics for prototype demonstration
+      const sampleMetrics = {
+        heart_rate: {
+          current: 72,
+          trend: '+2.5%',
+          data: Array.from({length: 7}, (_, i) => ({
+            date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+            value: 70 + Math.random() * 10,
+            source: connectedDevices.length > 0 ? connectedDevices[0].metadata.deviceName : 'Simulated'
+          }))
+        },
+        sleep: {
+          lastNight: '7h 32m',
+          quality: 'Good',
+          data: Array.from({length: 7}, (_, i) => ({
+            date: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+            duration: 7 + Math.random() * 2,
+            deep: 1.5 + Math.random() * 0.5,
+            rem: 1.8 + Math.random() * 0.7,
+            light: 4 + Math.random() * 1
+          }))
+        },
+        activity: {
+          steps: 8543,
+          calories: 2140,
+          activeMinutes: 45
+        }
+      };
+
+      res.json({
+        metrics: metric ? { [metric]: sampleMetrics[metric as string] } : sampleMetrics,
+        connectedDevices: connectedDevices.length,
+        lastSync: new Date()
+      });
+    } catch (error) {
+      console.error('Error fetching device metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch device metrics' });
+    }
+  });
+
+  // Disconnect a device
+  app.delete('/api/devices/disconnect/:deviceId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { deviceId } = req.params;
+      deviceManager.updateConnectionStatus(deviceId, 'disconnected');
+
+      res.json({ message: 'Device disconnected successfully' });
+    } catch (error) {
+      console.error('Error disconnecting device:', error);
+      res.status(500).json({ message: 'Failed to disconnect device' });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
