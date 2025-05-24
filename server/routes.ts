@@ -744,7 +744,7 @@ USER QUESTION: ${message}
   // HEALTH GOALS API ENDPOINTS
   // ===========================================
 
-  // Get all health goals for user
+  // Get all health goals for user with intelligent evaluation
   app.get('/api/health-goals', authenticateJwt, async (req, res) => {
     try {
       const user = req.user;
@@ -753,63 +753,50 @@ USER QUESTION: ${message}
       }
 
       const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allProgressHistory = await Promise.all(
+        goals.map(goal => storage.getGoalProgress(goal.id))
+      );
+      const progressHistory = allProgressHistory.flat();
+
+      // Import and use the goal engine
+      const { goalEngine } = await import('./goal-engine');
       
-      // Calculate progress for each goal
-      const goalsWithProgress = await Promise.all(goals.map(async (goal) => {
-        const progress = await storage.getGoalProgress(goal.id);
+      // Evaluate all goals using the intelligent engine
+      const evaluations = goalEngine.evaluateUserGoals(goals, healthMetrics, progressHistory);
+      
+      // Transform evaluations back to expected format
+      const goalsWithProgress = goals.map(goal => {
+        const evaluation = evaluations[goal.id.toString()];
         
-        // Calculate current progress based on timeframe
-        const now = new Date();
-        let startDate = new Date();
-        
-        switch (goal.timeframe) {
-          case 'daily':
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case 'weekly':
-            startDate.setDate(now.getDate() - 7);
-            break;
-          case 'monthly':
-            startDate.setMonth(now.getMonth() - 1);
-            break;
+        if (!evaluation) {
+          // Fallback for goals without evaluation
+          return {
+            ...goal,
+            progress: { current: 0, target: 0, percentage: 0 },
+            status: 'on_track' as const,
+            daysCompleted: 0,
+            totalDays: 1,
+            streak: 0
+          };
         }
-        
-        const recentProgress = await storage.getGoalProgressForPeriod(goal.id, startDate, now);
-        const achievedDays = recentProgress.filter(p => p.achieved).length;
-        const totalDays = goal.timeframe === 'daily' ? 1 : 
-                         goal.timeframe === 'weekly' ? 7 : 30;
-        
-        const currentValue = recentProgress.length > 0 ? 
-          parseFloat(recentProgress[recentProgress.length - 1].value) : 0;
-        
-        const targetValue = typeof goal.goalValue === 'object' ? 
-          (goal.goalValue as any).max || (goal.goalValue as any).min : 
-          goal.goalValue as number;
-        
-        const percentage = goal.timeframe === 'daily' ? 
-          (currentValue / targetValue) * 100 :
-          (achievedDays / totalDays) * 100;
-        
-        let status: 'on_track' | 'behind' | 'ahead' | 'completed' | 'at_risk' = 'on_track';
-        
-        if (percentage >= 100) status = 'completed';
-        else if (percentage >= 80) status = 'on_track';
-        else if (percentage >= 50) status = 'behind';
-        else status = 'at_risk';
-        
+
         return {
           ...goal,
           progress: {
-            current: currentValue,
-            target: targetValue,
-            percentage: Math.min(percentage, 100)
+            current: evaluation.progress,
+            target: evaluation.target,
+            percentage: evaluation.percentage
           },
-          status,
-          daysCompleted: achievedDays,
-          totalDays,
-          streak: calculateStreak(recentProgress)
+          status: evaluation.status,
+          daysCompleted: evaluation.daysCompleted,
+          totalDays: evaluation.totalDays,
+          streak: evaluation.streak,
+          recommendation: evaluation.recommendation,
+          nextMilestone: evaluation.nextMilestone,
+          riskFactors: evaluation.riskFactors
         };
-      }));
+      });
       
       res.json(goalsWithProgress);
     } catch (error) {
@@ -945,6 +932,146 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error fetching goal progress:', error);
       res.status(500).json({ message: 'Failed to fetch goal progress' });
+    }
+  });
+
+  // Get goal evaluation summary with intelligent insights
+  app.get('/api/health-goals/evaluation', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allProgressHistory = await Promise.all(
+        goals.map(goal => storage.getGoalProgress(goal.id))
+      );
+      const progressHistory = allProgressHistory.flat();
+
+      // Import and use the goal engine for detailed evaluation
+      const { goalEngine } = await import('./goal-engine');
+      
+      const evaluations = goalEngine.evaluateUserGoals(goals, healthMetrics, progressHistory);
+      const prioritizedGoals = goalEngine.prioritizeGoalsForIntervention(evaluations);
+
+      // Create summary response
+      const summary = {
+        totalGoals: goals.length,
+        activeGoals: goals.filter(g => g.status === 'active').length,
+        completedGoals: Object.values(evaluations).filter(e => e.status === 'completed').length,
+        atRiskGoals: Object.values(evaluations).filter(e => e.status === 'at_risk').length,
+        prioritizedInterventions: prioritizedGoals.slice(0, 3).map(goalId => {
+          const evaluation = evaluations[goalId];
+          const goal = goals.find(g => g.id.toString() === goalId);
+          return {
+            goalId: parseInt(goalId),
+            metricType: evaluation.metricType,
+            status: evaluation.status,
+            recommendation: evaluation.recommendation,
+            riskFactors: evaluation.riskFactors,
+            goalDescription: goal ? `${goal.metricType} - ${goal.goalValue} ${goal.unit}` : 'Unknown goal'
+          };
+        }),
+        evaluations
+      };
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error evaluating health goals:', error);
+      res.status(500).json({ message: 'Failed to evaluate health goals' });
+    }
+  });
+
+  // Daily goal check endpoint (for automated systems)
+  app.post('/api/health-goals/daily-check', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Focus on today's metrics only
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const todaysMetrics = healthMetrics.filter(metric =>
+        new Date(metric.timestamp) >= today && new Date(metric.timestamp) < tomorrow
+      );
+
+      const results = [];
+
+      for (const goal of goals.filter(g => g.status === 'active')) {
+        const goalMetrics = todaysMetrics.filter(m => m.metricType === goal.metricType);
+        
+        if (goalMetrics.length > 0) {
+          const latestValue = parseFloat(goalMetrics[goalMetrics.length - 1].value);
+          const targetValue = typeof goal.goalValue === 'object' ? 
+            (goal.goalValue as any).target || (goal.goalValue as any).min || (goal.goalValue as any).max :
+            goal.goalValue as number;
+
+          let achieved = false;
+          let progress = 0;
+
+          switch (goal.goalType) {
+            case 'minimum':
+              achieved = latestValue >= targetValue;
+              progress = (latestValue / targetValue) * 100;
+              break;
+            case 'maximum':
+              achieved = latestValue <= targetValue;
+              progress = latestValue <= targetValue ? 100 : (targetValue / latestValue) * 100;
+              break;
+            case 'target':
+              const tolerance = targetValue * 0.1; // 10% tolerance
+              achieved = Math.abs(latestValue - targetValue) <= tolerance;
+              progress = achieved ? 100 : (latestValue / targetValue) * 100;
+              break;
+          }
+
+          // Auto-log progress for today
+          const progressData = {
+            goalId: goal.id,
+            date: new Date(),
+            value: latestValue.toString(),
+            achieved,
+            notes: `Auto-logged from ${goalMetrics[goalMetrics.length - 1].source || 'device'} data`
+          };
+
+          // Check if progress already exists for today
+          const existingProgress = await storage.getGoalProgressForPeriod(goal.id, today, tomorrow);
+          
+          if (existingProgress.length === 0) {
+            await storage.addGoalProgress(progressData);
+          }
+
+          results.push({
+            goalId: goal.id,
+            metricType: goal.metricType,
+            currentValue: latestValue,
+            targetValue,
+            achieved,
+            progress: Math.min(progress, 100),
+            autoLogged: existingProgress.length === 0
+          });
+        }
+      }
+
+      res.json({
+        date: today.toISOString().split('T')[0],
+        processedGoals: results.length,
+        achievements: results.filter(r => r.achieved).length,
+        results
+      });
+    } catch (error) {
+      console.error('Error running daily goal check:', error);
+      res.status(500).json({ message: 'Failed to run daily goal check' });
     }
   });
 
