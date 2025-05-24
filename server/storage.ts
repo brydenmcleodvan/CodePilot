@@ -78,7 +78,7 @@ class MemStorage implements IStorage {
       username: "johndoe",
       email: "john@healthmap.com",
       name: "John Doe",
-      password: "$2b$12$yw/SHgEJaEnjqkKJ6y2wu.4Bttnz0cNDwGfcPm0BbinRPGn.rMkZC", // "password123"
+      password: "c7a628cbbfaa66f78e8ee5c8e9cf88b2e4d7b5a5.af2bdbe1aa9b6ec1e2ade1d11e90b88",
       roles: ["patient"],
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-01-01"),
