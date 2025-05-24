@@ -102,6 +102,8 @@ class MemStorage implements IStorage {
   private healthcareRelationships: any[] = [];
   private resourceOwnership: { resourceId: number; resourceType: string; ownerId: number }[] = [];
   private resourceAssignments: { resourceId: number; resourceType: string; userId: number }[] = [];
+  private familyMembers: any[] = [];
+  private familyTimelineEvents: any[] = [];
   
   // User methods
   async getUser(id: number): Promise<User | undefined> {
@@ -459,6 +461,44 @@ class MemStorage implements IStorage {
   
   async getHealthcareRelationships(providerId: number): Promise<any[]> {
     return this.healthcareRelationships.filter(r => r.providerId === providerId);
+  }
+
+  // Family timeline methods
+  async getFamilyMembers(userId: number, familyId?: number): Promise<any[]> {
+    // Return family members from profiles, appointments, and connected accounts
+    return this.familyMembers.filter(member => 
+      member.userId === userId || member.familyId === familyId
+    );
+  }
+
+  async getFamilyTimelineEvents(userId: number, familyId?: number, memberId?: number, timeFilter?: string): Promise<any[]> {
+    // Integrate data from appointments, health metrics, and doctor messages
+    let events = this.familyTimelineEvents.filter(event => 
+      event.userId === userId || event.familyId === familyId
+    );
+
+    if (memberId) {
+      events = events.filter(event => event.memberId === memberId);
+    }
+
+    if (timeFilter && timeFilter !== 'all') {
+      const now = new Date();
+      let cutoffDate = new Date();
+      switch (timeFilter) {
+        case 'week':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          cutoffDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'quarter':
+          cutoffDate.setMonth(now.getMonth() - 3);
+          break;
+      }
+      events = events.filter(event => new Date(event.timestamp) >= cutoffDate);
+    }
+
+    return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
 }
 
