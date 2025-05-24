@@ -18,6 +18,7 @@ import {
 import {
   Target,
   TrendingUp,
+  Flame,
   Calendar,
   CheckCircle,
   AlertCircle,
@@ -208,6 +209,15 @@ export default function HealthGoalCard({
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {/* Streak Display */}
+              {streak > 0 && (
+                <div className="flex items-center space-x-1 px-2 py-1 bg-orange-50 dark:bg-orange-900/20 rounded-full">
+                  <Flame className="h-3 w-3 text-orange-500" />
+                  <span className="text-xs font-medium text-orange-700 dark:text-orange-300">
+                    {streak}
+                  </span>
+                </div>
+              )}
               <Badge className={statusInfo.color}>
                 <StatusIcon className={`h-3 w-3 mr-1 ${statusInfo.iconColor}`} />
                 {statusInfo.label}
