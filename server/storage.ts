@@ -68,6 +68,10 @@ export interface IStorage {
   // Healthcare relationships
   hasHealthcareRelationship(providerId: number, patientId: number): Promise<boolean>;
   getHealthcareRelationships(providerId: number): Promise<any[]>;
+  
+  // Family timeline
+  getFamilyMembers(userId: number, familyId?: number): Promise<any[]>;
+  getFamilyTimelineEvents(userId: number, familyId?: number, memberId?: number, timeFilter?: string): Promise<any[]>;
 }
 
 // In-memory implementation

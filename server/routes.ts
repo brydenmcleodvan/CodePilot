@@ -595,6 +595,56 @@ USER QUESTION: ${message}
     }
   });
 
+  // ===========================================
+  // FAMILY TIMELINE ENDPOINTS
+  // ===========================================
+
+  // Get family members
+  app.get('/api/family/members/:familyId?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { familyId } = req.params;
+      
+      // Get family members (including user themselves)
+      const familyMembers = await storage.getFamilyMembers(user.id, familyId ? parseInt(familyId) : undefined);
+      
+      res.json(familyMembers);
+    } catch (error) {
+      console.error('Error fetching family members:', error);
+      res.status(500).json({ message: 'Failed to fetch family members' });
+    }
+  });
+
+  // Get family timeline events
+  app.get('/api/family/timeline/:familyId?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { familyId } = req.params;
+      const { selectedMember, timeFilter } = req.query;
+      
+      // Get timeline events from multiple sources
+      const timelineEvents = await storage.getFamilyTimelineEvents(
+        user.id, 
+        familyId ? parseInt(familyId) : undefined,
+        selectedMember ? parseInt(selectedMember as string) : undefined,
+        timeFilter as string
+      );
+      
+      res.json(timelineEvents);
+    } catch (error) {
+      console.error('Error fetching family timeline:', error);
+      res.status(500).json({ message: 'Failed to fetch family timeline' });
+    }
+  });
+
   // Helper function to generate contextual follow-up suggestions
   function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
     const message = userMessage.toLowerCase();
