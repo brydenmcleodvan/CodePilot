@@ -5,6 +5,7 @@ import { setupAuth } from './auth';
 import { authenticateJwt } from './security/auth/auth-middleware';
 import { checkPermission } from './security/permissions/permission-checker';
 import { ResourceType } from './security/permissions/permission-types';
+import { deviceManager } from './integrations/device-manager';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
