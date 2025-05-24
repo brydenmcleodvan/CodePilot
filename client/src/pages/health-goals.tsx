@@ -3,6 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import HealthGoalCard from '@/components/health-goal-card';
+import GoalAIRecommendations from '@/components/goal-ai-recommendations';
 import {
   Card,
   CardContent,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +47,7 @@ import {
   Calendar,
   Award,
   Clock,
+  Brain,
 } from 'lucide-react';
 
 const createGoalSchema = z.object({
@@ -323,8 +326,22 @@ export default function HealthGoalsPage() {
         </Dialog>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="my-goals" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="my-goals" className="flex items-center space-x-2">
+            <Target className="h-4 w-4" />
+            <span>My Goals</span>
+          </TabsTrigger>
+          <TabsTrigger value="ai-recommendations" className="flex items-center space-x-2">
+            <Brain className="h-4 w-4" />
+            <span>AI Recommendations</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="my-goals" className="space-y-6">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
@@ -420,6 +437,12 @@ export default function HealthGoalsPage() {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="ai-recommendations" className="space-y-6">
+          <GoalAIRecommendations />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

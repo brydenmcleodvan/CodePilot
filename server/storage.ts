@@ -609,7 +609,16 @@ class MemStorage implements IStorage {
       createdAt: new Date('2025-01-21')
     }
   ];
-}
+
+  async revokeToken(tokenId: string): Promise<void> {
+    const token = this.tokenMetadata.find(t => t.id === tokenId);
+    if (token) {
+      token.isRevoked = true;
+    }
+  }
+
+  async revokeAllUserTokens(userId: number): Promise<void> {
+    this.tokenMetadata.forEach(token => {
       if (token.userId === userId) {
         token.isRevoked = true;
       }
@@ -643,14 +652,12 @@ class MemStorage implements IStorage {
 
   // Family timeline methods
   async getFamilyMembers(userId: number, familyId?: number): Promise<any[]> {
-    // Return family members from profiles, appointments, and connected accounts
     return this.familyMembers.filter(member => 
       member.userId === userId || member.familyId === familyId
     );
   }
 
   async getFamilyTimelineEvents(userId: number, familyId?: number, memberId?: number, timeFilter?: string): Promise<any[]> {
-    // Integrate data from appointments, health metrics, and doctor messages
     let events = this.familyTimelineEvents.filter(event => 
       event.userId === userId || event.familyId === familyId
     );

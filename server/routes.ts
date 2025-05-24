@@ -1094,6 +1094,116 @@ USER QUESTION: ${message}
     return streak;
   }
 
+  // AI Goal Recommendations endpoint
+  app.post('/api/health-goals/recommend', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { question, requestedMetrics } = req.body;
+      
+      // Import the recommendation engine
+      const { goalRecommendationEngine } = await import('./goal-recommendations');
+
+      // Get user profile data
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Build user profile from available data
+      const userProfile = {
+        age: 30, // Default - could be enhanced with user profile data
+        gender: 'other' as const,
+        activityLevel: 'moderately_active' as const,
+        currentMetrics: {}
+      };
+
+      // Add current metric averages if available
+      if (healthMetrics.length > 0) {
+        const recentMetrics = healthMetrics.filter(m => 
+          new Date(m.timestamp) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        );
+        
+        const metricAverages: { [key: string]: number } = {};
+        const metricCounts: { [key: string]: number } = {};
+        
+        recentMetrics.forEach(metric => {
+          const value = parseFloat(metric.value);
+          if (!isNaN(value)) {
+            metricAverages[metric.metricType] = (metricAverages[metric.metricType] || 0) + value;
+            metricCounts[metric.metricType] = (metricCounts[metric.metricType] || 0) + 1;
+          }
+        });
+        
+        Object.keys(metricAverages).forEach(metricType => {
+          metricAverages[metricType] = metricAverages[metricType] / metricCounts[metricType];
+        });
+        
+        userProfile.currentMetrics = metricAverages;
+      }
+
+      let recommendations, aiResponse;
+
+      if (question) {
+        // Get AI-powered contextual recommendations
+        const result = await goalRecommendationEngine.getAIRecommendations(question, userProfile);
+        recommendations = result.recommendations;
+        aiResponse = result.aiResponse;
+      } else {
+        // Get general recommendations
+        recommendations = goalRecommendationEngine.generateRecommendations(userProfile, requestedMetrics);
+        aiResponse = `I've created ${recommendations.length} personalized health goal recommendations based on your profile and current activity levels.`;
+      }
+
+      res.json({
+        recommendations,
+        aiResponse,
+        userProfile: {
+          metricsAnalyzed: Object.keys(userProfile.currentMetrics).length,
+          timeframeDays: 30
+        }
+      });
+    } catch (error) {
+      console.error('Error generating goal recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Quick goal creation from AI recommendations
+  app.post('/api/health-goals/create-from-recommendation', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, goalType, recommendedValue, unit, timeframe, reasoning } = req.body;
+
+      // Create goal from AI recommendation
+      const goalData = {
+        userId: user.id,
+        metricType,
+        goalType,
+        goalValue: recommendedValue,
+        unit,
+        timeframe,
+        startDate: new Date(),
+        status: 'active',
+        notes: `AI-recommended goal: ${reasoning}`
+      };
+
+      const newGoal = await storage.createHealthGoal(goalData);
+      
+      res.status(201).json({
+        goal: newGoal,
+        message: 'Goal created successfully from AI recommendation'
+      });
+    } catch (error) {
+      console.error('Error creating goal from recommendation:', error);
+      res.status(500).json({ message: 'Failed to create goal from recommendation' });
+    }
+  });
+
   // Helper function to generate contextual follow-up suggestions
   function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
     const message = userMessage.toLowerCase();
