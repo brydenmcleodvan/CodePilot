@@ -6,6 +6,7 @@ import { authenticateJwt } from './security/auth/auth-middleware';
 import { checkPermission } from './security/permissions/permission-checker';
 import { ResourceType } from './security/permissions/permission-types';
 import { deviceManager } from './integrations/device-manager';
+import { streakEngine } from './streak-engine';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -1166,6 +1167,118 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error generating goal recommendations:', error);
       res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Get streak analytics for a specific goal
+  app.get('/api/health-goals/:goalId/streak', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      // Get progress data for streak calculation
+      const progressData = await storage.getGoalProgress(parseInt(goalId));
+      
+      // Convert progress data to format expected by streak engine
+      const metricData = progressData.map(progress => ({
+        date: progress.date.toISOString().split('T')[0],
+        value: parseFloat(progress.value),
+        source: 'manual'
+      }));
+
+      // Define goal structure for streak engine
+      const streakGoal = {
+        type: goal.goalType as 'min' | 'max' | 'target' | 'range',
+        target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+        unit: goal.unit
+      };
+
+      // Calculate streak analytics
+      const streakResult = streakEngine.calculateStreak(metricData, streakGoal);
+      const insights = streakEngine.getStreakInsights(streakResult, goal.metricType);
+      const prediction = streakEngine.getStreakPrediction(streakResult.streakHistory);
+
+      res.json({
+        goalId: parseInt(goalId),
+        goalType: goal.metricType,
+        streak: streakResult,
+        insights,
+        prediction
+      });
+    } catch (error) {
+      console.error('Error calculating streak:', error);
+      res.status(500).json({ message: 'Failed to calculate streak' });
+    }
+  });
+
+  // Get streak summary for all user goals
+  app.get('/api/health-goals/streak-summary', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const streakSummaries = [];
+
+      for (const goal of goals) {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        const metricData = progressData.map(progress => ({
+          date: progress.date.toISOString().split('T')[0],
+          value: parseFloat(progress.value),
+          source: 'manual'
+        }));
+
+        const streakGoal = {
+          type: goal.goalType as 'min' | 'max' | 'target' | 'range',
+          target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+          unit: goal.unit
+        };
+
+        const streakResult = streakEngine.calculateStreak(metricData, streakGoal);
+        const insights = streakEngine.getStreakInsights(streakResult, goal.metricType);
+
+        streakSummaries.push({
+          goalId: goal.id,
+          goalType: goal.metricType,
+          currentStreak: streakResult.currentStreak,
+          longestStreak: streakResult.longestStreak,
+          achievementRate: streakResult.achievementRate,
+          level: insights.level,
+          nextMilestone: insights.nextMilestone
+        });
+      }
+
+      // Calculate overall streak statistics
+      const totalActiveStreaks = streakSummaries.filter(s => s.currentStreak > 0).length;
+      const averageStreak = streakSummaries.length > 0 
+        ? streakSummaries.reduce((sum, s) => sum + s.currentStreak, 0) / streakSummaries.length 
+        : 0;
+      const longestOverallStreak = Math.max(...streakSummaries.map(s => s.longestStreak), 0);
+
+      res.json({
+        goals: streakSummaries,
+        summary: {
+          totalGoals: goals.length,
+          activeStreaks: totalActiveStreaks,
+          averageCurrentStreak: Math.round(averageStreak * 10) / 10,
+          longestOverallStreak
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching streak summary:', error);
+      res.status(500).json({ message: 'Failed to fetch streak summary' });
     }
   });
 
