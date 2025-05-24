@@ -188,6 +188,34 @@ export type HealthcareRelationship = InferSelectModel<typeof healthcareRelations
 export type ResourceOwnership = InferSelectModel<typeof resourceOwnership>;
 export type ResourceAssignment = InferSelectModel<typeof resourceAssignments>;
 
+// Health goals table
+export const healthGoals = pgTable('health_goals', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  metricType: text('metric_type').notNull(),
+  goalType: text('goal_type').notNull(), // 'target', 'minimum', 'maximum', 'range'
+  goalValue: json('goal_value').notNull(), // number or {min, max} object
+  unit: text('unit').notNull(),
+  timeframe: text('timeframe').notNull(), // 'daily', 'weekly', 'monthly'
+  status: text('status').notNull(), // 'active', 'completed', 'paused', 'archived'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  notes: text('notes')
+});
+
+// Goal progress tracking table
+export const goalProgress = pgTable('goal_progress', {
+  id: serial('id').primaryKey(),
+  goalId: integer('goal_id').notNull().references(() => healthGoals.id),
+  date: timestamp('date').notNull(),
+  value: text('value').notNull(),
+  achieved: boolean('achieved').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
 // Export insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertHealthMetric = z.infer<typeof insertHealthMetricSchema>;
@@ -199,3 +227,12 @@ export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
 export type InsertHealthArticle = z.infer<typeof insertHealthArticleSchema>;
 export type InsertTokenMetadata = z.infer<typeof insertTokenMetadataSchema>;
 export type InsertHealthcareRelationship = z.infer<typeof insertHealthcareRelationshipSchema>;
+
+// Health goals schemas and types
+export const insertHealthGoalSchema = createInsertSchema(healthGoals).omit({ id: true });
+export const insertGoalProgressSchema = createInsertSchema(goalProgress).omit({ id: true });
+
+export type HealthGoal = InferSelectModel<typeof healthGoals>;
+export type GoalProgress = InferSelectModel<typeof goalProgress>;
+export type InsertHealthGoal = z.infer<typeof insertHealthGoalSchema>;
+export type InsertGoalProgress = z.infer<typeof insertGoalProgressSchema>;
