@@ -7,6 +7,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { 
+  Watch, 
+  Activity, 
+  Heart, 
+  Droplets, 
+  Gauge,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
 import { 
   HealthService, 
   healthServiceConfig, 
@@ -17,12 +30,112 @@ import {
   syncHealthService
 } from "@/lib/health-api-integration";
 
+interface DeviceConnection {
+  id: string;
+  userId: number;
+  deviceType: 'apple_watch' | 'oura_ring' | 'whoop' | 'dexcom' | 'qardio';
+  status: 'connected' | 'disconnected' | 'pending' | 'error';
+  lastSync: string | null;
+  permissions: string[];
+  metadata: {
+    deviceName: string;
+    capabilities: string[];
+    [key: string]: any;
+  };
+}
+
+const enhancedDeviceConfig = {
+  apple_watch: {
+    name: 'Apple Watch',
+    icon: Watch,
+    color: 'bg-gray-900',
+    description: 'Advanced health monitoring with ECG, blood oxygen, and fall detection.',
+    capabilities: ['Heart Rate', 'ECG', 'Blood Oxygen', 'Fall Detection', 'AFib History']
+  },
+  oura_ring: {
+    name: 'Oura Ring',
+    icon: Activity,
+    color: 'bg-blue-600',
+    description: 'Comprehensive sleep and recovery tracking with temperature monitoring.',
+    capabilities: ['Sleep Stages', 'HRV', 'Temperature', 'Readiness Score']
+  },
+  whoop: {
+    name: 'WHOOP',
+    icon: Heart,
+    color: 'bg-red-600',
+    description: 'Professional strain and recovery monitoring for athletes.',
+    capabilities: ['Strain Score', 'Recovery Score', 'Sleep Performance', 'HRV']
+  },
+  dexcom: {
+    name: 'Dexcom CGM',
+    icon: Droplets,
+    color: 'bg-orange-600',
+    description: 'Real-time continuous glucose monitoring for diabetes management.',
+    capabilities: ['Real-time Glucose', 'Glucose Trends', 'Alerts']
+  },
+  qardio: {
+    name: 'QardioArm',
+    icon: Gauge,
+    color: 'bg-green-600',
+    description: 'Professional blood pressure monitoring with irregular heartbeat detection.',
+    capabilities: ['Blood Pressure', 'Pulse', 'Irregular Heartbeat Detection']
+  }
+};
+
 export default function IntegrationsPage() {
   const [connectedServices, setConnectedServices] = useState<ConnectedService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncingService, setSyncingService] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"connected" | "available">("connected");
+  const [activeTab, setActiveTab] = useState<"connected" | "available">("available");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch device connections using our new API
+  const { data: deviceConnections = [], isLoading: devicesLoading } = useQuery<DeviceConnection[]>({
+    queryKey: ['/api/devices/connections'],
+  });
+
+  const connectDeviceMutation = useMutation({
+    mutationFn: async (deviceType: string) => {
+      const response = await apiRequest('POST', `/api/devices/connect/${deviceType}`, {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Device Connection Started',
+        description: data.message,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/devices/connections'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Connection Failed',
+        description: error.message || 'Failed to connect device',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const disconnectDeviceMutation = useMutation({
+    mutationFn: async (deviceId: string) => {
+      const response = await apiRequest('DELETE', `/api/devices/disconnect/${deviceId}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Device Disconnected',
+        description: 'Device has been successfully disconnected',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/devices/connections'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Disconnection Failed',
+        description: error.message || 'Failed to disconnect device',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch connected services on component mount
   useEffect(() => {
