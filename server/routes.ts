@@ -1481,6 +1481,45 @@ USER QUESTION: ${message}
     }
   });
 
+  // Health Score Engine - Get current daily health score
+  app.get('/api/health-score/current', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const healthScore = await healthScoreEngine.calculateDailyHealthScore(user.id);
+
+      res.json(healthScore);
+    } catch (error) {
+      console.error('Error calculating health score:', error);
+      res.status(500).json({ message: 'Failed to calculate health score' });
+    }
+  });
+
+  // Get health score history for trending
+  app.get('/api/health-score/history/:timeframe', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe } = req.params;
+      const days = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const scoreHistory = await healthScoreEngine.getHealthScoreHistory(user.id, days);
+
+      res.json(scoreHistory);
+    } catch (error) {
+      console.error('Error fetching health score history:', error);
+      res.status(500).json({ message: 'Failed to fetch health score history' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
