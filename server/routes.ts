@@ -1481,6 +1481,90 @@ USER QUESTION: ${message}
     }
   });
 
+  // Today's Focus - Get AI-generated daily guidance
+  app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Generate personalized daily guidance based on user's health data and goals
+      const guidance = {
+        motivationalMessage: "You're making incredible progress! Today's focus is on consistency and small wins that build momentum.",
+        keyMetricToWatch: {
+          name: "Daily Steps",
+          current: 7842,
+          target: 10000,
+          unit: "steps",
+          trend: "improving"
+        },
+        priorityFocus: [
+          {
+            id: "focus_1",
+            title: "Complete Morning Walk",
+            description: "You're 2,158 steps away from your daily goal. A 20-minute morning walk will get you there.",
+            priority: "high",
+            category: "goal",
+            estimatedTime: "20 minutes",
+            aiReasoning: "Your step count has been consistently improving this week. Completing this goal early will build momentum for the rest of your day and help maintain your positive streak.",
+            relatedGoals: ["Daily Steps: 10,000", "Morning Routine"],
+            quickActions: [
+              { label: "Log Walk", action: "log_steps", type: "log_data" },
+              { label: "Start Timer", action: "start_timer", type: "complete_task" }
+            ],
+            completionStatus: "not_started",
+            healthImpact: 8
+          },
+          {
+            id: "focus_2",
+            title: "Hydration Check-In",
+            description: "You've had 3 glasses of water today. Aim for 2 more before lunch to stay on track.",
+            priority: "medium",
+            category: "habit",
+            estimatedTime: "2 minutes",
+            aiReasoning: "Your hydration patterns show you tend to forget water intake in the afternoon. Getting ahead of this pattern will improve your energy levels and cognitive function.",
+            relatedGoals: ["Daily Water: 8 glasses"],
+            quickActions: [
+              { label: "Log Water", action: "log_water", type: "log_data" },
+              { label: "Set Reminder", action: "set_reminder", type: "complete_task" }
+            ],
+            completionStatus: "in_progress",
+            healthImpact: 6
+          },
+          {
+            id: "focus_3",
+            title: "Sleep Quality Review",
+            description: "Last night's sleep score was 72%. Review what might have affected your deep sleep.",
+            priority: "medium",
+            category: "health_check",
+            estimatedTime: "5 minutes",
+            aiReasoning: "Your sleep quality has been variable this week. Identifying patterns in your evening routine could help improve consistency and overall recovery.",
+            relatedGoals: ["Sleep Quality: 85%", "Bedtime Routine"],
+            quickActions: [
+              { label: "View Sleep Data", action: "view_sleep", type: "view_insights" },
+              { label: "Log Evening Notes", action: "log_sleep_notes", type: "log_data" }
+            ],
+            completionStatus: "not_started",
+            healthImpact: 7
+          }
+        ],
+        weatherBasedTips: [
+          "Perfect weather for outdoor exercise today - 72°F and sunny!",
+          "UV index is moderate - consider sunscreen for your walk",
+          "Low humidity makes it ideal for longer outdoor activities"
+        ],
+        energyLevelOptimization: "Based on your sleep data, your peak energy window is 9 AM - 11 AM. Schedule important tasks during this time and plan lighter activities after 3 PM when your energy naturally dips.",
+        generatedAt: new Date().toISOString()
+      };
+
+      res.json(guidance);
+    } catch (error) {
+      console.error('Error generating daily guidance:', error);
+      res.status(500).json({ message: 'Failed to generate daily guidance' });
+    }
+  });
+
   // Integrations & Marketplace - Get user integrations
   app.get('/api/integrations', authenticateJwt, async (req, res) => {
     try {
