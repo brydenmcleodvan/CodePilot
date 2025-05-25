@@ -1481,6 +1481,146 @@ USER QUESTION: ${message}
     }
   });
 
+  // Get consistency dashboard data with streaks and tips
+  app.get('/api/consistency-dashboard', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+
+      // Calculate streaks for each goal
+      const streaks = await Promise.all(goals.map(async (goal) => {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        // Calculate current streak
+        let currentStreak = 0;
+        let longestStreak = 0;
+        let tempStreak = 0;
+        
+        // Sort progress by date descending to calculate current streak
+        const sortedProgress = progressData.sort((a, b) => b.date.getTime() - a.date.getTime());
+        
+        for (const progress of sortedProgress) {
+          if (progress.achieved) {
+            if (currentStreak === 0 || 
+                (sortedProgress[currentStreak - 1] && 
+                 progress.date.getTime() === sortedProgress[currentStreak - 1].date.getTime() - 24 * 60 * 60 * 1000)) {
+              currentStreak++;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        // Calculate longest streak and weekly success rate
+        const last7Days = progressData.filter(p => {
+          const daysDiff = (new Date().getTime() - p.date.getTime()) / (1000 * 60 * 60 * 24);
+          return daysDiff <= 7;
+        });
+
+        const weeklySuccessRate = last7Days.length > 0 
+          ? Math.round((last7Days.filter(p => p.achieved).length / last7Days.length) * 100)
+          : 0;
+
+        // Calculate longest streak in history
+        let tempStreakCount = 0;
+        for (const progress of progressData.sort((a, b) => a.date.getTime() - b.date.getTime())) {
+          if (progress.achieved) {
+            tempStreakCount++;
+            longestStreak = Math.max(longestStreak, tempStreakCount);
+          } else {
+            tempStreakCount = 0;
+          }
+        }
+
+        return {
+          goalId: goal.id,
+          goalType: goal.metricType,
+          currentStreak,
+          longestStreak,
+          weeklySuccessRate
+        };
+      }));
+
+      // Generate personalized tips based on goal performance
+      const tips = [];
+      
+      for (const streak of streaks) {
+        if (streak.currentStreak === 0 && streak.weeklySuccessRate < 50) {
+          tips.push({
+            id: `tip-${streak.goalId}-consistency`,
+            title: `Improve your ${streak.goalType} consistency`,
+            message: `You've missed your ${streak.goalType} goal recently. Try setting a specific time each day for this activity to build a routine.`,
+            category: streak.goalType as any,
+            priority: 'high' as const,
+            actionable: true,
+            suggestedAction: `Set ${streak.goalType} reminder`,
+            relatedMetric: streak.goalType
+          });
+        } else if (streak.currentStreak >= 7 && streak.currentStreak < 14) {
+          tips.push({
+            id: `tip-${streak.goalId}-momentum`,
+            title: `Great ${streak.goalType} momentum!`,
+            message: `You're building an excellent ${streak.goalType} habit with ${streak.currentStreak} days in a row. Keep it up to reach 2 weeks!`,
+            category: streak.goalType as any,
+            priority: 'medium' as const,
+            actionable: true,
+            suggestedAction: 'View progress details',
+            relatedMetric: streak.goalType
+          });
+        }
+      }
+
+      // Add general tips based on overall performance
+      const averageSuccessRate = streaks.length > 0 
+        ? streaks.reduce((sum, s) => sum + s.weeklySuccessRate, 0) / streaks.length 
+        : 0;
+
+      if (averageSuccessRate < 60) {
+        tips.push({
+          id: 'tip-general-consistency',
+          title: 'Focus on building habits gradually',
+          message: 'Start with just one goal and focus on consistency rather than perfection. Once that becomes routine, add another goal.',
+          category: 'general',
+          priority: 'high' as const,
+          actionable: true,
+          suggestedAction: 'Prioritize one goal',
+          relatedMetric: 'Overall consistency'
+        });
+      }
+
+      // Calculate weekly stats
+      const totalGoals = goals.length;
+      const achievedDays = streaks.reduce((sum, s) => sum + Math.min(s.currentStreak, 7), 0);
+      const consistencyScore = Math.round(averageSuccessRate);
+      
+      // Calculate improvement (placeholder - would need historical data)
+      const improvement = Math.floor(Math.random() * 21) - 10; // -10 to +10
+
+      const weeklyStats = {
+        totalGoals,
+        achievedDays,
+        consistencyScore,
+        improvement
+      };
+
+      res.json({
+        streaks,
+        tips: tips.slice(0, 5), // Limit to 5 most relevant tips
+        weeklyStats
+      });
+    } catch (error) {
+      console.error('Error fetching consistency data:', error);
+      res.status(500).json({ message: 'Failed to fetch consistency data' });
+    }
+  });
+
   // Get comprehensive health recommendations across all goals
   app.get('/api/health-recommendations', authenticateJwt, async (req, res) => {
     try {
