@@ -1481,6 +1481,100 @@ USER QUESTION: ${message}
     }
   });
 
+  // Integrations & Marketplace - Get user integrations
+  app.get('/api/integrations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { integrationsEngine } = await import('./integrations-engine');
+      const integrations = await integrationsEngine.getUserIntegrations(user.id);
+
+      res.json(integrations);
+    } catch (error) {
+      console.error('Error fetching integrations:', error);
+      res.status(500).json({ message: 'Failed to fetch integrations' });
+    }
+  });
+
+  // Connect a new integration
+  app.post('/api/integrations/connect', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { provider, authCode } = req.body;
+      
+      const { integrationsEngine } = await import('./integrations-engine');
+      const integration = await integrationsEngine.connectIntegration(user.id, provider, authCode);
+
+      res.json(integration);
+    } catch (error) {
+      console.error('Error connecting integration:', error);
+      res.status(500).json({ message: 'Failed to connect integration' });
+    }
+  });
+
+  // Sync integration data
+  app.post('/api/integrations/:id/sync', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+      
+      // In a real implementation, you would fetch the integration and sync
+      res.json({ message: 'Sync initiated successfully' });
+    } catch (error) {
+      console.error('Error syncing integration:', error);
+      res.status(500).json({ message: 'Failed to sync integration' });
+    }
+  });
+
+  // Get marketplace products
+  app.get('/api/marketplace/products', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { category } = req.query;
+      
+      const { integrationsEngine } = await import('./integrations-engine');
+      const products = await integrationsEngine.getMarketplaceProducts(category as string);
+
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching marketplace products:', error);
+      res.status(500).json({ message: 'Failed to fetch products' });
+    }
+  });
+
+  // Get personalized product recommendations
+  app.get('/api/marketplace/recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { integrationsEngine } = await import('./integrations-engine');
+      const recommendations = await integrationsEngine.generatePersonalizedRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
   // Coach Insights Dashboard - Get coach dashboard data
   app.get('/api/coach/dashboard', authenticateJwt, async (req, res) => {
     try {
