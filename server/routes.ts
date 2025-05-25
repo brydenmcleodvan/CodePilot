@@ -1745,6 +1745,73 @@ USER QUESTION: ${message}
     }
   });
 
+  // Data Quality - Get comprehensive quality report
+  app.get('/api/data-quality/report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { days = 7 } = req.query;
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const qualityReport = await dataQualityEngine.generateDataQualityReport(user.id, parseInt(days as string));
+
+      res.json(qualityReport);
+    } catch (error) {
+      console.error('Error generating data quality report:', error);
+      res.status(500).json({ message: 'Failed to generate data quality report' });
+    }
+  });
+
+  // Real-time data validation for new metrics
+  app.post('/api/data-quality/validate', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, value, unit, timestamp } = req.body;
+      
+      // Create metric object for validation
+      const metric = {
+        id: Date.now(),
+        userId: user.id,
+        metricType,
+        value: value.toString(),
+        unit: unit || '',
+        timestamp: new Date(timestamp || Date.now()),
+        source: 'validation_check',
+        notes: null
+      };
+
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const validation = await dataQualityEngine.validateNewMetric(metric);
+
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating metric:', error);
+      res.status(500).json({ message: 'Failed to validate metric' });
+    }
+  });
+
+  // Get quality indicators for UI display
+  app.get('/api/data-quality/indicators/:score', authenticateJwt, async (req, res) => {
+    try {
+      const { score } = req.params;
+      const qualityScore = parseInt(score);
+
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const indicators = dataQualityEngine.getQualityIndicators(qualityScore);
+
+      res.json(indicators);
+    } catch (error) {
+      console.error('Error getting quality indicators:', error);
+      res.status(500).json({ message: 'Failed to get quality indicators' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
