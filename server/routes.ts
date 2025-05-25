@@ -1931,6 +1931,58 @@ USER QUESTION: ${message}
     }
   });
 
+  // Clinical Decision Support - Get comprehensive analysis report
+  app.get('/api/clinical-decision-support', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { clinicalDecisionSupport } = await import('./clinical-decision-support');
+      const clinicalReport = await clinicalDecisionSupport.generateClinicalReport(user.id);
+
+      res.json(clinicalReport);
+    } catch (error) {
+      console.error('Error generating clinical decision support:', error);
+      res.status(500).json({ message: 'Failed to generate clinical analysis' });
+    }
+  });
+
+  // Generate specific clinical assessment
+  app.post('/api/clinical-assessment', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, timeframe = '30 days' } = req.body;
+      const { clinicalDecisionSupport } = await import('./clinical-decision-support');
+      
+      // This would generate a focused assessment for a specific metric
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const filteredMetrics = healthMetrics.filter(m => 
+        m.metricType === metricType && 
+        m.timestamp >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      );
+
+      if (filteredMetrics.length < 5) {
+        return res.status(400).json({ message: 'Insufficient data for clinical assessment' });
+      }
+
+      const assessment = await clinicalDecisionSupport.generateClinicalReport(user.id);
+      const specificAssessment = assessment.assessments.find(a => 
+        a.clinicalIndicators.some(i => i.parameter.toLowerCase().includes(metricType))
+      );
+
+      res.json(specificAssessment || { message: 'No clinical concerns identified for this metric' });
+    } catch (error) {
+      console.error('Error generating clinical assessment:', error);
+      res.status(500).json({ message: 'Failed to generate clinical assessment' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
