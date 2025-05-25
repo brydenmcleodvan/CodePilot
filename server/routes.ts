@@ -1481,6 +1481,97 @@ USER QUESTION: ${message}
     }
   });
 
+  // Community Challenges - Get active challenges
+  app.get('/api/challenges', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const challenges = await communityChallengeEngine.getActiveChallenges(user.id);
+
+      res.json(challenges);
+    } catch (error) {
+      console.error('Error fetching challenges:', error);
+      res.status(500).json({ message: 'Failed to fetch challenges' });
+    }
+  });
+
+  // Join a challenge
+  app.post('/api/challenges/:id/join', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+      const { teamId } = req.body;
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const success = await communityChallengeEngine.joinChallenge(id, user.id, teamId);
+
+      if (success) {
+        res.json({ message: 'Successfully joined challenge' });
+      } else {
+        res.status(400).json({ message: 'Failed to join challenge' });
+      }
+    } catch (error) {
+      console.error('Error joining challenge:', error);
+      res.status(500).json({ message: 'Failed to join challenge' });
+    }
+  });
+
+  // Leave a challenge
+  app.post('/api/challenges/:id/leave', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const success = await communityChallengeEngine.leaveChallenge(id, user.id);
+
+      if (success) {
+        res.json({ message: 'Successfully left challenge' });
+      } else {
+        res.status(400).json({ message: 'Failed to leave challenge' });
+      }
+    } catch (error) {
+      console.error('Error leaving challenge:', error);
+      res.status(500).json({ message: 'Failed to leave challenge' });
+    }
+  });
+
+  // Get challenge leaderboard
+  app.get('/api/leaderboard/:challengeId?/:type?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { challengeId, type } = req.params;
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+
+      if (type === 'teams') {
+        const teamLeaderboard = await communityChallengeEngine.getTeamLeaderboard(challengeId || 'default');
+        res.json(teamLeaderboard);
+      } else {
+        const individualLeaderboard = await communityChallengeEngine.getChallengeLeaderboard(challengeId || 'default');
+        res.json(individualLeaderboard);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      res.status(500).json({ message: 'Failed to fetch leaderboard' });
+    }
+  });
+
   // Habit Loops & Micro Goals - Get habit loops for user
   app.get('/api/habit-loops', authenticateJwt, async (req, res) => {
     try {
