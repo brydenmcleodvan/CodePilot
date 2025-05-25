@@ -1606,6 +1606,73 @@ USER QUESTION: ${message}
     }
   });
 
+  // Risk Detection - Comprehensive health risk analysis
+  app.get('/api/risk-analysis', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const riskAnalysis = await riskDetectionEngine.analyzeHealthRisks(user.id);
+
+      res.json(riskAnalysis);
+    } catch (error) {
+      console.error('Error analyzing health risks:', error);
+      res.status(500).json({ message: 'Failed to analyze health risks' });
+    }
+  });
+
+  // Real-time anomaly detection for single metric
+  app.post('/api/risk-detection/anomaly', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, value, unit, timestamp } = req.body;
+      
+      // Create metric object for analysis
+      const metric = {
+        id: Date.now(),
+        userId: user.id,
+        metricType,
+        value: value.toString(),
+        unit: unit || '',
+        timestamp: new Date(timestamp || Date.now()),
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const anomaly = await riskDetectionEngine.detectMetricAnomaly(user.id, metric);
+
+      res.json({ anomaly });
+    } catch (error) {
+      console.error('Error detecting anomaly:', error);
+      res.status(500).json({ message: 'Failed to detect anomaly' });
+    }
+  });
+
+  // Get risk indicators for dashboard display
+  app.get('/api/risk-detection/indicators/:riskScore', authenticateJwt, async (req, res) => {
+    try {
+      const { riskScore } = req.params;
+      const score = parseInt(riskScore);
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const indicators = riskDetectionEngine.getRiskIndicators(score);
+
+      res.json(indicators);
+    } catch (error) {
+      console.error('Error getting risk indicators:', error);
+      res.status(500).json({ message: 'Failed to get risk indicators' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
