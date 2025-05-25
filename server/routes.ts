@@ -1983,6 +1983,116 @@ USER QUESTION: ${message}
     }
   });
 
+  // Health Score Engine - Get comprehensive health score
+  app.get('/api/health-score', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const healthScore = await healthScoreEngine.calculateHealthScore(user.id);
+
+      res.json(healthScore);
+    } catch (error) {
+      console.error('Error calculating health score:', error);
+      res.status(500).json({ message: 'Failed to calculate health score' });
+    }
+  });
+
+  // Risk Detection - Get comprehensive risk assessment
+  app.get('/api/risk-assessment', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const riskAssessment = await riskDetectionEngine.performRiskAssessment(user.id);
+
+      res.json(riskAssessment);
+    } catch (error) {
+      console.error('Error performing risk assessment:', error);
+      res.status(500).json({ message: 'Failed to perform risk assessment' });
+    }
+  });
+
+  // Quick health alerts check
+  app.get('/api/health-alerts', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const alerts = await riskDetectionEngine.quickAnomalyCheck(user.id);
+
+      res.json(alerts);
+    } catch (error) {
+      console.error('Error checking health alerts:', error);
+      res.status(500).json({ message: 'Failed to check health alerts' });
+    }
+  });
+
+  // Doctor Report Generator - Generate comprehensive medical report
+  app.get('/api/doctor-report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const reportType = req.query.type as 'comprehensive' | 'summary' | 'emergency' || 'comprehensive';
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const report = await doctorReportGenerator.generateDoctorReport(user.id, reportType);
+
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating doctor report:', error);
+      res.status(500).json({ message: 'Failed to generate doctor report' });
+    }
+  });
+
+  // Generate PDF-formatted report
+  app.get('/api/doctor-report/pdf', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const reportData = await doctorReportGenerator.generateDoctorReport(user.id);
+      const pdfFormat = doctorReportGenerator.formatForPDF(reportData);
+
+      res.json(pdfFormat);
+    } catch (error) {
+      console.error('Error generating PDF report:', error);
+      res.status(500).json({ message: 'Failed to generate PDF report' });
+    }
+  });
+
+  // Emergency report for critical situations
+  app.get('/api/emergency-report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const emergencyReport = await doctorReportGenerator.generateEmergencyReport(user.id);
+
+      res.json(emergencyReport);
+    } catch (error) {
+      console.error('Error generating emergency report:', error);
+      res.status(500).json({ message: 'Failed to generate emergency report' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {

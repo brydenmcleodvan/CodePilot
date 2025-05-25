@@ -1,763 +1,479 @@
 /**
- * Real-Time Health Score Engine & Predictive Modeling
- * Creates composite health scores that update daily and predicts health trends
- * Uses ML patterns to forecast burnout risk, sleep decline, and other health indicators
+ * Health Score Engine
+ * Calculates composite health scores (0-100) using weighted metrics
+ * Normalizes data by healthy ranges and provides detailed breakdowns
  */
 
 import { storage } from './storage';
-import { HealthMetric, HealthGoal } from '@shared/schema';
+import { HealthMetric, User } from '@shared/schema';
 
-export interface HealthScoreComponents {
-  cardiovascular: {
-    score: number;
-    weight: number;
-    metrics: {
-      restingHeartRate: number;
-      heartRateVariability: number;
-      bloodPressure?: number;
-    };
-    trend: 'improving' | 'stable' | 'declining';
-    riskFactors: string[];
+export interface MetricWeight {
+  metricType: string;
+  weight: number; // 0-1, sum should equal 1
+  healthyRange: {
+    min: number;
+    max: number;
+    optimal?: number;
   };
-  sleep: {
-    score: number;
-    weight: number;
-    metrics: {
-      duration: number;
-      quality: number;
-      consistency: number;
-    };
-    trend: 'improving' | 'stable' | 'declining';
-    riskFactors: string[];
-  };
-  physical: {
-    score: number;
-    weight: number;
-    metrics: {
-      activityLevel: number;
-      strength: number;
-      flexibility: number;
-    };
-    trend: 'improving' | 'stable' | 'declining';
-    riskFactors: string[];
-  };
-  mental: {
-    score: number;
-    weight: number;
-    metrics: {
-      stressLevel: number;
-      mood: number;
-      resilience: number;
-    };
-    trend: 'improving' | 'stable' | 'declining';
-    riskFactors: string[];
-  };
-  metabolic: {
-    score: number;
-    weight: number;
-    metrics: {
-      glucose: number;
-      hydration: number;
-      nutrition: number;
-    };
-    trend: 'improving' | 'stable' | 'declining';
-    riskFactors: string[];
-  };
+  direction: 'higher_better' | 'lower_better' | 'range_optimal';
 }
 
-export interface DailyHealthScore {
-  date: Date;
-  overallScore: number; // 0-100
-  components: HealthScoreComponents;
-  riskAlerts: {
-    level: 'low' | 'moderate' | 'high' | 'critical';
-    type: 'burnout' | 'sleep_decline' | 'cardiovascular' | 'metabolic' | 'mental_health';
+export interface HealthScoreBreakdown {
+  metricType: string;
+  currentValue: number;
+  normalizedScore: number; // 0-100
+  weight: number;
+  contribution: number; // weighted score
+  status: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  trend: 'improving' | 'stable' | 'declining';
+  daysOfData: number;
+}
+
+export interface HealthScoreReport {
+  userId: number;
+  overallScore: number;
+  category: 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
+  generatedAt: Date;
+  breakdown: HealthScoreBreakdown[];
+  trends: {
+    weeklyChange: number;
+    monthlyChange: number;
+    direction: 'improving' | 'stable' | 'declining';
+  };
+  recommendations: {
+    priority: 'high' | 'medium' | 'low';
+    category: string;
     message: string;
-    confidence: number;
-    timeframe: string;
-    recommendations: string[];
+    expectedImpact: string;
   }[];
-  predictions: {
-    sevenDayForecast: {
-      date: Date;
-      predictedScore: number;
-      confidence: number;
-      factors: string[];
-    }[];
-    burnoutRisk: {
-      probability: number;
-      timeframe: '1week' | '2weeks' | '1month';
-      triggers: string[];
-      preventionSteps: string[];
-    };
-    sleepDeclineRisk: {
-      probability: number;
-      timeframe: '3days' | '1week' | '2weeks';
-      causes: string[];
-      interventions: string[];
-    };
-    healthTrends: {
-      improving: string[];
-      declining: string[];
-      stable: string[];
-    };
-  };
-  contextualFactors: {
-    seasonalEffects: string[];
-    lifestylePatterns: string[];
-    goalProgress: string[];
-  };
-  actionablePriorities: {
-    immediate: string[];
-    thisWeek: string[];
-    longTerm: string[];
+  dataQuality: {
+    completeness: number;
+    consistency: number;
+    reliability: string;
   };
 }
 
 export class HealthScoreEngine {
+  private readonly metricWeights: MetricWeight[] = [
+    {
+      metricType: 'sleep',
+      weight: 0.25,
+      healthyRange: { min: 7, max: 9, optimal: 8 },
+      direction: 'range_optimal'
+    },
+    {
+      metricType: 'heart_rate_variability',
+      weight: 0.20,
+      healthyRange: { min: 30, max: 100, optimal: 50 },
+      direction: 'higher_better'
+    },
+    {
+      metricType: 'glucose',
+      weight: 0.15,
+      healthyRange: { min: 70, max: 100, optimal: 85 },
+      direction: 'range_optimal'
+    },
+    {
+      metricType: 'steps',
+      weight: 0.15,
+      healthyRange: { min: 8000, max: 15000, optimal: 10000 },
+      direction: 'higher_better'
+    },
+    {
+      metricType: 'heart_rate',
+      weight: 0.10,
+      healthyRange: { min: 60, max: 90, optimal: 70 },
+      direction: 'lower_better'
+    },
+    {
+      metricType: 'blood_pressure',
+      weight: 0.10,
+      healthyRange: { min: 90, max: 120, optimal: 110 },
+      direction: 'lower_better'
+    },
+    {
+      metricType: 'mood',
+      weight: 0.05,
+      healthyRange: { min: 7, max: 10, optimal: 9 },
+      direction: 'higher_better'
+    }
+  ];
 
   /**
-   * Calculate comprehensive daily health score
+   * Calculate comprehensive health score for user
    */
-  async calculateDailyHealthScore(userId: number): Promise<DailyHealthScore> {
+  async calculateHealthScore(userId: number, timeframe: number = 30): Promise<HealthScoreReport> {
     const healthMetrics = await storage.getHealthMetrics(userId);
-    const healthGoals = await storage.getHealthGoals(userId);
-    
-    // Get recent metrics (last 7 days for current score, 30 days for trends)
-    const recentMetrics = this.getRecentMetrics(healthMetrics, 7);
-    const trendMetrics = this.getRecentMetrics(healthMetrics, 30);
-    
-    // Calculate component scores
-    const components = await this.calculateComponentScores(recentMetrics, trendMetrics);
-    
-    // Calculate overall weighted score
-    const overallScore = this.calculateOverallScore(components);
-    
-    // Generate risk alerts and predictions
-    const riskAlerts = await this.generateRiskAlerts(components, trendMetrics);
-    const predictions = await this.generatePredictions(components, trendMetrics, healthGoals);
-    
-    // Add contextual factors
-    const contextualFactors = await this.analyzeContextualFactors(userId, recentMetrics, healthGoals);
-    
-    // Generate actionable priorities
-    const actionablePriorities = this.generateActionablePriorities(components, riskAlerts);
-
-    return {
-      date: new Date(),
-      overallScore,
-      components,
-      riskAlerts,
-      predictions,
-      contextualFactors,
-      actionablePriorities
-    };
-  }
-
-  /**
-   * Get health score history for trend analysis
-   */
-  async getHealthScoreHistory(userId: number, days: number = 30): Promise<{
-    date: Date;
-    score: number;
-    components: { [key: string]: number };
-  }[]> {
-    // In a real implementation, this would fetch stored daily scores
-    // For now, we'll calculate retroactively for the demo
-    const history = [];
-    const now = new Date();
-    
-    for (let i = 0; i < days; i++) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dayMetrics = await this.getMetricsForDate(userId, date);
-      const dayComponents = await this.calculateComponentScores(dayMetrics, dayMetrics);
-      const dayScore = this.calculateOverallScore(dayComponents);
-      
-      history.push({
-        date,
-        score: dayScore,
-        components: {
-          cardiovascular: dayComponents.cardiovascular.score,
-          sleep: dayComponents.sleep.score,
-          physical: dayComponents.physical.score,
-          mental: dayComponents.mental.score,
-          metabolic: dayComponents.metabolic.score
-        }
-      });
-    }
-    
-    return history.reverse(); // Oldest first
-  }
-
-  /**
-   * Private helper methods
-   */
-  private getRecentMetrics(metrics: HealthMetric[], days: number): HealthMetric[] {
-    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    return metrics.filter(m => m.timestamp >= cutoffDate);
-  }
-
-  private async calculateComponentScores(
-    recentMetrics: HealthMetric[], 
-    trendMetrics: HealthMetric[]
-  ): Promise<HealthScoreComponents> {
-    
-    // Cardiovascular Component
-    const cardiovascular = this.calculateCardiovascularScore(recentMetrics, trendMetrics);
-    
-    // Sleep Component
-    const sleep = this.calculateSleepScore(recentMetrics, trendMetrics);
-    
-    // Physical Activity Component
-    const physical = this.calculatePhysicalScore(recentMetrics, trendMetrics);
-    
-    // Mental Health Component
-    const mental = this.calculateMentalScore(recentMetrics, trendMetrics);
-    
-    // Metabolic Component
-    const metabolic = this.calculateMetabolicScore(recentMetrics, trendMetrics);
-
-    return {
-      cardiovascular,
-      sleep,
-      physical,
-      mental,
-      metabolic
-    };
-  }
-
-  private calculateCardiovascularScore(recent: HealthMetric[], trend: HealthMetric[]) {
-    const heartRateMetrics = recent.filter(m => m.metricType === 'heart_rate');
-    const hrvMetrics = recent.filter(m => m.metricType === 'heart_rate_variability');
-    const bpMetrics = recent.filter(m => m.metricType === 'blood_pressure');
-
-    let score = 85; // Base score
-    let riskFactors: string[] = [];
-
-    // Heart Rate Analysis
-    if (heartRateMetrics.length > 0) {
-      const avgHR = heartRateMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / heartRateMetrics.length;
-      if (avgHR > 85) {
-        score -= 15;
-        riskFactors.push('Elevated resting heart rate');
-      } else if (avgHR < 60) {
-        score += 5; // Good fitness indicator
-      }
-    }
-
-    // HRV Analysis
-    if (hrvMetrics.length > 0) {
-      const avgHRV = hrvMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / hrvMetrics.length;
-      if (avgHRV < 30) {
-        score -= 10;
-        riskFactors.push('Low heart rate variability');
-      } else if (avgHRV > 50) {
-        score += 5;
-      }
-    }
-
-    // Blood Pressure Analysis
-    if (bpMetrics.length > 0) {
-      const avgBP = bpMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / bpMetrics.length;
-      if (avgBP > 130) {
-        score -= 20;
-        riskFactors.push('Elevated blood pressure');
-      }
-    }
-
-    const trendDirection = this.calculateTrend(heartRateMetrics.concat(hrvMetrics));
-
-    return {
-      score: Math.max(0, Math.min(100, score)),
-      weight: 0.25, // 25% of overall score
-      metrics: {
-        restingHeartRate: heartRateMetrics.length > 0 ? 
-          Math.round(heartRateMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / heartRateMetrics.length) : 72,
-        heartRateVariability: hrvMetrics.length > 0 ? 
-          Math.round(hrvMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / hrvMetrics.length) : 45,
-        bloodPressure: bpMetrics.length > 0 ? 
-          Math.round(bpMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / bpMetrics.length) : undefined
-      },
-      trend: trendDirection,
-      riskFactors
-    };
-  }
-
-  private calculateSleepScore(recent: HealthMetric[], trend: HealthMetric[]) {
-    const sleepMetrics = recent.filter(m => m.metricType === 'sleep');
-    const sleepQualityMetrics = recent.filter(m => m.metricType === 'sleep_quality');
-
-    let score = 80; // Base score
-    let riskFactors: string[] = [];
-
-    if (sleepMetrics.length > 0) {
-      const avgSleep = sleepMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / sleepMetrics.length;
-      
-      if (avgSleep < 6) {
-        score -= 25;
-        riskFactors.push('Chronic sleep deprivation');
-      } else if (avgSleep < 7) {
-        score -= 10;
-        riskFactors.push('Insufficient sleep');
-      } else if (avgSleep > 9) {
-        score -= 5;
-        riskFactors.push('Excessive sleep duration');
-      } else {
-        score += 5; // Optimal range
-      }
-
-      // Check sleep consistency
-      const sleepTimes = sleepMetrics.map(m => parseFloat(m.value));
-      const variance = this.calculateVariance(sleepTimes);
-      if (variance > 1.5) {
-        score -= 10;
-        riskFactors.push('Inconsistent sleep schedule');
-      }
-    }
-
-    const trendDirection = this.calculateTrend(sleepMetrics);
-
-    return {
-      score: Math.max(0, Math.min(100, score)),
-      weight: 0.25, // 25% of overall score
-      metrics: {
-        duration: sleepMetrics.length > 0 ? 
-          Number((sleepMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / sleepMetrics.length).toFixed(1)) : 7.5,
-        quality: sleepQualityMetrics.length > 0 ? 
-          Math.round(sleepQualityMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / sleepQualityMetrics.length) : 75,
-        consistency: Math.max(0, 100 - (this.calculateVariance(sleepMetrics.map(m => parseFloat(m.value))) * 20))
-      },
-      trend: trendDirection,
-      riskFactors
-    };
-  }
-
-  private calculatePhysicalScore(recent: HealthMetric[], trend: HealthMetric[]) {
-    const stepsMetrics = recent.filter(m => m.metricType === 'steps');
-    const exerciseMetrics = recent.filter(m => m.metricType === 'exercise');
-
-    let score = 75; // Base score
-    let riskFactors: string[] = [];
-
-    if (stepsMetrics.length > 0) {
-      const avgSteps = stepsMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stepsMetrics.length;
-      
-      if (avgSteps < 5000) {
-        score -= 20;
-        riskFactors.push('Sedentary lifestyle');
-      } else if (avgSteps < 8000) {
-        score -= 5;
-        riskFactors.push('Low activity level');
-      } else if (avgSteps > 12000) {
-        score += 10; // Very active
-      }
-    }
-
-    if (exerciseMetrics.length > 0) {
-      const exerciseFreq = exerciseMetrics.length / 7; // Per day average
-      if (exerciseFreq < 0.5) {
-        score -= 15;
-        riskFactors.push('Infrequent exercise');
-      } else if (exerciseFreq > 1) {
-        score += 10;
-      }
-    }
-
-    const trendDirection = this.calculateTrend(stepsMetrics.concat(exerciseMetrics));
-
-    return {
-      score: Math.max(0, Math.min(100, score)),
-      weight: 0.20, // 20% of overall score
-      metrics: {
-        activityLevel: stepsMetrics.length > 0 ? 
-          Math.round(stepsMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stepsMetrics.length) : 8000,
-        strength: exerciseMetrics.length > 0 ? 
-          Math.min(100, exerciseMetrics.length * 10) : 60, // Based on frequency
-        flexibility: 70 // Placeholder - would need specific flexibility metrics
-      },
-      trend: trendDirection,
-      riskFactors
-    };
-  }
-
-  private calculateMentalScore(recent: HealthMetric[], trend: HealthMetric[]) {
-    const stressMetrics = recent.filter(m => m.metricType === 'stress_level');
-    const moodMetrics = recent.filter(m => m.metricType === 'mood');
-
-    let score = 80; // Base score
-    let riskFactors: string[] = [];
-
-    if (stressMetrics.length > 0) {
-      const avgStress = stressMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stressMetrics.length;
-      
-      if (avgStress > 7) {
-        score -= 25;
-        riskFactors.push('High chronic stress');
-      } else if (avgStress > 5) {
-        score -= 10;
-        riskFactors.push('Elevated stress levels');
-      }
-    }
-
-    if (moodMetrics.length > 0) {
-      const avgMood = moodMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / moodMetrics.length;
-      
-      if (avgMood < 4) {
-        score -= 20;
-        riskFactors.push('Low mood patterns');
-      } else if (avgMood > 7) {
-        score += 5;
-      }
-    }
-
-    const trendDirection = this.calculateTrend(stressMetrics.concat(moodMetrics));
-
-    return {
-      score: Math.max(0, Math.min(100, score)),
-      weight: 0.20, // 20% of overall score
-      metrics: {
-        stressLevel: stressMetrics.length > 0 ? 
-          Number((stressMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stressMetrics.length).toFixed(1)) : 4.5,
-        mood: moodMetrics.length > 0 ? 
-          Number((moodMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / moodMetrics.length).toFixed(1)) : 6.5,
-        resilience: 75 // Would be calculated from stress recovery patterns
-      },
-      trend: trendDirection,
-      riskFactors
-    };
-  }
-
-  private calculateMetabolicScore(recent: HealthMetric[], trend: HealthMetric[]) {
-    const glucoseMetrics = recent.filter(m => m.metricType === 'glucose');
-    const waterMetrics = recent.filter(m => m.metricType === 'water_intake');
-    const weightMetrics = recent.filter(m => m.metricType === 'weight');
-
-    let score = 85; // Base score
-    let riskFactors: string[] = [];
-
-    if (glucoseMetrics.length > 0) {
-      const avgGlucose = glucoseMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / glucoseMetrics.length;
-      
-      if (avgGlucose > 125) {
-        score -= 20;
-        riskFactors.push('Elevated glucose levels');
-      } else if (avgGlucose > 100) {
-        score -= 5;
-        riskFactors.push('Pre-diabetic glucose range');
-      }
-    }
-
-    if (waterMetrics.length > 0) {
-      const avgWater = waterMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / waterMetrics.length;
-      
-      if (avgWater < 6) {
-        score -= 10;
-        riskFactors.push('Inadequate hydration');
-      }
-    }
-
-    const trendDirection = this.calculateTrend(glucoseMetrics.concat(waterMetrics));
-
-    return {
-      score: Math.max(0, Math.min(100, score)),
-      weight: 0.10, // 10% of overall score
-      metrics: {
-        glucose: glucoseMetrics.length > 0 ? 
-          Math.round(glucoseMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / glucoseMetrics.length) : 95,
-        hydration: waterMetrics.length > 0 ? 
-          Number((waterMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / waterMetrics.length).toFixed(1)) : 7.5,
-        nutrition: 75 // Would be calculated from nutrition tracking
-      },
-      trend: trendDirection,
-      riskFactors
-    };
-  }
-
-  private calculateOverallScore(components: HealthScoreComponents): number {
-    const weightedScore = 
-      components.cardiovascular.score * components.cardiovascular.weight +
-      components.sleep.score * components.sleep.weight +
-      components.physical.score * components.physical.weight +
-      components.mental.score * components.mental.weight +
-      components.metabolic.score * components.metabolic.weight;
-
-    return Math.round(weightedScore);
-  }
-
-  private calculateTrend(metrics: HealthMetric[]): 'improving' | 'stable' | 'declining' {
-    if (metrics.length < 4) return 'stable';
-    
-    const sorted = metrics.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-    const values = sorted.map(m => parseFloat(m.value));
-    
-    const firstHalf = values.slice(0, Math.floor(values.length / 2));
-    const secondHalf = values.slice(Math.floor(values.length / 2));
-    
-    const firstAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
-    const secondAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
-    
-    const percentChange = ((secondAvg - firstAvg) / firstAvg) * 100;
-    
-    if (percentChange > 5) return 'improving';
-    if (percentChange < -5) return 'declining';
-    return 'stable';
-  }
-
-  private calculateVariance(values: number[]): number {
-    if (values.length === 0) return 0;
-    
-    const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-    const squaredDifferences = values.map(val => Math.pow(val - mean, 2));
-    const variance = squaredDifferences.reduce((sum, val) => sum + val, 0) / values.length;
-    
-    return Math.sqrt(variance);
-  }
-
-  private async generateRiskAlerts(
-    components: HealthScoreComponents, 
-    trendMetrics: HealthMetric[]
-  ): Promise<DailyHealthScore['riskAlerts']> {
-    const alerts = [];
-
-    // Burnout Risk Detection
-    if (components.mental.score < 60 && components.sleep.score < 70) {
-      alerts.push({
-        level: 'high' as const,
-        type: 'burnout' as const,
-        message: 'High burnout risk detected based on stress and sleep patterns',
-        confidence: 0.85,
-        timeframe: '2-3 weeks',
-        recommendations: [
-          'Prioritize stress management techniques',
-          'Establish consistent sleep schedule',
-          'Consider workload adjustments',
-          'Practice mindfulness or meditation'
-        ]
-      });
-    }
-
-    // Sleep Decline Risk
-    if (components.sleep.trend === 'declining' && components.sleep.score < 75) {
-      alerts.push({
-        level: 'moderate' as const,
-        type: 'sleep_decline' as const,
-        message: 'Sleep quality showing declining trend',
-        confidence: 0.78,
-        timeframe: '1-2 weeks',
-        recommendations: [
-          'Review evening routine',
-          'Limit screen time before bed',
-          'Check sleep environment factors',
-          'Consider sleep hygiene consultation'
-        ]
-      });
-    }
-
-    // Cardiovascular Risk
-    if (components.cardiovascular.score < 70) {
-      alerts.push({
-        level: 'moderate' as const,
-        type: 'cardiovascular' as const,
-        message: 'Cardiovascular health metrics need attention',
-        confidence: 0.72,
-        timeframe: '2-4 weeks',
-        recommendations: [
-          'Increase regular cardio exercise',
-          'Monitor blood pressure trends',
-          'Consider heart-healthy diet changes',
-          'Reduce stress levels'
-        ]
-      });
-    }
-
-    return alerts;
-  }
-
-  private async generatePredictions(
-    components: HealthScoreComponents,
-    trendMetrics: HealthMetric[],
-    goals: HealthGoal[]
-  ): Promise<DailyHealthScore['predictions']> {
-    
-    // Simple prediction model - in a real ML implementation, this would use trained models
-    const currentScore = this.calculateOverallScore(components);
-    
-    // 7-day forecast
-    const sevenDayForecast = [];
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(Date.now() + i * 24 * 60 * 60 * 1000);
-      
-      // Predict based on current trends
-      let predictedScore = currentScore;
-      const trendAdjustment = this.calculateTrendAdjustment(components);
-      predictedScore += trendAdjustment * i * 0.5; // Gradual change
-      
-      sevenDayForecast.push({
-        date,
-        predictedScore: Math.max(0, Math.min(100, Math.round(predictedScore))),
-        confidence: Math.max(0.5, 0.9 - i * 0.05), // Decreasing confidence over time
-        factors: this.getPredictionFactors(components)
-      });
-    }
-
-    // Burnout risk prediction
-    const burnoutProbability = this.calculateBurnoutProbability(components);
-    
-    // Sleep decline prediction
-    const sleepDeclineProbability = this.calculateSleepDeclineProbability(components);
-
-    return {
-      sevenDayForecast,
-      burnoutRisk: {
-        probability: burnoutProbability,
-        timeframe: burnoutProbability > 0.7 ? '1week' : burnoutProbability > 0.4 ? '2weeks' : '1month',
-        triggers: ['High stress levels', 'Poor sleep quality', 'Low physical activity'],
-        preventionSteps: [
-          'Implement stress reduction techniques',
-          'Prioritize sleep hygiene',
-          'Schedule regular breaks',
-          'Engage in physical activity'
-        ]
-      },
-      sleepDeclineRisk: {
-        probability: sleepDeclineProbability,
-        timeframe: sleepDeclineProbability > 0.6 ? '3days' : sleepDeclineProbability > 0.3 ? '1week' : '2weeks',
-        causes: ['Irregular sleep schedule', 'High stress', 'Poor sleep environment'],
-        interventions: [
-          'Establish consistent bedtime routine',
-          'Optimize sleep environment',
-          'Limit evening screen time',
-          'Practice relaxation techniques'
-        ]
-      },
-      healthTrends: {
-        improving: Object.entries(components)
-          .filter(([_, comp]) => comp.trend === 'improving')
-          .map(([name, _]) => name),
-        declining: Object.entries(components)
-          .filter(([_, comp]) => comp.trend === 'declining')
-          .map(([name, _]) => name),
-        stable: Object.entries(components)
-          .filter(([_, comp]) => comp.trend === 'stable')
-          .map(([name, _]) => name)
-      }
-    };
-  }
-
-  private calculateTrendAdjustment(components: HealthScoreComponents): number {
-    let adjustment = 0;
-    
-    Object.values(components).forEach(component => {
-      if (component.trend === 'improving') adjustment += 1;
-      if (component.trend === 'declining') adjustment -= 1;
-    });
-    
-    return adjustment / Object.keys(components).length;
-  }
-
-  private getPredictionFactors(components: HealthScoreComponents): string[] {
-    const factors = [];
-    
-    if (components.sleep.trend === 'declining') factors.push('Declining sleep quality');
-    if (components.mental.score < 70) factors.push('Elevated stress levels');
-    if (components.physical.trend === 'improving') factors.push('Improving fitness');
-    if (components.cardiovascular.score > 80) factors.push('Good cardiovascular health');
-    
-    return factors.length > 0 ? factors : ['Stable health patterns'];
-  }
-
-  private calculateBurnoutProbability(components: HealthScoreComponents): number {
-    let probability = 0;
-    
-    if (components.mental.score < 60) probability += 0.3;
-    if (components.sleep.score < 65) probability += 0.25;
-    if (components.physical.score < 60) probability += 0.15;
-    if (components.mental.trend === 'declining') probability += 0.2;
-    if (components.sleep.trend === 'declining') probability += 0.15;
-    
-    return Math.min(1, probability);
-  }
-
-  private calculateSleepDeclineProbability(components: HealthScoreComponents): number {
-    let probability = 0;
-    
-    if (components.sleep.score < 70) probability += 0.3;
-    if (components.sleep.trend === 'declining') probability += 0.4;
-    if (components.mental.score < 65) probability += 0.2;
-    if (components.sleep.metrics.consistency < 70) probability += 0.15;
-    
-    return Math.min(1, probability);
-  }
-
-  private async analyzeContextualFactors(
-    userId: number, 
-    recentMetrics: HealthMetric[], 
-    goals: HealthGoal[]
-  ) {
-    return {
-      seasonalEffects: [
-        'Winter season may affect mood and activity levels',
-        'Shorter daylight hours impacting circadian rhythm'
-      ],
-      lifestylePatterns: [
-        'Weekday vs weekend activity patterns detected',
-        'Work stress correlating with sleep quality'
-      ],
-      goalProgress: [
-        `${goals.filter(g => g.status === 'completed').length} goals completed this period`,
-        'Exercise goals showing strongest adherence'
-      ]
-    };
-  }
-
-  private generateActionablePriorities(
-    components: HealthScoreComponents,
-    riskAlerts: DailyHealthScore['riskAlerts']
-  ) {
-    const immediate = [];
-    const thisWeek = [];
-    const longTerm = [];
-
-    // High-priority immediate actions
-    if (riskAlerts.some(alert => alert.level === 'high' || alert.level === 'critical')) {
-      immediate.push('Address high-risk health alerts');
-    }
-    
-    if (components.sleep.score < 60) {
-      immediate.push('Prioritize sleep optimization tonight');
-    }
-
-    // This week priorities
-    if (components.physical.score < 70) {
-      thisWeek.push('Increase daily physical activity');
-    }
-    
-    if (components.mental.score < 70) {
-      thisWeek.push('Implement stress management techniques');
-    }
-
-    // Long-term improvements
-    if (components.cardiovascular.score < 80) {
-      longTerm.push('Develop comprehensive cardiovascular health plan');
-    }
-    
-    longTerm.push('Build sustainable healthy lifestyle habits');
-
-    return {
-      immediate: immediate.length > 0 ? immediate : ['Maintain current positive habits'],
-      thisWeek: thisWeek.length > 0 ? thisWeek : ['Continue consistent health practices'],
-      longTerm: longTerm.length > 0 ? longTerm : ['Optimize overall wellness strategy']
-    };
-  }
-
-  private async getMetricsForDate(userId: number, date: Date): Promise<HealthMetric[]> {
-    const allMetrics = await storage.getHealthMetrics(userId);
-    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-    
-    return allMetrics.filter(m => 
-      m.timestamp >= startOfDay && m.timestamp <= endOfDay
+    const recentMetrics = healthMetrics.filter(m => 
+      m.timestamp >= new Date(Date.now() - timeframe * 24 * 60 * 60 * 1000)
     );
+
+    // Calculate breakdown for each metric
+    const breakdown: HealthScoreBreakdown[] = [];
+    let totalWeightedScore = 0;
+    let totalWeight = 0;
+
+    for (const metricWeight of this.metricWeights) {
+      const metricData = recentMetrics.filter(m => m.metricType === metricWeight.metricType);
+      
+      if (metricData.length === 0) continue;
+
+      const metricBreakdown = this.calculateMetricScore(metricWeight, metricData);
+      breakdown.push(metricBreakdown);
+      
+      totalWeightedScore += metricBreakdown.contribution;
+      totalWeight += metricWeight.weight;
+    }
+
+    // Normalize score if we don't have all metrics
+    const overallScore = totalWeight > 0 ? Math.round(totalWeightedScore / totalWeight) : 0;
+    
+    // Calculate trends
+    const trends = await this.calculateTrends(userId, overallScore);
+    
+    // Generate recommendations
+    const recommendations = this.generateRecommendations(breakdown);
+    
+    // Assess data quality
+    const dataQuality = this.assessDataQuality(recentMetrics, timeframe);
+
+    return {
+      userId,
+      overallScore,
+      category: this.getScoreCategory(overallScore),
+      generatedAt: new Date(),
+      breakdown,
+      trends,
+      recommendations,
+      dataQuality
+    };
+  }
+
+  /**
+   * Calculate score for individual metric
+   */
+  private calculateMetricScore(metricWeight: MetricWeight, metricData: HealthMetric[]): HealthScoreBreakdown {
+    // Get recent average
+    const values = metricData.map(m => parseFloat(m.value));
+    const currentValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+    
+    // Calculate normalized score (0-100)
+    const normalizedScore = this.normalizeMetricValue(currentValue, metricWeight);
+    
+    // Calculate weighted contribution
+    const contribution = normalizedScore * metricWeight.weight;
+    
+    // Determine status
+    const status = this.getMetricStatus(normalizedScore);
+    
+    // Calculate trend
+    const trend = this.calculateMetricTrend(values);
+
+    return {
+      metricType: metricWeight.metricType,
+      currentValue: Math.round(currentValue * 100) / 100,
+      normalizedScore: Math.round(normalizedScore),
+      weight: metricWeight.weight,
+      contribution: Math.round(contribution * 100) / 100,
+      status,
+      trend,
+      daysOfData: metricData.length
+    };
+  }
+
+  /**
+   * Normalize metric value to 0-100 scale
+   */
+  private normalizeMetricValue(value: number, metricWeight: MetricWeight): number {
+    const { healthyRange, direction } = metricWeight;
+    
+    switch (direction) {
+      case 'higher_better':
+        if (value >= healthyRange.max) return 100;
+        if (value <= healthyRange.min) return 0;
+        return ((value - healthyRange.min) / (healthyRange.max - healthyRange.min)) * 100;
+        
+      case 'lower_better':
+        if (value <= healthyRange.min) return 100;
+        if (value >= healthyRange.max) return 0;
+        return ((healthyRange.max - value) / (healthyRange.max - healthyRange.min)) * 100;
+        
+      case 'range_optimal':
+        const optimal = healthyRange.optimal || (healthyRange.min + healthyRange.max) / 2;
+        const range = healthyRange.max - healthyRange.min;
+        const distance = Math.abs(value - optimal);
+        const maxDistance = Math.max(optimal - healthyRange.min, healthyRange.max - optimal);
+        
+        if (distance === 0) return 100;
+        if (value < healthyRange.min || value > healthyRange.max) {
+          const outsideDistance = value < healthyRange.min ? 
+            healthyRange.min - value : 
+            value - healthyRange.max;
+          return Math.max(0, 50 - (outsideDistance / range) * 50);
+        }
+        
+        return Math.max(0, 100 - (distance / maxDistance) * 50);
+        
+      default:
+        return 50;
+    }
+  }
+
+  /**
+   * Get status category from normalized score
+   */
+  private getMetricStatus(score: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
+    if (score >= 90) return 'excellent';
+    if (score >= 75) return 'good';
+    if (score >= 60) return 'fair';
+    if (score >= 40) return 'poor';
+    return 'critical';
+  }
+
+  /**
+   * Calculate overall score category
+   */
+  private getScoreCategory(score: number): 'excellent' | 'good' | 'fair' | 'poor' | 'critical' {
+    if (score >= 85) return 'excellent';
+    if (score >= 70) return 'good';
+    if (score >= 55) return 'fair';
+    if (score >= 40) return 'poor';
+    return 'critical';
+  }
+
+  /**
+   * Calculate metric trend from recent values
+   */
+  private calculateMetricTrend(values: number[]): 'improving' | 'stable' | 'declining' {
+    if (values.length < 5) return 'stable';
+    
+    const recent = values.slice(-7);
+    const previous = values.slice(-14, -7);
+    
+    if (previous.length === 0) return 'stable';
+    
+    const recentAvg = recent.reduce((sum, val) => sum + val, 0) / recent.length;
+    const previousAvg = previous.reduce((sum, val) => sum + val, 0) / previous.length;
+    
+    const changePercent = ((recentAvg - previousAvg) / previousAvg) * 100;
+    
+    if (Math.abs(changePercent) < 5) return 'stable';
+    return changePercent > 0 ? 'improving' : 'declining';
+  }
+
+  /**
+   * Calculate score trends over time
+   */
+  private async calculateTrends(userId: number, currentScore: number) {
+    // Get historical scores (simplified - in production would store calculated scores)
+    const weekAgoScore = await this.calculateHistoricalScore(userId, 7);
+    const monthAgoScore = await this.calculateHistoricalScore(userId, 30);
+    
+    const weeklyChange = currentScore - weekAgoScore;
+    const monthlyChange = currentScore - monthAgoScore;
+    
+    let direction: 'improving' | 'stable' | 'declining' = 'stable';
+    if (Math.abs(weeklyChange) > 3) {
+      direction = weeklyChange > 0 ? 'improving' : 'declining';
+    }
+
+    return {
+      weeklyChange: Math.round(weeklyChange * 10) / 10,
+      monthlyChange: Math.round(monthlyChange * 10) / 10,
+      direction
+    };
+  }
+
+  /**
+   * Calculate historical score (simplified version)
+   */
+  private async calculateHistoricalScore(userId: number, daysAgo: number): Promise<number> {
+    const endDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+    const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const healthMetrics = await storage.getHealthMetrics(userId);
+    const historicalMetrics = healthMetrics.filter(m => 
+      m.timestamp >= startDate && m.timestamp <= endDate
+    );
+
+    if (historicalMetrics.length === 0) return 70; // Default baseline
+    
+    // Quick calculation for historical score
+    let totalScore = 0;
+    let count = 0;
+    
+    for (const metricWeight of this.metricWeights) {
+      const metricData = historicalMetrics.filter(m => m.metricType === metricWeight.metricType);
+      if (metricData.length === 0) continue;
+      
+      const values = metricData.map(m => parseFloat(m.value));
+      const avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+      const normalizedScore = this.normalizeMetricValue(avgValue, metricWeight);
+      
+      totalScore += normalizedScore * metricWeight.weight;
+      count += metricWeight.weight;
+    }
+    
+    return count > 0 ? totalScore / count : 70;
+  }
+
+  /**
+   * Generate personalized recommendations
+   */
+  private generateRecommendations(breakdown: HealthScoreBreakdown[]) {
+    const recommendations = [];
+    
+    // Sort by lowest scores first
+    const sortedMetrics = [...breakdown].sort((a, b) => a.normalizedScore - b.normalizedScore);
+    
+    for (const metric of sortedMetrics.slice(0, 3)) { // Top 3 improvement areas
+      if (metric.normalizedScore < 70) {
+        const rec = this.getMetricRecommendation(metric);
+        if (rec) recommendations.push(rec);
+      }
+    }
+    
+    // Add general recommendations if overall score is good
+    const avgScore = breakdown.reduce((sum, m) => sum + m.normalizedScore, 0) / breakdown.length;
+    if (avgScore >= 75 && recommendations.length === 0) {
+      recommendations.push({
+        priority: 'low' as const,
+        category: 'maintenance',
+        message: 'Great job! Continue your current healthy habits to maintain your excellent health score.',
+        expectedImpact: 'Sustained wellness and continued high performance'
+      });
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Get specific recommendation for metric
+   */
+  private getMetricRecommendation(metric: HealthScoreBreakdown) {
+    const recommendationMap: Record<string, any> = {
+      sleep: {
+        priority: 'high',
+        category: 'sleep',
+        message: `Your sleep score is ${metric.normalizedScore}/100. Aim for 7-9 hours of quality sleep nightly.`,
+        expectedImpact: 'Improved cognitive function, mood, and overall health score'
+      },
+      heart_rate_variability: {
+        priority: 'high',
+        category: 'recovery',
+        message: `Your HRV indicates suboptimal recovery. Consider stress management and adequate rest.`,
+        expectedImpact: 'Better stress resilience and cardiovascular health'
+      },
+      glucose: {
+        priority: 'high',
+        category: 'metabolic',
+        message: `Your glucose levels need attention. Focus on balanced nutrition and regular exercise.`,
+        expectedImpact: 'Improved metabolic health and energy stability'
+      },
+      steps: {
+        priority: 'medium',
+        category: 'activity',
+        message: `Increase daily activity to reach 8,000+ steps. Current: ${metric.currentValue} steps.`,
+        expectedImpact: 'Enhanced cardiovascular fitness and mental wellbeing'
+      },
+      heart_rate: {
+        priority: 'medium',
+        category: 'cardiovascular',
+        message: `Your resting heart rate could be improved with regular cardio exercise.`,
+        expectedImpact: 'Better cardiovascular efficiency and endurance'
+      },
+      blood_pressure: {
+        priority: 'high',
+        category: 'cardiovascular',
+        message: `Monitor blood pressure closely and consider lifestyle modifications.`,
+        expectedImpact: 'Reduced cardiovascular disease risk'
+      },
+      mood: {
+        priority: 'medium',
+        category: 'mental_health',
+        message: `Consider stress management techniques and social connections for mood improvement.`,
+        expectedImpact: 'Enhanced mental wellbeing and life satisfaction'
+      }
+    };
+
+    return recommendationMap[metric.metricType] || null;
+  }
+
+  /**
+   * Assess data quality for scoring reliability
+   */
+  private assessDataQuality(metrics: HealthMetric[], timeframeDays: number) {
+    const expectedDataPoints = timeframeDays * this.metricWeights.length * 0.8; // Allow for some missing data
+    const actualDataPoints = metrics.length;
+    
+    const completeness = Math.min(100, (actualDataPoints / expectedDataPoints) * 100);
+    
+    // Check consistency (simplified)
+    const metricTypes = new Set(metrics.map(m => m.metricType));
+    const consistency = (metricTypes.size / this.metricWeights.length) * 100;
+    
+    const avgQuality = (completeness + consistency) / 2;
+    let reliability = 'excellent';
+    if (avgQuality < 60) reliability = 'poor';
+    else if (avgQuality < 80) reliability = 'fair';
+    else if (avgQuality < 90) reliability = 'good';
+
+    return {
+      completeness: Math.round(completeness),
+      consistency: Math.round(consistency),
+      reliability
+    };
+  }
+
+  /**
+   * Get quick health score without full report
+   */
+  async getQuickScore(userId: number): Promise<number> {
+    const report = await this.calculateHealthScore(userId, 7); // Last 7 days
+    return report.overallScore;
+  }
+
+  /**
+   * Compare user score with demographic benchmarks
+   */
+  async compareWithPeers(userId: number, userAge: number, userGender: string): Promise<{
+    userScore: number;
+    peerAverage: number;
+    percentile: number;
+    ranking: string;
+  }> {
+    const userScore = await this.getQuickScore(userId);
+    
+    // Demographic benchmarks (simplified - in production would query actual peer data)
+    const demographicAverages: Record<string, number> = {
+      'male_20-30': 75,
+      'male_30-40': 72,
+      'male_40-50': 68,
+      'female_20-30': 77,
+      'female_30-40': 74,
+      'female_40-50': 70
+    };
+    
+    const ageGroup = userAge < 30 ? '20-30' : userAge < 40 ? '30-40' : '40-50';
+    const peerKey = `${userGender}_${ageGroup}`;
+    const peerAverage = demographicAverages[peerKey] || 70;
+    
+    // Calculate percentile (simplified)
+    const difference = userScore - peerAverage;
+    const percentile = Math.max(5, Math.min(95, 50 + (difference * 2)));
+    
+    let ranking = 'average';
+    if (percentile >= 90) ranking = 'exceptional';
+    else if (percentile >= 75) ranking = 'above average';
+    else if (percentile >= 25) ranking = 'average';
+    else ranking = 'below average';
+
+    return {
+      userScore,
+      peerAverage,
+      percentile: Math.round(percentile),
+      ranking
+    };
   }
 }
 
