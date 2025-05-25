@@ -1481,6 +1481,62 @@ USER QUESTION: ${message}
     }
   });
 
+  // Dynamic Notifications & Nudges - Get user notifications
+  app.get('/api/notifications', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { notificationEngine } = await import('./notification-engine');
+      
+      // Check for new notifications
+      const newNotifications = await notificationEngine.checkAndGenerateNotifications(user.id);
+      
+      // Get existing pending notifications
+      const pendingNotifications = await notificationEngine.getPendingNotifications(user.id);
+      
+      // Combine and return all notifications
+      const allNotifications = [...newNotifications, ...pendingNotifications];
+      
+      res.json(allNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Failed to fetch notifications' });
+    }
+  });
+
+  // Mark notification as read
+  app.post('/api/notifications/:id/read', authenticateJwt, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { notificationEngine } = await import('./notification-engine');
+      
+      await notificationEngine.markAsRead(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Failed to mark notification as read' });
+    }
+  });
+
+  // Dismiss notification
+  app.post('/api/notifications/:id/dismiss', authenticateJwt, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { notificationEngine } = await import('./notification-engine');
+      
+      await notificationEngine.dismissNotification(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+      res.status(500).json({ message: 'Failed to dismiss notification' });
+    }
+  });
+
   // Health Summary Engine - Get weekly summary
   app.get('/api/health-summary/weekly', authenticateJwt, async (req, res) => {
     try {
