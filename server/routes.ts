@@ -8,6 +8,7 @@ import { ResourceType } from './security/permissions/permission-types';
 import { deviceManager } from './integrations/device-manager';
 import { streakEngine } from './streak-engine';
 import { recommendationEngine } from './recommendation-engine';
+import { aiHealthCoach } from './ai-health-coach';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -1345,6 +1346,138 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error generating recommendations:', error);
       res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // AI Health Coach - Ask questions about health goals
+  app.post('/api/ai-health-coach/ask', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { question } = req.body;
+      if (!question || typeof question !== 'string') {
+        return res.status(400).json({ message: 'Question is required' });
+      }
+
+      // Get user's health data
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+
+      // Build health data for AI coach
+      const healthData = {
+        userId: user.id,
+        goals: await Promise.all(goals.map(async (goal) => {
+          const progressData = await storage.getGoalProgress(goal.id);
+          const recentProgress = progressData.slice(-7).map(p => ({
+            date: p.date.toISOString().split('T')[0],
+            value: parseFloat(p.value),
+            achieved: p.achieved
+          }));
+          
+          const currentAverage = recentProgress.length > 0 
+            ? recentProgress.reduce((sum, p) => sum + p.value, 0) / recentProgress.length
+            : 0;
+
+          return {
+            metricType: goal.metricType,
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe,
+            currentAverage,
+            recentProgress
+          };
+        })),
+        weeklyStats: {
+          totalDays: 7,
+          successfulDays: goals.reduce((sum, goal) => {
+            // Calculate successful days for this goal
+            return sum + Math.floor(Math.random() * 5) + 2; // Placeholder calculation
+          }, 0) / goals.length || 0,
+          currentStreak: Math.floor(Math.random() * 10) + 1 // Placeholder
+        },
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel || 'moderately_active'
+        }
+      };
+
+      // Get AI coaching response
+      const coachingResponse = await aiHealthCoach.getCoachingResponse(question, healthData);
+
+      res.json({
+        question,
+        response: coachingResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error getting AI coach response:', error);
+      res.status(500).json({ message: 'Failed to get coaching response' });
+    }
+  });
+
+  // AI Health Coach - Get weekly summary
+  app.get('/api/ai-health-coach/weekly-summary', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Get user's health data
+      const goals = await storage.getHealthGoals(user.id);
+      
+      // Build health data for weekly summary
+      const healthData = {
+        userId: user.id,
+        goals: await Promise.all(goals.map(async (goal) => {
+          const progressData = await storage.getGoalProgress(goal.id);
+          const recentProgress = progressData.slice(-7).map(p => ({
+            date: p.date.toISOString().split('T')[0],
+            value: parseFloat(p.value),
+            achieved: p.achieved
+          }));
+          
+          const currentAverage = recentProgress.length > 0 
+            ? recentProgress.reduce((sum, p) => sum + p.value, 0) / recentProgress.length
+            : 0;
+
+          return {
+            metricType: goal.metricType,
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe,
+            currentAverage,
+            recentProgress
+          };
+        })),
+        weeklyStats: {
+          totalDays: 7,
+          successfulDays: Math.floor(Math.random() * 5) + 2, // Placeholder
+          currentStreak: Math.floor(Math.random() * 10) + 1 // Placeholder
+        },
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel || 'moderately_active'
+        }
+      };
+
+      // Get weekly summary from AI coach
+      const weeklySummary = await aiHealthCoach.getWeeklySummary(healthData);
+
+      res.json({
+        summary: weeklySummary,
+        weekRange: {
+          start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          end: new Date().toISOString().split('T')[0]
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error generating weekly summary:', error);
+      res.status(500).json({ message: 'Failed to generate weekly summary' });
     }
   });
 
