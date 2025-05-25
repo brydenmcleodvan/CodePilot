@@ -1481,6 +1481,146 @@ USER QUESTION: ${message}
     }
   });
 
+  // Coach Insights Dashboard - Get coach dashboard data
+  app.get('/api/coach/dashboard', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Check if user has coach permissions
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      const dashboardData = await coachInsightsEngine.getCoachDashboard(user.id);
+
+      res.json(dashboardData);
+    } catch (error) {
+      console.error('Error fetching coach dashboard:', error);
+      res.status(500).json({ message: 'Failed to fetch coach dashboard data' });
+    }
+  });
+
+  // Get coach clients list
+  app.get('/api/coach/clients', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      // Sample client data - in a real implementation, this would query assigned clients
+      const clients = [
+        {
+          userId: 1,
+          username: 'HealthyClient1',
+          email: 'client1@example.com',
+          enrollmentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Weight Loss Program',
+          riskLevel: 'low',
+          overallAdherence: 85,
+          activeGoals: 4,
+          completedGoals: 2,
+          currentStreak: 12,
+          weeklyEngagement: 6
+        },
+        {
+          userId: 2,
+          username: 'ActiveUser2',
+          email: 'client2@example.com',
+          enrollmentDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Fitness Enhancement',
+          riskLevel: 'medium',
+          overallAdherence: 45,
+          activeGoals: 3,
+          completedGoals: 1,
+          currentStreak: 2,
+          weeklyEngagement: 3
+        },
+        {
+          userId: 3,
+          username: 'WellnessChamp',
+          email: 'client3@example.com',
+          enrollmentDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Wellness Maintenance',
+          riskLevel: 'low',
+          overallAdherence: 92,
+          activeGoals: 5,
+          completedGoals: 8,
+          currentStreak: 28,
+          weeklyEngagement: 7
+        }
+      ];
+
+      res.json(clients);
+    } catch (error) {
+      console.error('Error fetching coach clients:', error);
+      res.status(500).json({ message: 'Failed to fetch clients' });
+    }
+  });
+
+  // Generate weekly review for a client
+  app.get('/api/coach/weekly-review/:clientId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { clientId } = req.params;
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      
+      const weeklyReview = await coachInsightsEngine.generateWeeklyReview(parseInt(clientId));
+
+      res.json(weeklyReview);
+    } catch (error) {
+      console.error('Error generating weekly review:', error);
+      res.status(500).json({ message: 'Failed to generate weekly review' });
+    }
+  });
+
+  // Get client adherence pattern
+  app.get('/api/coach/adherence/:clientId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { clientId } = req.params;
+      const { period = 'weekly' } = req.query;
+      
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      const adherencePattern = await coachInsightsEngine.getClientAdherencePattern(
+        parseInt(clientId), 
+        period as 'weekly' | 'monthly'
+      );
+
+      res.json(adherencePattern);
+    } catch (error) {
+      console.error('Error fetching adherence pattern:', error);
+      res.status(500).json({ message: 'Failed to fetch adherence pattern' });
+    }
+  });
+
   // Community Challenges - Get active challenges
   app.get('/api/challenges', authenticateJwt, async (req, res) => {
     try {
