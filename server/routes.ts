@@ -7,6 +7,7 @@ import { checkPermission } from './security/permissions/permission-checker';
 import { ResourceType } from './security/permissions/permission-types';
 import { deviceManager } from './integrations/device-manager';
 import { streakEngine } from './streak-engine';
+import { recommendationEngine } from './recommendation-engine';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
@@ -1279,6 +1280,157 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error fetching streak summary:', error);
       res.status(500).json({ message: 'Failed to fetch streak summary' });
+    }
+  });
+
+  // Get personalized health recommendations for a specific goal
+  app.get('/api/health-goals/:goalId/recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      // Get progress data and health metrics for analysis
+      const progressData = await storage.getGoalProgress(parseInt(goalId));
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Convert progress data to format expected by recommendation engine
+      const metricData = progressData.map(progress => ({
+        date: progress.date.toISOString().split('T')[0],
+        value: parseFloat(progress.value),
+        achieved: progress.achieved,
+        source: 'manual'
+      }));
+
+      // Build context for recommendations
+      const context = {
+        userId: user.id,
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel,
+          healthConditions: (user as any).healthConditions || []
+        },
+        recentMetrics: {
+          [goal.metricType]: metricData
+        },
+        timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening',
+        dayOfWeek: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()]
+      };
+
+      // Generate personalized recommendations
+      const recommendations = recommendationEngine.generateRecommendations(metricData, {
+        id: goal.id,
+        metricType: goal.metricType,
+        goalType: goal.goalType as 'min' | 'max' | 'target' | 'range',
+        target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+        unit: goal.unit,
+        timeframe: goal.timeframe
+      }, context);
+
+      res.json({
+        goalId: parseInt(goalId),
+        goalType: goal.metricType,
+        recommendations,
+        generatedAt: new Date().toISOString(),
+        dataPoints: metricData.length
+      });
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Get comprehensive health recommendations across all goals
+  app.get('/api/health-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allRecommendations = [];
+
+      // Build comprehensive user profile
+      const userProfile = {
+        age: (user as any).age,
+        activityLevel: (user as any).activityLevel,
+        healthConditions: (user as any).healthConditions || []
+      };
+
+      // Generate recommendations for each goal
+      for (const goal of goals) {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        const metricData = progressData.map(progress => ({
+          date: progress.date.toISOString().split('T')[0],
+          value: parseFloat(progress.value),
+          achieved: progress.achieved,
+          source: 'manual'
+        }));
+
+        if (metricData.length > 0) {
+          const context = {
+            userId: user.id,
+            userProfile,
+            recentMetrics: { [goal.metricType]: metricData },
+            timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening',
+            dayOfWeek: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()]
+          };
+
+          const recommendations = recommendationEngine.generateRecommendations(metricData, {
+            id: goal.id,
+            metricType: goal.metricType,
+            goalType: goal.goalType as 'min' | 'max' | 'target' | 'range',
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe
+          }, context);
+
+          allRecommendations.push(...recommendations.map(rec => ({
+            ...rec,
+            goalId: goal.id,
+            goalType: goal.metricType
+          })));
+        }
+      }
+
+      // Sort all recommendations by priority and confidence
+      const sortedRecommendations = allRecommendations
+        .sort((a, b) => {
+          const priorityWeight = { high: 3, medium: 2, low: 1 };
+          return (priorityWeight[b.priority] - priorityWeight[a.priority]) || (b.confidenceLevel - a.confidenceLevel);
+        })
+        .slice(0, 10); // Return top 10 recommendations
+
+      // Calculate summary stats
+      const summary = {
+        totalRecommendations: sortedRecommendations.length,
+        highPriority: sortedRecommendations.filter(r => r.priority === 'high').length,
+        categories: [...new Set(sortedRecommendations.map(r => r.category))],
+        averageConfidence: sortedRecommendations.length > 0 
+          ? Math.round(sortedRecommendations.reduce((sum, r) => sum + r.confidenceLevel, 0) / sortedRecommendations.length)
+          : 0
+      };
+
+      res.json({
+        recommendations: sortedRecommendations,
+        summary,
+        generatedAt: new Date().toISOString(),
+        goalsAnalyzed: goals.length
+      });
+    } catch (error) {
+      console.error('Error generating health recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate health recommendations' });
     }
   });
 
