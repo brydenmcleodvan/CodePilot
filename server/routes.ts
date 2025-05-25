@@ -1520,6 +1520,92 @@ USER QUESTION: ${message}
     }
   });
 
+  // Medical Documentation - Generate physician report
+  app.post('/api/medical-report/generate', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = 'month', format = 'physician' } = req.body;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const report = await medicalDocumentationEngine.generatePhysicianReport(user.id, timeframe);
+
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating medical report:', error);
+      res.status(500).json({ message: 'Failed to generate medical report' });
+    }
+  });
+
+  // Generate FHIR-compliant report
+  app.post('/api/medical-report/fhir', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = 'month' } = req.body;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const fhirReport = await medicalDocumentationEngine.generateFHIRReport(user.id, timeframe);
+
+      res.json(fhirReport);
+    } catch (error) {
+      console.error('Error generating FHIR report:', error);
+      res.status(500).json({ message: 'Failed to generate FHIR report' });
+    }
+  });
+
+  // Download medical report as PDF
+  app.get('/api/medical-report/:reportId/pdf', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { reportId } = req.params;
+      const { format = 'physician' } = req.query;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      
+      // Generate sample report for demonstration
+      const report = await medicalDocumentationEngine.generatePhysicianReport(user.id, 'month');
+      const pdfContent = await medicalDocumentationEngine.generateMedicalPDF(report, format as string);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="medical-report-${reportId}.pdf"`);
+      res.send(Buffer.from(pdfContent, 'utf8'));
+    } catch (error) {
+      console.error('Error downloading medical report:', error);
+      res.status(500).json({ message: 'Failed to download medical report' });
+    }
+  });
+
+  // Generate sharing options for medical report
+  app.post('/api/medical-report/:reportId/sharing', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { reportId } = req.params;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const sharingOptions = await medicalDocumentationEngine.generateSharingOptions(reportId);
+
+      res.json(sharingOptions);
+    } catch (error) {
+      console.error('Error generating sharing options:', error);
+      res.status(500).json({ message: 'Failed to generate sharing options' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
