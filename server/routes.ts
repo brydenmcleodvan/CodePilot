@@ -1673,6 +1673,78 @@ USER QUESTION: ${message}
     }
   });
 
+  // Contextual Triggers - Get intelligent recommendations
+  app.get('/api/contextual-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const recommendations = await contextEngine.generateContextualRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating contextual recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate contextual recommendations' });
+    }
+  });
+
+  // Get weather context for location-based suggestions
+  app.get('/api/context/weather', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const weatherContext = await contextEngine.getWeatherContext(user.id);
+
+      res.json(weatherContext);
+    } catch (error) {
+      console.error('Error fetching weather context:', error);
+      res.status(500).json({ message: 'Failed to fetch weather context' });
+    }
+  });
+
+  // Get calendar context for schedule-based suggestions
+  app.get('/api/context/calendar', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const calendarContext = await contextEngine.getCalendarContext(user.id);
+
+      res.json(calendarContext);
+    } catch (error) {
+      console.error('Error fetching calendar context:', error);
+      res.status(500).json({ message: 'Failed to fetch calendar context' });
+    }
+  });
+
+  // Get location context for proximity-based suggestions
+  app.get('/api/context/location', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const locationContext = await contextEngine.getLocationContext(user.id);
+
+      res.json(locationContext);
+    } catch (error) {
+      console.error('Error fetching location context:', error);
+      res.status(500).json({ message: 'Failed to fetch location context' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
