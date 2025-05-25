@@ -10,6 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -39,6 +46,7 @@ import {
   Footprints,
   Thermometer,
   Droplets,
+  GitCompare,
 } from 'lucide-react';
 
 ChartJS.register(
@@ -76,6 +84,7 @@ interface MetricDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   metric: MetricData | null;
+  availableMetrics?: MetricData[];
 }
 
 const iconMap = {
@@ -113,8 +122,9 @@ const formatDate = (dateStr: string, timeframe: string) => {
   }
 };
 
-export default function MetricDetailModal({ isOpen, onClose, metric }: MetricDetailModalProps) {
+export default function MetricDetailModal({ isOpen, onClose, metric, availableMetrics = [] }: MetricDetailModalProps) {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'7d' | '30d' | '90d'>('7d');
+  const [compareWith, setCompareWith] = useState<string | null>(null);
   const chartRef = useRef<ChartJS<'line'>>(null);
 
   if (!metric) return null;
@@ -136,36 +146,60 @@ export default function MetricDetailModal({ isOpen, onClose, metric }: MetricDet
   };
 
   const data = getData();
+  const compareMetric = compareWith ? availableMetrics.find(m => m.id === compareWith) : null;
+  const compareData = compareMetric ? 
+    (selectedTimeframe === '7d' ? compareMetric.data7d : 
+     selectedTimeframe === '30d' ? compareMetric.data30d : 
+     compareMetric.data90d) : null;
+
+  const datasets = [
+    {
+      label: metric.name,
+      data: data.map(item => item.value),
+      borderColor: metric.color,
+      backgroundColor: `${metric.color}20`,
+      pointBackgroundColor: data.map(item => {
+        if (!item.quality) return metric.color;
+        switch (item.quality) {
+          case 'good':
+            return '#10B981';
+          case 'fair':
+            return '#F59E0B';
+          case 'poor':
+            return '#EF4444';
+          default:
+            return metric.color;
+        }
+      }),
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      tension: 0.4,
+      fill: false,
+    },
+  ];
+
+  if (compareData && compareMetric) {
+    datasets.push({
+      label: compareMetric.name,
+      data: compareData.map(item => item.value),
+      borderColor: compareMetric.color,
+      backgroundColor: `${compareMetric.color}20`,
+      pointBackgroundColor: compareMetric.color,
+      pointBorderColor: '#ffffff',
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      tension: 0.4,
+      fill: false,
+      borderDash: [5, 5],
+    });
+  }
 
   const chartData = {
     labels: data.map(item => formatDate(item.date, selectedTimeframe)),
-    datasets: [
-      {
-        label: metric.name,
-        data: data.map(item => item.value),
-        borderColor: metric.color,
-        backgroundColor: `${metric.color}20`,
-        pointBackgroundColor: data.map(item => {
-          if (!item.quality) return metric.color;
-          switch (item.quality) {
-            case 'good':
-              return '#10B981';
-            case 'fair':
-              return '#F59E0B';
-            case 'poor':
-              return '#EF4444';
-            default:
-              return metric.color;
-          }
-        }),
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        tension: 0.4,
-        fill: false,
-      },
-    ],
+    datasets,
   };
 
   const chartOptions = {
@@ -283,13 +317,35 @@ export default function MetricDetailModal({ isOpen, onClose, metric }: MetricDet
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Trend Analysis</h3>
-              <Tabs value={selectedTimeframe} onValueChange={(value) => setSelectedTimeframe(value as '7d' | '30d' | '90d')}>
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="7d">7 Days</TabsTrigger>
-                  <TabsTrigger value="30d">30 Days</TabsTrigger>
-                  <TabsTrigger value="90d">90 Days</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="flex items-center space-x-3">
+                {availableMetrics.length > 1 && (
+                  <div className="flex items-center space-x-2">
+                    <GitCompare className="h-4 w-4 text-gray-600" />
+                    <Select value={compareWith || ""} onValueChange={setCompareWith}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Compare with..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {availableMetrics
+                          .filter(m => m.id !== metric.id)
+                          .map(m => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Tabs value={selectedTimeframe} onValueChange={(value) => setSelectedTimeframe(value as '7d' | '30d' | '90d')}>
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="7d">7 Days</TabsTrigger>
+                    <TabsTrigger value="30d">30 Days</TabsTrigger>
+                    <TabsTrigger value="90d">90 Days</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
             </div>
             
             <div className="h-80 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
