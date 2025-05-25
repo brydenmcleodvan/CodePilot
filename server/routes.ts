@@ -1481,6 +1481,42 @@ USER QUESTION: ${message}
     }
   });
 
+  // Health Summary Engine - Get weekly summary
+  app.get('/api/health-summary/weekly', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthSummaryEngine } = await import('./health-summary-engine');
+      const summary = await healthSummaryEngine.generateWeeklySummary(user.id);
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error generating weekly summary:', error);
+      res.status(500).json({ message: 'Failed to generate weekly summary' });
+    }
+  });
+
+  // Health Summary Engine - Get daily summary
+  app.get('/api/health-summary/daily', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthSummaryEngine } = await import('./health-summary-engine');
+      const summary = await healthSummaryEngine.generateDailySummary(user.id);
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error generating daily summary:', error);
+      res.status(500).json({ message: 'Failed to generate daily summary' });
+    }
+  });
+
   // Get consistency dashboard data with streaks and tips
   app.get('/api/consistency-dashboard', authenticateJwt, async (req, res) => {
     try {
