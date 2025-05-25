@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Lightbulb, TrendingUp } from 'lucide-react';
+import { Brain, Lightbulb, TrendingUp, MessageCircle, BookOpen } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import HealthRecommendations from '@/components/health-recommendations';
+import HealthCoachAI from '@/components/health-coach-ai';
 
 export default function HealthRecommendationsPage() {
   return (
@@ -81,13 +84,34 @@ export default function HealthRecommendationsPage() {
           </div>
         </motion.div>
 
-        {/* Main Content */}
+        {/* Main Content with Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <HealthRecommendations />
+          <Tabs defaultValue="recommendations" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="recommendations" className="flex items-center space-x-2">
+                <BookOpen className="h-4 w-4" />
+                <span>Health Insights</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai-coach" className="flex items-center space-x-2">
+                <MessageCircle className="h-4 w-4" />
+                <span>Ask AI Coach</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="recommendations" className="space-y-6">
+              <HealthRecommendations />
+            </TabsContent>
+
+            <TabsContent value="ai-coach" className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border h-[600px]">
+                <HealthCoachAI />
+              </div>
+            </TabsContent>
+          </Tabs>
         </motion.div>
       </div>
     </div>
