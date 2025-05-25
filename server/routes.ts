@@ -1894,6 +1894,43 @@ USER QUESTION: ${message}
     }
   });
 
+  // Population Comparison - Get comprehensive comparison report
+  app.get('/api/population-comparison', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { populationComparisonEngine } = await import('./population-comparison-engine');
+      const comparisonReport = await populationComparisonEngine.generateComparisonReport(user.id);
+
+      res.json(comparisonReport);
+    } catch (error) {
+      console.error('Error generating population comparison:', error);
+      res.status(500).json({ message: 'Failed to generate population comparison' });
+    }
+  });
+
+  // Compare single metric against population norms
+  app.post('/api/population-comparison/metric', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, userValue, userProfile } = req.body;
+      const { populationComparisonEngine } = await import('./population-comparison-engine');
+      const comparison = await populationComparisonEngine.compareUserMetric(metricType, userValue, userProfile);
+
+      res.json(comparison);
+    } catch (error) {
+      console.error('Error comparing metric:', error);
+      res.status(500).json({ message: 'Failed to compare metric' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
