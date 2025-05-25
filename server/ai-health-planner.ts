@@ -1,428 +1,834 @@
 /**
- * AI-Generated Health Plan Engine
- * Creates adaptive 30-day wellness plans based on trends, goals, and user preferences
- * Uses OpenAI to generate personalized, evidence-based health recommendations
+ * Advanced AI Health Planner
+ * Generates 30-day AI wellness programs based on data trends, habits, and user preferences
+ * Provides daily step-by-step advice that adapts based on progress and performance
  */
 
 import OpenAI from 'openai';
 import { storage } from './storage';
-import { HealthMetric, HealthGoal } from '@shared/schema';
+import { HealthMetric, HealthGoal, User } from '@shared/schema';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-export interface HealthPlanWeek {
-  weekNumber: number;
-  theme: string;
-  goals: {
-    primary: string;
-    secondary: string[];
-  };
-  dailyTasks: {
-    day: number;
-    focus: string;
-    tasks: {
-      category: 'exercise' | 'nutrition' | 'sleep' | 'mindfulness' | 'habits';
-      task: string;
-      duration: string;
-      difficulty: 'easy' | 'moderate' | 'challenging';
-      priority: 'high' | 'medium' | 'low';
-    }[];
-    motivationalTip: string;
-  }[];
-  weeklyChallenge: string;
-  progressMilestones: string[];
+// Initialize OpenAI with error handling
+let openai: OpenAI | null = null;
+try {
+  if (process.env.OPENAI_API_KEY) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+} catch (error) {
+  console.warn('OpenAI API not available:', error);
 }
 
-export interface AdaptiveHealthPlan {
+export interface UserHealthProfile {
+  userId: number;
+  demographics: {
+    age?: number;
+    gender?: string;
+    activityLevel: 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active';
+    fitnessLevel: 'beginner' | 'intermediate' | 'advanced';
+  };
+  currentHabits: {
+    exerciseFrequency: number; // days per week
+    sleepAverage: number; // hours per night
+    stepsAverage: number; // daily average
+    activeGoals: string[];
+    preferredActivities: string[];
+  };
+  healthMetrics: {
+    recentAverages: {
+      heartRate: number;
+      steps: number;
+      sleep: number;
+      weight?: number;
+    };
+    trends: {
+      improving: string[];
+      declining: string[];
+      stable: string[];
+    };
+  };
+  pastPerformance: {
+    goalCompletionRate: number; // 0-100%
+    consistencyScore: number; // 0-100%
+    preferredChallengeLevel: 'easy' | 'moderate' | 'challenging';
+    mostSuccessfulStrategies: string[];
+  };
+  preferences: {
+    timeOfDay: 'morning' | 'afternoon' | 'evening' | 'flexible';
+    workoutDuration: 'short' | 'medium' | 'long'; // 15min, 30min, 60min+
+    focusAreas: string[];
+    motivationStyle: 'achievement' | 'social' | 'wellness' | 'competition';
+  };
+}
+
+export interface DailyPlan {
+  day: number;
+  date: Date;
+  theme: string;
+  primaryFocus: string;
+  tasks: {
+    id: string;
+    type: 'exercise' | 'nutrition' | 'mindfulness' | 'sleep' | 'habit';
+    title: string;
+    description: string;
+    duration: number; // minutes
+    difficulty: 'easy' | 'moderate' | 'challenging';
+    timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime';
+    instructions: string[];
+    adaptations: {
+      easier: string;
+      harder: string;
+    };
+    trackingMetric?: string;
+    motivationalNote: string;
+  }[];
+  adaptiveElements: {
+    weatherBackup: string;
+    timeConstraints: string;
+    energyLevelAdjustment: string;
+  };
+  progressMilestones: string[];
+  reflectionPrompts: string[];
+}
+
+export interface AIHealthPlan {
   id: string;
   userId: number;
-  planName: string;
+  title: string;
+  description: string;
   duration: number; // days
-  generatedAt: Date;
-  personalizedFor: {
-    age: number;
-    fitnessLevel: 'beginner' | 'intermediate' | 'advanced';
-    healthGoals: string[];
-    preferences: string[];
-    constraints: string[];
-    currentChallenges: string[];
+  createdAt: Date;
+  startDate: Date;
+  endDate: Date;
+  objectives: {
+    primary: string;
+    secondary: string[];
+    measurableGoals: {
+      metric: string;
+      target: number;
+      unit: string;
+      timeframe: string;
+    }[];
   };
-  weeks: HealthPlanWeek[];
-  adaptationTriggers: {
-    condition: string;
-    adjustment: string;
+  adaptationStrategy: {
+    performanceThresholds: {
+      excellent: number;
+      good: number;
+      needsImprovement: number;
+    };
+    adjustmentTriggers: string[];
+    progressIndicators: string[];
+  };
+  dailyPlans: DailyPlan[];
+  weeklyThemes: {
+    week: number;
+    theme: string;
+    focus: string;
+    expectedOutcomes: string[];
   }[];
-  expectedOutcomes: {
-    week1: string[];
-    week2: string[];
-    week3: string[];
-    week4: string[];
+  personalizedElements: {
+    motivationalStyle: string;
+    challengeLevel: string;
+    preferredActivities: string[];
+    adaptationFactors: string[];
   };
-  emergencyContacts: {
-    type: 'doctor' | 'therapist' | 'nutritionist' | 'trainer';
-    name: string;
-    contact: string;
-  }[];
-  resources: {
-    articles: string[];
-    videos: string[];
-    apps: string[];
+  progressTracking: {
+    dailyCheckins: string[];
+    weeklyAssessments: string[];
+    adaptationPoints: number[];
   };
-  aiConfidence: number;
 }
 
 export interface PlanAdaptation {
+  planId: string;
+  day: number;
+  adaptationType: 'difficulty_increase' | 'difficulty_decrease' | 'focus_shift' | 'schedule_adjustment';
   reason: string;
-  originalPlan: string;
-  adaptedPlan: string;
-  effectiveDate: Date;
-  userFeedback?: string;
+  changes: {
+    original: string;
+    adapted: string;
+    reasoning: string;
+  }[];
+  confidence: number;
 }
 
 export class AIHealthPlanner {
+  private openai: OpenAI | null = null;
 
-  /**
-   * Generate a comprehensive 30-day adaptive health plan
-   */
-  async generatePersonalizedPlan(userId: number): Promise<AdaptiveHealthPlan> {
-    try {
-      // Gather user data for personalization
-      const healthMetrics = await storage.getHealthMetrics(userId);
-      const healthGoals = await storage.getHealthGoals(userId);
-      const userProfile = await this.getUserProfile(userId);
-      
-      // Analyze current health trends
-      const healthAnalysis = await this.analyzeHealthTrends(healthMetrics);
-      const goalAnalysis = await this.analyzeGoalPatterns(healthGoals);
-      
-      // Generate AI-powered plan using OpenAI
-      const planPrompt = this.buildPlanPrompt(userProfile, healthAnalysis, goalAnalysis);
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert health and wellness coach with deep knowledge of evidence-based practices, behavioral psychology, and adaptive program design. Create comprehensive, personalized wellness plans that are realistic, progressive, and sustainable."
-          },
-          {
-            role: "user",
-            content: planPrompt
-          }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-      });
-
-      const aiPlanData = JSON.parse(response.choices[0].message.content || '{}');
-      
-      // Structure the AI response into our plan format
-      const adaptiveHealthPlan: AdaptiveHealthPlan = {
-        id: `plan_${userId}_${Date.now()}`,
-        userId,
-        planName: aiPlanData.planName || `Personalized 30-Day Wellness Journey`,
-        duration: 30,
-        generatedAt: new Date(),
-        personalizedFor: {
-          age: userProfile.age || 30,
-          fitnessLevel: userProfile.fitnessLevel || 'intermediate',
-          healthGoals: healthGoals.map(g => g.metricType),
-          preferences: userProfile.preferences || [],
-          constraints: userProfile.constraints || [],
-          currentChallenges: this.identifyCurrentChallenges(healthAnalysis, goalAnalysis)
-        },
-        weeks: this.structureWeeklyPlan(aiPlanData.weeks || []),
-        adaptationTriggers: aiPlanData.adaptationTriggers || this.getDefaultAdaptationTriggers(),
-        expectedOutcomes: aiPlanData.expectedOutcomes || this.generateExpectedOutcomes(),
-        emergencyContacts: aiPlanData.emergencyContacts || [],
-        resources: aiPlanData.resources || this.getDefaultResources(),
-        aiConfidence: 0.85
-      };
-
-      return adaptiveHealthPlan;
-      
-    } catch (error) {
-      console.error('Error generating health plan:', error);
-      throw new Error('Failed to generate personalized health plan');
-    }
+  constructor() {
+    this.openai = openai;
   }
 
   /**
-   * Adapt existing plan based on progress and feedback
+   * Generate a comprehensive 30-day AI health plan
    */
-  async adaptPlan(planId: string, userProgress: any, userFeedback: string): Promise<PlanAdaptation> {
-    try {
-      const adaptationPrompt = `
-        Based on the user's progress and feedback, adapt their health plan:
-        
-        User Feedback: "${userFeedback}"
-        Progress Data: ${JSON.stringify(userProgress)}
-        
-        Please provide specific adaptations needed and reasoning. Respond in JSON format with:
-        {
-          "reason": "explanation for adaptation",
-          "adaptations": ["list of specific changes"],
-          "newRecommendations": ["updated recommendations"]
-        }
-      `;
+  async generateHealthPlan(userId: number, planGoals: string[]): Promise<AIHealthPlan> {
+    // Build comprehensive user profile
+    const userProfile = await this.buildUserHealthProfile(userId);
+    
+    // Generate AI-powered plan structure
+    const planStructure = await this.generatePlanStructure(userProfile, planGoals);
+    
+    // Create detailed daily plans
+    const dailyPlans = await this.generateDailyPlans(userProfile, planStructure);
+    
+    // Define adaptation strategy
+    const adaptationStrategy = this.createAdaptationStrategy(userProfile);
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are an adaptive health coach. Analyze user feedback and progress to make intelligent plan adjustments."
-          },
-          {
-            role: "user",
-            content: adaptationPrompt
-          }
+    const plan: AIHealthPlan = {
+      id: `plan-${userId}-${Date.now()}`,
+      userId,
+      title: planStructure.title,
+      description: planStructure.description,
+      duration: 30,
+      createdAt: new Date(),
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      objectives: planStructure.objectives,
+      adaptationStrategy,
+      dailyPlans,
+      weeklyThemes: planStructure.weeklyThemes,
+      personalizedElements: {
+        motivationalStyle: userProfile.preferences.motivationStyle,
+        challengeLevel: userProfile.pastPerformance.preferredChallengeLevel,
+        preferredActivities: userProfile.currentHabits.preferredActivities,
+        adaptationFactors: planStructure.adaptationFactors
+      },
+      progressTracking: {
+        dailyCheckins: [
+          'How did today\'s activities feel?',
+          'What was your energy level?',
+          'Any challenges or wins?'
         ],
-        response_format: { type: "json_object" },
-        temperature: 0.6,
-      });
-
-      const adaptationData = JSON.parse(response.choices[0].message.content || '{}');
-
-      return {
-        reason: adaptationData.reason,
-        originalPlan: "Current plan structure",
-        adaptedPlan: adaptationData.adaptations.join('; '),
-        effectiveDate: new Date(),
-        userFeedback
-      };
-
-    } catch (error) {
-      console.error('Error adapting plan:', error);
-      throw new Error('Failed to adapt health plan');
-    }
-  }
-
-  /**
-   * Generate daily recommendations based on current context
-   */
-  async generateDailyRecommendations(userId: number, planId: string): Promise<{
-    todaysFocus: string;
-    tasks: string[];
-    motivationalMessage: string;
-    adaptiveNotes: string[];
-  }> {
-    try {
-      const currentDay = await this.getCurrentPlanDay(planId);
-      const recentMetrics = await this.getRecentMetrics(userId, 3); // Last 3 days
-      
-      const dailyPrompt = `
-        Generate today's personalized recommendations for day ${currentDay} of a 30-day wellness plan.
-        Recent health data: ${JSON.stringify(recentMetrics)}
-        
-        Provide specific, actionable recommendations for today in JSON format:
-        {
-          "todaysFocus": "main focus area for today",
-          "tasks": ["specific tasks for today"],
-          "motivationalMessage": "encouraging message",
-          "adaptiveNotes": ["any plan adjustments based on recent data"]
-        }
-      `;
-
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are a supportive daily wellness coach providing specific, achievable recommendations."
-          },
-          {
-            role: "user",
-            content: dailyPrompt
-          }
+        weeklyAssessments: [
+          'Overall progress satisfaction',
+          'Areas needing adjustment',
+          'Motivation level check'
         ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-      });
-
-      return JSON.parse(response.choices[0].message.content || '{}');
-
-    } catch (error) {
-      console.error('Error generating daily recommendations:', error);
-      return {
-        todaysFocus: "Focus on consistency and small wins",
-        tasks: ["Complete morning routine", "Stay hydrated", "Take evening walk"],
-        motivationalMessage: "Every small step counts toward your bigger goals!",
-        adaptiveNotes: []
-      };
-    }
-  }
-
-  /**
-   * Private helper methods
-   */
-  private buildPlanPrompt(userProfile: any, healthAnalysis: any, goalAnalysis: any): string {
-    return `
-      Create a comprehensive 30-day adaptive wellness plan for this user profile:
-      
-      User Profile:
-      - Age: ${userProfile.age || 'not specified'}
-      - Fitness Level: ${userProfile.fitnessLevel || 'intermediate'}
-      - Health Goals: ${JSON.stringify(goalAnalysis.primaryGoals)}
-      - Current Challenges: ${JSON.stringify(healthAnalysis.challenges)}
-      - Preferences: ${JSON.stringify(userProfile.preferences || [])}
-      
-      Health Analysis:
-      - Trending metrics: ${JSON.stringify(healthAnalysis.trends)}
-      - Areas needing improvement: ${JSON.stringify(healthAnalysis.improvementAreas)}
-      - Strengths: ${JSON.stringify(healthAnalysis.strengths)}
-      
-      Please create a detailed plan in JSON format with the following structure:
-      {
-        "planName": "Creative, motivating plan name",
-        "weeks": [
-          {
-            "weekNumber": 1,
-            "theme": "week theme",
-            "goals": {
-              "primary": "main goal for the week",
-              "secondary": ["supporting goals"]
-            },
-            "dailyTasks": [
-              {
-                "day": 1,
-                "focus": "daily focus area",
-                "tasks": [
-                  {
-                    "category": "exercise|nutrition|sleep|mindfulness|habits",
-                    "task": "specific task description",
-                    "duration": "time needed",
-                    "difficulty": "easy|moderate|challenging",
-                    "priority": "high|medium|low"
-                  }
-                ],
-                "motivationalTip": "encouraging daily message"
-              }
-            ],
-            "weeklyChallenge": "special challenge for the week",
-            "progressMilestones": ["what to measure this week"]
-          }
-        ],
-        "adaptationTriggers": [
-          {
-            "condition": "if this happens",
-            "adjustment": "make this change"
-          }
-        ],
-        "expectedOutcomes": {
-          "week1": ["what user should expect by end of week 1"],
-          "week2": ["expected progress by week 2"],
-          "week3": ["mid-plan expectations"],
-          "week4": ["final outcomes"]
-        },
-        "resources": {
-          "articles": ["helpful article topics"],
-          "videos": ["recommended video types"],
-          "apps": ["useful app categories"]
-        }
+        adaptationPoints: [7, 14, 21] // Days when plan auto-adapts
       }
-      
-      Make the plan progressive, sustainable, and specifically tailored to this user's needs and constraints.
-    `;
+    };
+
+    return plan;
   }
 
-  private async getUserProfile(userId: number) {
-    // In a real implementation, this would fetch comprehensive user profile
+  /**
+   * Adapt an existing plan based on user progress
+   */
+  async adaptPlan(planId: string, currentDay: number, progressData: any): Promise<PlanAdaptation> {
+    const userProfile = await this.buildUserHealthProfile(progressData.userId);
+    
+    // Analyze performance vs expectations
+    const performanceAnalysis = this.analyzePerformance(progressData, currentDay);
+    
+    // Generate AI-powered adaptations
+    const adaptations = await this.generateAdaptations(userProfile, performanceAnalysis, currentDay);
+
     return {
-      age: 32,
-      fitnessLevel: 'intermediate',
-      preferences: ['morning workouts', 'plant-based nutrition', 'meditation'],
-      constraints: ['limited time weekdays', 'knee injury history'],
-      goals: ['weight loss', 'better sleep', 'stress reduction']
+      planId,
+      day: currentDay,
+      adaptationType: adaptations.type,
+      reason: adaptations.reason,
+      changes: adaptations.changes,
+      confidence: adaptations.confidence
     };
   }
 
-  private async analyzeHealthTrends(metrics: HealthMetric[]) {
-    // Analyze recent health data trends
-    const recent = metrics.filter(m => {
-      const daysAgo = (Date.now() - m.timestamp.getTime()) / (1000 * 60 * 60 * 24);
-      return daysAgo <= 14; // Last 2 weeks
+  /**
+   * Generate daily step-by-step advice
+   */
+  async generateDailyAdvice(userId: number, planId: string, day: number): Promise<{
+    advice: string;
+    adaptiveInstructions: string[];
+    motivationalMessage: string;
+    focusTips: string[];
+  }> {
+    const userProfile = await this.buildUserHealthProfile(userId);
+    
+    if (!this.openai) {
+      return this.getFallbackDailyAdvice(userProfile, day);
+    }
+
+    try {
+      const prompt = this.buildDailyAdvicePrompt(userProfile, day);
+      
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert health coach providing personalized daily advice. Focus on actionable, encouraging guidance that adapts to the user's progress and preferences. Respond in JSON format."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 800,
+        temperature: 0.7
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      
+      return {
+        advice: result.advice || 'Focus on consistency over perfection today.',
+        adaptiveInstructions: result.adaptiveInstructions || [],
+        motivationalMessage: result.motivationalMessage || 'You\'re making great progress!',
+        focusTips: result.focusTips || []
+      };
+    } catch (error) {
+      console.error('Error generating daily advice:', error);
+      return this.getFallbackDailyAdvice(userProfile, day);
+    }
+  }
+
+  /**
+   * Build comprehensive user health profile
+   */
+  private async buildUserHealthProfile(userId: number): Promise<UserHealthProfile> {
+    const user = await storage.getUser(userId);
+    const healthMetrics = await storage.getHealthMetrics(userId);
+    const healthGoals = await storage.getHealthGoals(userId);
+
+    // Calculate current habits from recent data
+    const recentMetrics = healthMetrics
+      .filter(m => m.timestamp >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    const currentHabits = this.analyzeCurrentHabits(recentMetrics);
+    const healthMetricsSummary = this.analyzeHealthMetrics(recentMetrics);
+    const pastPerformance = this.analyzePastPerformance(healthGoals, recentMetrics);
+
+    return {
+      userId,
+      demographics: {
+        age: (user as any)?.age || 30,
+        gender: (user as any)?.gender || 'not_specified',
+        activityLevel: this.determineActivityLevel(recentMetrics),
+        fitnessLevel: this.determineFitnessLevel(recentMetrics, healthGoals)
+      },
+      currentHabits,
+      healthMetrics: healthMetricsSummary,
+      pastPerformance,
+      preferences: {
+        timeOfDay: (user as any)?.preferredTime || 'morning',
+        workoutDuration: (user as any)?.workoutDuration || 'medium',
+        focusAreas: healthGoals.map(g => g.metricType),
+        motivationStyle: (user as any)?.motivationStyle || 'wellness'
+      }
+    };
+  }
+
+  /**
+   * Generate AI-powered plan structure
+   */
+  private async generatePlanStructure(userProfile: UserHealthProfile, planGoals: string[]): Promise<any> {
+    if (!this.openai) {
+      return this.getFallbackPlanStructure(userProfile, planGoals);
+    }
+
+    try {
+      const prompt = this.buildPlanStructurePrompt(userProfile, planGoals);
+      
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert wellness coach creating personalized 30-day health plans. Design comprehensive, achievable programs that adapt to user preferences and capabilities. Respond in JSON format."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 1200,
+        temperature: 0.8
+      });
+
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      
+      return {
+        title: result.title || `Personalized 30-Day Wellness Journey`,
+        description: result.description || 'A comprehensive plan tailored to your goals and preferences.',
+        objectives: result.objectives || this.getDefaultObjectives(planGoals),
+        weeklyThemes: result.weeklyThemes || this.getDefaultWeeklyThemes(),
+        adaptationFactors: result.adaptationFactors || ['progress_rate', 'adherence', 'feedback']
+      };
+    } catch (error) {
+      console.error('Error generating plan structure:', error);
+      return this.getFallbackPlanStructure(userProfile, planGoals);
+    }
+  }
+
+  /**
+   * Generate detailed daily plans
+   */
+  private async generateDailyPlans(userProfile: UserHealthProfile, planStructure: any): Promise<DailyPlan[]> {
+    const dailyPlans: DailyPlan[] = [];
+    
+    for (let day = 1; day <= 30; day++) {
+      const weekNumber = Math.ceil(day / 7);
+      const weekTheme = planStructure.weeklyThemes[weekNumber - 1] || planStructure.weeklyThemes[0];
+      
+      const dailyPlan = await this.generateSingleDayPlan(userProfile, day, weekTheme);
+      dailyPlans.push(dailyPlan);
+    }
+    
+    return dailyPlans;
+  }
+
+  /**
+   * Generate a single day's plan
+   */
+  private async generateSingleDayPlan(userProfile: UserHealthProfile, day: number, weekTheme: any): Promise<DailyPlan> {
+    const date = new Date();
+    date.setDate(date.getDate() + day - 1);
+    
+    // Determine day intensity and focus
+    const intensity = this.getDayIntensity(day, userProfile.pastPerformance.preferredChallengeLevel);
+    const primaryFocus = this.getDayFocus(day, weekTheme, userProfile.preferences.focusAreas);
+    
+    // Generate tasks based on user profile and day requirements
+    const tasks = this.generateDayTasks(userProfile, day, primaryFocus, intensity);
+
+    return {
+      day,
+      date,
+      theme: weekTheme.theme,
+      primaryFocus,
+      tasks,
+      adaptiveElements: {
+        weatherBackup: 'Indoor alternatives available for all outdoor activities',
+        timeConstraints: 'All activities can be modified for 15-60 minute sessions',
+        energyLevelAdjustment: 'Difficulty can be scaled based on daily energy levels'
+      },
+      progressMilestones: this.getDayMilestones(day),
+      reflectionPrompts: [
+        'What felt most energizing today?',
+        'How can I build on today\'s success tomorrow?',
+        'What would I adjust about today\'s plan?'
+      ]
+    };
+  }
+
+  /**
+   * Analyze current habits from metrics
+   */
+  private analyzeCurrentHabits(metrics: HealthMetric[]) {
+    const exerciseMetrics = metrics.filter(m => m.metricType === 'exercise' || m.metricType === 'workout');
+    const sleepMetrics = metrics.filter(m => m.metricType === 'sleep');
+    const stepsMetrics = metrics.filter(m => m.metricType === 'steps');
+
+    return {
+      exerciseFrequency: Math.max(1, Math.floor(exerciseMetrics.length / 4)), // per week
+      sleepAverage: sleepMetrics.length > 0 
+        ? sleepMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / sleepMetrics.length 
+        : 7.5,
+      stepsAverage: stepsMetrics.length > 0 
+        ? stepsMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stepsMetrics.length 
+        : 8000,
+      activeGoals: ['fitness', 'wellness'],
+      preferredActivities: ['walking', 'strength_training', 'yoga']
+    };
+  }
+
+  /**
+   * Analyze health metrics trends
+   */
+  private analyzeHealthMetrics(metrics: HealthMetric[]) {
+    const metricTypes = [...new Set(metrics.map(m => m.metricType))];
+    const recentAverages: any = {};
+    const trends = { improving: [], declining: [], stable: [] };
+
+    metricTypes.forEach(type => {
+      const typeMetrics = metrics.filter(m => m.metricType === type);
+      if (typeMetrics.length > 0) {
+        const average = typeMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / typeMetrics.length;
+        recentAverages[type] = Math.round(average);
+        
+        // Simple trend analysis
+        if (typeMetrics.length >= 7) {
+          const recent = typeMetrics.slice(0, 3).reduce((sum, m) => sum + parseFloat(m.value), 0) / 3;
+          const older = typeMetrics.slice(-3).reduce((sum, m) => sum + parseFloat(m.value), 0) / 3;
+          
+          if (recent > older * 1.05) {
+            trends.improving.push(type);
+          } else if (recent < older * 0.95) {
+            trends.declining.push(type);
+          } else {
+            trends.stable.push(type);
+          }
+        }
+      }
     });
 
     return {
-      trends: ['steps improving', 'sleep consistency variable', 'heart rate stable'],
-      challenges: ['irregular sleep schedule', 'weekend nutrition lapses'],
-      strengths: ['consistent exercise', 'good hydration habits'],
-      improvementAreas: ['stress management', 'evening routine']
+      recentAverages: {
+        heartRate: recentAverages.heart_rate || 75,
+        steps: recentAverages.steps || 8000,
+        sleep: recentAverages.sleep || 7.5,
+        weight: recentAverages.weight
+      },
+      trends
     };
   }
 
-  private async analyzeGoalPatterns(goals: HealthGoal[]) {
+  /**
+   * Analyze past performance from goals
+   */
+  private analyzePastPerformance(goals: HealthGoal[], metrics: HealthMetric[]) {
+    let completedGoals = 0;
+    let totalGoals = goals.length;
+    
+    goals.forEach(goal => {
+      const relevantMetrics = metrics.filter(m => m.metricType === goal.metricType);
+      if (relevantMetrics.length > 0) {
+        const average = relevantMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / relevantMetrics.length;
+        // Simplified goal completion check
+        if (average >= parseFloat(goal.goalValue as string) * 0.8) {
+          completedGoals++;
+        }
+      }
+    });
+
+    const completionRate = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 75;
+    
     return {
-      primaryGoals: goals.filter(g => g.progress < 100).map(g => g.metricType),
-      completionRate: goals.length > 0 ? goals.filter(g => g.progress >= 100).length / goals.length : 0,
-      strugglingAreas: goals.filter(g => g.progress < 30).map(g => g.metricType)
+      goalCompletionRate: Math.round(completionRate),
+      consistencyScore: Math.min(95, Math.max(60, completionRate + 10)),
+      preferredChallengeLevel: completionRate > 80 ? 'challenging' : completionRate > 60 ? 'moderate' : 'easy',
+      mostSuccessfulStrategies: ['gradual_progression', 'consistency_focus', 'habit_stacking']
     };
   }
 
-  private identifyCurrentChallenges(healthAnalysis: any, goalAnalysis: any): string[] {
-    return [
-      ...healthAnalysis.challenges,
-      ...goalAnalysis.strugglingAreas.map((area: string) => `Low progress in ${area}`)
-    ];
+  /**
+   * Helper methods for plan generation
+   */
+  private determineActivityLevel(metrics: HealthMetric[]): 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' {
+    const stepsMetrics = metrics.filter(m => m.metricType === 'steps');
+    if (stepsMetrics.length === 0) return 'lightly_active';
+    
+    const avgSteps = stepsMetrics.reduce((sum, m) => sum + parseFloat(m.value), 0) / stepsMetrics.length;
+    
+    if (avgSteps < 5000) return 'sedentary';
+    if (avgSteps < 8000) return 'lightly_active';
+    if (avgSteps < 12000) return 'moderately_active';
+    return 'very_active';
   }
 
-  private structureWeeklyPlan(aiWeeks: any[]): HealthPlanWeek[] {
-    return aiWeeks.map(week => ({
-      weekNumber: week.weekNumber,
-      theme: week.theme,
-      goals: week.goals,
-      dailyTasks: week.dailyTasks || [],
-      weeklyChallenge: week.weeklyChallenge,
-      progressMilestones: week.progressMilestones || []
-    }));
+  private determineFitnessLevel(metrics: HealthMetric[], goals: HealthGoal[]): 'beginner' | 'intermediate' | 'advanced' {
+    const exerciseGoals = goals.filter(g => g.metricType === 'exercise' || g.metricType === 'workout');
+    const recentExercise = metrics.filter(m => 
+      (m.metricType === 'exercise' || m.metricType === 'workout') &&
+      m.timestamp >= new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+    );
+    
+    if (exerciseGoals.length >= 3 && recentExercise.length >= 8) return 'advanced';
+    if (exerciseGoals.length >= 2 && recentExercise.length >= 4) return 'intermediate';
+    return 'beginner';
   }
 
-  private getDefaultAdaptationTriggers() {
+  private getDayIntensity(day: number, preferredLevel: string): 'easy' | 'moderate' | 'challenging' {
+    // Gradual intensity progression with rest days
+    if (day % 7 === 0) return 'easy'; // Rest day every 7th day
+    
+    const weekNumber = Math.ceil(day / 7);
+    if (weekNumber === 1) return preferredLevel === 'challenging' ? 'moderate' : 'easy';
+    if (weekNumber === 2) return preferredLevel === 'easy' ? 'easy' : 'moderate';
+    
+    // Adaptive intensity based on preference and week
+    if (preferredLevel === 'challenging') {
+      return day % 3 === 0 ? 'challenging' : 'moderate';
+    }
+    return preferredLevel as 'easy' | 'moderate' | 'challenging';
+  }
+
+  private getDayFocus(day: number, weekTheme: any, focusAreas: string[]): string {
+    const focuses = ['strength', 'cardio', 'flexibility', 'mindfulness', 'nutrition'];
+    return focuses[(day - 1) % focuses.length];
+  }
+
+  private generateDayTasks(userProfile: UserHealthProfile, day: number, focus: string, intensity: string) {
+    const tasks = [];
+    
+    // Main exercise task
+    tasks.push({
+      id: `task-${day}-exercise`,
+      type: 'exercise' as const,
+      title: `${focus.charAt(0).toUpperCase() + focus.slice(1)} Focus`,
+      description: `Tailored ${focus} workout for ${intensity} intensity`,
+      duration: userProfile.preferences.workoutDuration === 'short' ? 20 : 
+                userProfile.preferences.workoutDuration === 'long' ? 60 : 30,
+      difficulty: intensity,
+      timeOfDay: userProfile.preferences.timeOfDay,
+      instructions: this.getExerciseInstructions(focus, intensity),
+      adaptations: {
+        easier: `Reduce intensity by 20% or shorten duration`,
+        harder: `Add extra sets or increase resistance`
+      },
+      trackingMetric: focus === 'cardio' ? 'heart_rate' : 'duration',
+      motivationalNote: this.getMotivationalNote(userProfile.preferences.motivationStyle, day)
+    });
+
+    // Nutrition task
+    tasks.push({
+      id: `task-${day}-nutrition`,
+      type: 'nutrition' as const,
+      title: 'Mindful Nutrition',
+      description: 'Focus on balanced, energizing meals',
+      duration: 10,
+      difficulty: 'easy' as const,
+      timeOfDay: 'anytime' as const,
+      instructions: [
+        'Plan meals with protein, healthy fats, and complex carbs',
+        'Stay hydrated throughout the day',
+        'Practice mindful eating during one meal'
+      ],
+      adaptations: {
+        easier: 'Focus on just one healthy meal today',
+        harder: 'Track macronutrients and meal timing'
+      },
+      motivationalNote: 'Fuel your body like the amazing machine it is!'
+    });
+
+    return tasks;
+  }
+
+  private getExerciseInstructions(focus: string, intensity: string): string[] {
+    const instructions: Record<string, string[]> = {
+      strength: [
+        'Warm up for 5 minutes',
+        'Perform compound movements',
+        'Focus on proper form',
+        'Cool down and stretch'
+      ],
+      cardio: [
+        'Start with gentle warm-up',
+        'Maintain target heart rate',
+        'Include interval training',
+        'End with cool-down walk'
+      ],
+      flexibility: [
+        'Begin with light movement',
+        'Hold stretches for 30 seconds',
+        'Focus on breathing',
+        'Include full-body stretches'
+      ]
+    };
+    
+    return instructions[focus] || instructions.strength;
+  }
+
+  private getMotivationalNote(style: string, day: number): string {
+    const notes: Record<string, string[]> = {
+      achievement: [
+        'Every rep brings you closer to your goals!',
+        'You\'re building strength and resilience!',
+        'Celebrate this commitment to yourself!'
+      ],
+      wellness: [
+        'Listen to your body and honor its needs',
+        'This movement is a gift to your future self',
+        'Focus on how great you feel afterward'
+      ],
+      social: [
+        'Your commitment inspires others around you',
+        'Share your progress with your support network',
+        'Remember, you\'re part of a wellness community'
+      ]
+    };
+    
+    const styleNotes = notes[style] || notes.wellness;
+    return styleNotes[day % styleNotes.length];
+  }
+
+  private getDayMilestones(day: number): string[] {
+    const milestones = [];
+    
+    if (day === 1) milestones.push('🎯 Started your wellness journey!');
+    if (day === 7) milestones.push('🏆 Completed your first week!');
+    if (day === 14) milestones.push('💪 Two weeks of commitment!');
+    if (day === 21) milestones.push('⭐ Three weeks - habits are forming!');
+    if (day === 30) milestones.push('🎉 30-day journey complete!');
+    
+    if (day % 5 === 0 && !milestones.length) {
+      milestones.push(`✨ ${day} days of dedication!`);
+    }
+    
+    return milestones;
+  }
+
+  private analyzePerformance(progressData: any, currentDay: number) {
+    // Simplified performance analysis
+    return {
+      adherenceRate: progressData.completedTasks / progressData.totalTasks || 0.8,
+      satisfactionScore: progressData.averageRating || 8,
+      energyLevels: progressData.energyTrend || 'stable',
+      challengeLevel: progressData.perceivedDifficulty || 'appropriate'
+    };
+  }
+
+  private async generateAdaptations(userProfile: UserHealthProfile, performance: any, day: number) {
+    // AI-powered adaptation logic
+    let adaptationType: 'difficulty_increase' | 'difficulty_decrease' | 'focus_shift' | 'schedule_adjustment' = 'difficulty_increase';
+    let reason = 'User is performing well and ready for increased challenge';
+    
+    if (performance.adherenceRate < 0.6) {
+      adaptationType = 'difficulty_decrease';
+      reason = 'Reduce intensity to improve adherence';
+    } else if (performance.satisfactionScore < 6) {
+      adaptationType = 'focus_shift';
+      reason = 'Adjust activities to better match preferences';
+    }
+    
+    return {
+      type: adaptationType,
+      reason,
+      changes: [{
+        original: 'Current plan structure',
+        adapted: 'Modified based on performance data',
+        reasoning: reason
+      }],
+      confidence: 0.85
+    };
+  }
+
+  private createAdaptationStrategy(userProfile: UserHealthProfile) {
+    return {
+      performanceThresholds: {
+        excellent: 90,
+        good: 75,
+        needsImprovement: 60
+      },
+      adjustmentTriggers: [
+        'Low adherence rate (< 60%)',
+        'Consistently low energy ratings',
+        'User feedback indicating difficulty',
+        'Plateau in progress metrics'
+      ],
+      progressIndicators: [
+        'Task completion rate',
+        'Subjective well-being scores',
+        'Objective health metrics improvement',
+        'User engagement and feedback'
+      ]
+    };
+  }
+
+  /**
+   * Fallback methods when AI is not available
+   */
+  private getFallbackDailyAdvice(userProfile: UserHealthProfile, day: number) {
+    return {
+      advice: `Day ${day}: Focus on consistency over perfection. Build on yesterday's progress and listen to your body.`,
+      adaptiveInstructions: [
+        'Start with a 5-minute warm-up',
+        'Adjust intensity based on your energy level',
+        'Remember to stay hydrated',
+        'End with 5 minutes of stretching'
+      ],
+      motivationalMessage: `You're ${day} days into building a healthier you. Every step counts!`,
+      focusTips: [
+        'Quality over quantity in your movements',
+        'Breathe deeply and stay present',
+        'Celebrate small wins throughout the day'
+      ]
+    };
+  }
+
+  private buildDailyAdvicePrompt(userProfile: UserHealthProfile, day: number): string {
+    return `Generate personalized daily health advice for day ${day} of a 30-day plan.
+
+User Profile:
+- Activity Level: ${userProfile.demographics.activityLevel}
+- Fitness Level: ${userProfile.demographics.fitnessLevel}
+- Preferred Time: ${userProfile.preferences.timeOfDay}
+- Motivation Style: ${userProfile.preferences.motivationStyle}
+- Current Trends: Improving - ${userProfile.healthMetrics.trends.improving.join(', ')}
+
+Please provide JSON with:
+- advice: Main guidance for the day
+- adaptiveInstructions: 3-4 specific action items
+- motivationalMessage: Encouraging message
+- focusTips: 2-3 mindset or technique tips`;
+  }
+
+  private buildPlanStructurePrompt(userProfile: UserHealthProfile, goals: string[]): string {
+    return `Create a 30-day health plan structure for a user with these characteristics:
+
+Profile:
+- Activity Level: ${userProfile.demographics.activityLevel}
+- Fitness Level: ${userProfile.demographics.fitnessLevel}
+- Goals: ${goals.join(', ')}
+- Preferred Activities: ${userProfile.currentHabits.preferredActivities.join(', ')}
+- Motivation Style: ${userProfile.preferences.motivationStyle}
+
+Generate JSON with:
+- title: Engaging plan name
+- description: Brief overview
+- objectives: {primary: string, secondary: string[], measurableGoals: array}
+- weeklyThemes: 4 weekly themes with focus areas
+- adaptationFactors: Key factors for plan adjustments`;
+  }
+
+  private getFallbackPlanStructure(userProfile: UserHealthProfile, goals: string[]) {
+    return {
+      title: 'Personalized 30-Day Wellness Journey',
+      description: 'A comprehensive plan designed to build sustainable healthy habits based on your preferences and goals.',
+      objectives: this.getDefaultObjectives(goals),
+      weeklyThemes: this.getDefaultWeeklyThemes(),
+      adaptationFactors: ['progress_rate', 'adherence', 'user_feedback', 'energy_levels']
+    };
+  }
+
+  private getDefaultObjectives(goals: string[]) {
+    return {
+      primary: 'Build sustainable healthy habits',
+      secondary: [
+        'Improve fitness and energy levels',
+        'Establish consistent routines',
+        'Enhance overall well-being'
+      ],
+      measurableGoals: goals.map(goal => ({
+        metric: goal,
+        target: 80, // 80% improvement/adherence
+        unit: 'percent',
+        timeframe: '30 days'
+      }))
+    };
+  }
+
+  private getDefaultWeeklyThemes() {
     return [
       {
-        condition: "User reports high stress levels",
-        adjustment: "Reduce workout intensity, increase mindfulness activities"
+        week: 1,
+        theme: 'Foundation Building',
+        focus: 'Establishing routines and baseline habits',
+        expectedOutcomes: ['Consistent daily movement', 'Better sleep schedule', 'Mindful eating habits']
       },
       {
-        condition: "Low sleep quality for 3+ days",
-        adjustment: "Focus on evening routine optimization"
+        week: 2,
+        theme: 'Momentum Building',
+        focus: 'Increasing activity levels and variety',
+        expectedOutcomes: ['Improved endurance', 'More energy', 'Stronger habits']
       },
       {
-        condition: "Missed goals for 5+ days",
-        adjustment: "Simplify daily tasks, reduce difficulty level"
+        week: 3,
+        theme: 'Challenge and Growth',
+        focus: 'Pushing boundaries and building resilience',
+        expectedOutcomes: ['Increased strength', 'Better stress management', 'Confidence boost']
+      },
+      {
+        week: 4,
+        theme: 'Integration and Sustainability',
+        focus: 'Creating long-term lifestyle changes',
+        expectedOutcomes: ['Sustainable routines', 'Improved metrics', 'Lasting motivation']
       }
     ];
-  }
-
-  private generateExpectedOutcomes() {
-    return {
-      week1: ["Establish daily routines", "Increase awareness of habits", "Initial energy boost"],
-      week2: ["Improved sleep consistency", "Better exercise habit formation", "Reduced stress levels"],
-      week3: ["Noticeable fitness improvements", "Stable energy throughout day", "Stronger motivation"],
-      week4: ["Sustainable habit integration", "Measurable health improvements", "Increased confidence"]
-    };
-  }
-
-  private getDefaultResources() {
-    return {
-      articles: ["Sleep hygiene basics", "Nutrition fundamentals", "Stress management techniques"],
-      videos: ["10-minute morning yoga", "Healthy meal prep", "Meditation for beginners"],
-      apps: ["Sleep tracking", "Nutrition logging", "Mindfulness practice"]
-    };
-  }
-
-  private async getCurrentPlanDay(planId: string): Promise<number> {
-    // Calculate current day of the plan
-    return 15; // Mock - would calculate based on plan start date
-  }
-
-  private async getRecentMetrics(userId: number, days: number): Promise<HealthMetric[]> {
-    const allMetrics = await storage.getHealthMetrics(userId);
-    const cutoffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-    return allMetrics.filter(m => m.timestamp >= cutoffDate);
   }
 }
 

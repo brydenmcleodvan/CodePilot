@@ -1812,6 +1812,88 @@ USER QUESTION: ${message}
     }
   });
 
+  // AI Health Plans - Get user's health plans
+  app.get('/api/ai-health-plans', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // In a real implementation, this would fetch from database
+      // For now, we'll generate a sample plan based on user data
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const samplePlan = await aiHealthPlanner.generateHealthPlan(user.id, ['fitness', 'nutrition', 'wellness']);
+
+      res.json([samplePlan]);
+    } catch (error) {
+      console.error('Error fetching AI health plans:', error);
+      res.status(500).json({ message: 'Failed to fetch AI health plans' });
+    }
+  });
+
+  // Generate new AI health plan
+  app.post('/api/ai-health-plans', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goals = ['fitness', 'wellness'] } = req.body;
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const newPlan = await aiHealthPlanner.generateHealthPlan(user.id, goals);
+
+      res.status(201).json(newPlan);
+    } catch (error) {
+      console.error('Error creating AI health plan:', error);
+      res.status(500).json({ message: 'Failed to create AI health plan' });
+    }
+  });
+
+  // Get daily advice for specific plan and day
+  app.get('/api/ai-health-plans/daily-advice/:planId/:day', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { planId, day } = req.params;
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const dailyAdvice = await aiHealthPlanner.generateDailyAdvice(user.id, planId, parseInt(day));
+
+      res.json(dailyAdvice);
+    } catch (error) {
+      console.error('Error generating daily advice:', error);
+      res.status(500).json({ message: 'Failed to generate daily advice' });
+    }
+  });
+
+  // Adapt existing plan based on progress
+  app.post('/api/ai-health-plans/:planId/adapt', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { planId } = req.params;
+      const { currentDay, progressData } = req.body;
+      
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const adaptation = await aiHealthPlanner.adaptPlan(planId, currentDay, { 
+        ...progressData, 
+        userId: user.id 
+      });
+
+      res.json(adaptation);
+    } catch (error) {
+      console.error('Error adapting health plan:', error);
+      res.status(500).json({ message: 'Failed to adapt health plan' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
