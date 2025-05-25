@@ -1481,6 +1481,63 @@ USER QUESTION: ${message}
     }
   });
 
+  // Habit Loops & Micro Goals - Get habit loops for user
+  app.get('/api/habit-loops', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const habitLoops = await habitLoopEngine.getHabitLoops(user.id);
+
+      res.json(habitLoops);
+    } catch (error) {
+      console.error('Error fetching habit loops:', error);
+      res.status(500).json({ message: 'Failed to fetch habit loops' });
+    }
+  });
+
+  // Get AI habit recommendations
+  app.get('/api/habit-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const recommendations = await habitLoopEngine.generateHabitRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating habit recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate habit recommendations' });
+    }
+  });
+
+  // Create micro goals
+  app.post('/api/micro-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId, difficulty = 'easy' } = req.body;
+      
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const microGoals = await habitLoopEngine.createMicroGoals(goalId, difficulty);
+
+      // In a real implementation, you would save these to the database
+      res.json(microGoals);
+    } catch (error) {
+      console.error('Error creating micro goals:', error);
+      res.status(500).json({ message: 'Failed to create micro goals' });
+    }
+  });
+
   // Dynamic Notifications & Nudges - Get user notifications
   app.get('/api/notifications', authenticateJwt, async (req, res) => {
     try {
