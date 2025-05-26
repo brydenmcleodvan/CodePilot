@@ -1,0 +1,106 @@
+{
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "telehealth": "Talk to a Doctor",
+    "coach": "Coach Dashboard",
+    "summary": "Health Intelligence",
+    "email": "Email Automation",
+    "settings": "Settings",
+    "privacy": "Privacy"
+  },
+  "health": {
+    "score": "Health Score",
+    "metrics": "Health Metrics",
+    "goals": "Health Goals",
+    "insights": "AI Insights",
+    "alerts": "Health Alerts",
+    "trends": "Health Trends",
+    "recommendations": "Recommendations",
+    "analysis": "Health Analysis"
+  },
+  "telehealth": {
+    "title": "Talk to a Doctor",
+    "subtitle": "Connect with licensed medical professionals instantly",
+    "emergency": "Emergency Consultation",
+    "routine": "Routine Consultation",
+    "available_in": "Available within {{time}}",
+    "secure_video": "Secure video consultation",
+    "request_emergency": "Request Emergency Care",
+    "schedule_consultation": "Schedule Consultation",
+    "emergency_disclaimer": "For life-threatening emergencies, call 911 immediately",
+    "ai_assessment": "AI Health Assessment",
+    "priority_level": "Priority Level",
+    "recommended_specialist": "Recommended Specialist",
+    "wait_time": "Estimated Wait Time",
+    "reason_referral": "Reason for Referral",
+    "hipaa_compliant": "HIPAA Compliant",
+    "licensed_physicians": "Licensed Physicians",
+    "encrypted": "End-to-End Encrypted"
+  },
+  "compliance": {
+    "title": "Privacy & Data Protection",
+    "consent_management": "Consent Management",
+    "data_processing": "Data Processing Consent",
+    "analytics_consent": "Health Analytics Consent",
+    "marketing_consent": "Marketing Communications",
+    "research_consent": "Medical Research Participation",
+    "grant_consent": "Grant Consent",
+    "withdraw_consent": "Withdraw Consent",
+    "consent_granted": "Consent Granted",
+    "consent_withdrawn": "Consent Withdrawn",
+    "legal_basis": "Legal Basis",
+    "data_retention": "Data Retention Period",
+    "your_rights": "Your Privacy Rights",
+    "contact_dpo": "Contact Data Protection Officer",
+    "download_data": "Download My Data",
+    "delete_account": "Delete My Account"
+  },
+  "coach": {
+    "dashboard": "Coach Dashboard",
+    "clients": "Clients",
+    "client_list": "Client List",
+    "session_notes": "Session Notes",
+    "health_alerts": "Active Health Alerts",
+    "export_report": "Export Report",
+    "schedule_session": "Schedule Session",
+    "live_monitoring": "Live Health Monitoring",
+    "critical_alert": "Critical Health Alert",
+    "moderate_alert": "Health Alert",
+    "client_summary": "Client Health Summary"
+  },
+  "health_guidance": {
+    "exercise": {
+      "recommendation": "Aim for 150 minutes of moderate aerobic activity weekly",
+      "cultural_note": "Adapt activities to your local climate and available facilities"
+    },
+    "nutrition": {
+      "recommendation": "Follow a balanced diet rich in fruits, vegetables, and whole grains",
+      "cultural_note": "Consider traditional healthy foods from your culture"
+    },
+    "sleep": {
+      "recommendation": "Adults should get 7-9 hours of quality sleep nightly",
+      "cultural_note": "Maintain consistent sleep schedule aligned with your timezone"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "download": "Download",
+    "search": "Search",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "enable": "Enable",
+    "disable": "Disable",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning"
+  }
+}

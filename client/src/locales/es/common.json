@@ -1,0 +1,106 @@
+{
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "telehealth": "Hablar con un Doctor",
+    "coach": "Panel del Entrenador",
+    "summary": "Inteligencia de Salud",
+    "email": "Automatización de Email",
+    "settings": "Configuración",
+    "privacy": "Privacidad"
+  },
+  "health": {
+    "score": "Puntuación de Salud",
+    "metrics": "Métricas de Salud",
+    "goals": "Objetivos de Salud",
+    "insights": "Insights de IA",
+    "alerts": "Alertas de Salud",
+    "trends": "Tendencias de Salud",
+    "recommendations": "Recomendaciones",
+    "analysis": "Análisis de Salud"
+  },
+  "telehealth": {
+    "title": "Hablar con un Doctor",
+    "subtitle": "Conéctate con profesionales médicos licenciados al instante",
+    "emergency": "Consulta de Emergencia",
+    "routine": "Consulta de Rutina",
+    "available_in": "Disponible en {{time}}",
+    "secure_video": "Consulta de video segura",
+    "request_emergency": "Solicitar Atención de Emergencia",
+    "schedule_consultation": "Programar Consulta",
+    "emergency_disclaimer": "Para emergencias que pongan en peligro la vida, llame al 911 inmediatamente",
+    "ai_assessment": "Evaluación de Salud IA",
+    "priority_level": "Nivel de Prioridad",
+    "recommended_specialist": "Especialista Recomendado",
+    "wait_time": "Tiempo de Espera Estimado",
+    "reason_referral": "Motivo de Referencia",
+    "hipaa_compliant": "Cumple con HIPAA",
+    "licensed_physicians": "Médicos Licenciados",
+    "encrypted": "Cifrado de Extremo a Extremo"
+  },
+  "compliance": {
+    "title": "Privacidad y Protección de Datos",
+    "consent_management": "Gestión de Consentimiento",
+    "data_processing": "Consentimiento de Procesamiento de Datos",
+    "analytics_consent": "Consentimiento de Análisis de Salud",
+    "marketing_consent": "Comunicaciones de Marketing",
+    "research_consent": "Participación en Investigación Médica",
+    "grant_consent": "Otorgar Consentimiento",
+    "withdraw_consent": "Retirar Consentimiento",
+    "consent_granted": "Consentimiento Otorgado",
+    "consent_withdrawn": "Consentimiento Retirado",
+    "legal_basis": "Base Legal",
+    "data_retention": "Período de Retención de Datos",
+    "your_rights": "Sus Derechos de Privacidad",
+    "contact_dpo": "Contactar Oficial de Protección de Datos",
+    "download_data": "Descargar Mis Datos",
+    "delete_account": "Eliminar Mi Cuenta"
+  },
+  "coach": {
+    "dashboard": "Panel del Entrenador",
+    "clients": "Clientes",
+    "client_list": "Lista de Clientes",
+    "session_notes": "Notas de Sesión",
+    "health_alerts": "Alertas de Salud Activas",
+    "export_report": "Exportar Reporte",
+    "schedule_session": "Programar Sesión",
+    "live_monitoring": "Monitoreo de Salud en Vivo",
+    "critical_alert": "Alerta de Salud Crítica",
+    "moderate_alert": "Alerta de Salud",
+    "client_summary": "Resumen de Salud del Cliente"
+  },
+  "health_guidance": {
+    "exercise": {
+      "recommendation": "Busque 150 minutos de actividad aeróbica moderada semanalmente",
+      "cultural_note": "Adapte las actividades a su clima local y las instalaciones disponibles"
+    },
+    "nutrition": {
+      "recommendation": "Siga una dieta equilibrada rica en frutas, verduras y granos integrales",
+      "cultural_note": "Considere alimentos tradicionales saludables de su cultura"
+    },
+    "sleep": {
+      "recommendation": "Los adultos deben dormir de 7-9 horas de calidad por noche",
+      "cultural_note": "Mantenga un horario de sueño consistente alineado con su zona horaria"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "submit": "Enviar",
+    "confirm": "Confirmar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "download": "Descargar",
+    "search": "Buscar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "success": "Éxito",
+    "error": "Error",
+    "warning": "Advertencia"
+  }
+}
