@@ -21,6 +21,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(userData: Omit<User, 'id'>): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User>;
+  getUsers(): Promise<User[]>;
+  updateUserPreferences(userId: number, preferences: any): Promise<User>;
   
   // Health metrics
   getHealthMetrics(userId: number): Promise<HealthMetric[]>;
@@ -164,6 +166,26 @@ class MemStorage implements IStorage {
     const updatedUser = {
       ...this.users[userIndex],
       ...userData,
+      updatedAt: new Date()
+    };
+    
+    this.users[userIndex] = updatedUser;
+    return updatedUser;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return this.users;
+  }
+
+  async updateUserPreferences(userId: number, preferences: any): Promise<User> {
+    const userIndex = this.users.findIndex(user => user.id === userId);
+    if (userIndex === -1) {
+      throw new Error('User not found');
+    }
+    
+    const updatedUser = {
+      ...this.users[userIndex],
+      preferences,
       updatedAt: new Date()
     };
     

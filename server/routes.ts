@@ -2093,6 +2093,107 @@ USER QUESTION: ${message}
     }
   });
 
+  // Email automation endpoints
+  app.post('/api/email-automation/start', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.roles?.includes('administrator')) {
+        return res.status(403).json({ message: 'Administrator access required' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      emailAutomationService.startWeeklyAutomation();
+
+      res.json({ message: 'Weekly email automation started successfully' });
+    } catch (error) {
+      console.error('Error starting email automation:', error);
+      res.status(500).json({ message: 'Failed to start email automation' });
+    }
+  });
+
+  app.post('/api/email-automation/stop', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.roles?.includes('administrator')) {
+        return res.status(403).json({ message: 'Administrator access required' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      emailAutomationService.stopWeeklyAutomation();
+
+      res.json({ message: 'Weekly email automation stopped successfully' });
+    } catch (error) {
+      console.error('Error stopping email automation:', error);
+      res.status(500).json({ message: 'Failed to stop email automation' });
+    }
+  });
+
+  app.post('/api/email-automation/test', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      await emailAutomationService.sendTestReport(user.id);
+
+      res.json({ message: 'Test weekly report sent successfully' });
+    } catch (error) {
+      console.error('Error sending test report:', error);
+      res.status(500).json({ message: 'Failed to send test report' });
+    }
+  });
+
+  // User email preferences
+  app.post('/api/user/email-preferences', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { weeklyEmailReports, emailFrequency } = req.body;
+      
+      // Update user preferences
+      const updatedPreferences = {
+        ...user.preferences,
+        weeklyEmailReports: weeklyEmailReports !== false,
+        emailFrequency: emailFrequency || 'weekly'
+      };
+
+      await storage.updateUserPreferences(user.id, updatedPreferences);
+
+      res.json({ 
+        message: 'Email preferences updated successfully',
+        preferences: updatedPreferences 
+      });
+    } catch (error) {
+      console.error('Error updating email preferences:', error);
+      res.status(500).json({ message: 'Failed to update email preferences' });
+    }
+  });
+
+  app.get('/api/user/email-preferences', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const preferences = user.preferences || {};
+      
+      res.json({
+        weeklyEmailReports: preferences.weeklyEmailReports !== false,
+        emailFrequency: preferences.emailFrequency || 'weekly',
+        lastEmailSent: preferences.lastEmailSent || null
+      });
+    } catch (error) {
+      console.error('Error getting email preferences:', error);
+      res.status(500).json({ message: 'Failed to get email preferences' });
+    }
+  });
+
   // Today's Focus - Get AI-generated daily guidance
   app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
     try {
