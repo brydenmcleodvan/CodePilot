@@ -43,6 +43,8 @@ const EmailAutomationPage = lazy(() => import("@/pages/email-automation"));
 const CoachDashboardPage = lazy(() => import("@/pages/coach-dashboard"));
 const TelehealthPage = lazy(() => import("@/pages/telehealth"));
 const GlobalCompliancePage = lazy(() => import("@/pages/global-compliance"));
+const AffiliateMarketplacePage = lazy(() => import("@/pages/affiliate-marketplace"));
+const B2BLicensingPage = lazy(() => import("@/pages/b2b-licensing"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -107,6 +109,8 @@ function Router() {
               <Route path="/coach-dashboard" component={CoachDashboardPage} />
               <Route path="/telehealth" component={TelehealthPage} />
               <Route path="/global-compliance" component={GlobalCompliancePage} />
+              <Route path="/marketplace" component={AffiliateMarketplacePage} />
+              <Route path="/b2b-licensing" component={B2BLicensingPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
