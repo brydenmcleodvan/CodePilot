@@ -21,10 +21,10 @@
   },
   "telehealth": {
     "title": "Talk to a Doctor",
-    "subtitle": "Connect with licensed medical professionals instantly",
+    "subtitle": "Connect instantly with licensed medical professionals",
     "emergency": "Emergency Consultation",
     "routine": "Routine Consultation",
-    "available_in": "Available within {{time}}",
+    "available_in": "Available in {{time}}",
     "secure_video": "Secure video consultation",
     "request_emergency": "Request Emergency Care",
     "schedule_consultation": "Schedule Consultation",
@@ -39,7 +39,7 @@
     "encrypted": "End-to-End Encrypted"
   },
   "compliance": {
-    "title": "Privacy & Data Protection",
+    "title": "Privacy and Data Protection",
     "consent_management": "Consent Management",
     "data_processing": "Data Processing Consent",
     "analytics_consent": "Health Analytics Consent",
@@ -76,11 +76,11 @@
     },
     "nutrition": {
       "recommendation": "Follow a balanced diet rich in fruits, vegetables, and whole grains",
-      "cultural_note": "Consider traditional healthy foods from your culture"
+      "cultural_note": "Consider healthy traditional foods from your culture"
     },
     "sleep": {
       "recommendation": "Adults should get 7-9 hours of quality sleep nightly",
-      "cultural_note": "Maintain consistent sleep schedule aligned with your timezone"
+      "cultural_note": "Maintain a consistent sleep schedule aligned with your time zone"
     }
   },
   "common": {

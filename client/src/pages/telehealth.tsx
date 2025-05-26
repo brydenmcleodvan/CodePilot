@@ -509,7 +509,7 @@ export default function TelehealthPage() {
             is protected and never shared without your consent. This service does not replace emergency care - 
             for life-threatening emergencies, call 911 immediately.
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

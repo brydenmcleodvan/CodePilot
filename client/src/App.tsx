@@ -42,6 +42,7 @@ const SummaryPage = lazy(() => import("@/pages/summary"));
 const EmailAutomationPage = lazy(() => import("@/pages/email-automation"));
 const CoachDashboardPage = lazy(() => import("@/pages/coach-dashboard"));
 const TelehealthPage = lazy(() => import("@/pages/telehealth"));
+const GlobalCompliancePage = lazy(() => import("@/pages/global-compliance"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -105,6 +106,7 @@ function Router() {
               <Route path="/email-automation" component={EmailAutomationPage} />
               <Route path="/coach-dashboard" component={CoachDashboardPage} />
               <Route path="/telehealth" component={TelehealthPage} />
+              <Route path="/global-compliance" component={GlobalCompliancePage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
