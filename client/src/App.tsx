@@ -39,6 +39,7 @@ const FeatureVotingPage = lazy(() => import("@/pages/feature-voting"));
 const SkeletonDemoPage = lazy(() => import("@/pages/skeleton-demo"));
 const ResponsiveUIDemoPage = lazy(() => import("@/pages/responsive-ui-demo"));
 const SummaryPage = lazy(() => import("@/pages/summary"));
+const EmailAutomationPage = lazy(() => import("@/pages/email-automation"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
@@ -99,6 +100,7 @@ function Router() {
               <Route path="/skeleton-demo" component={SkeletonDemoPage} />
               <Route path="/responsive-ui-demo" component={ResponsiveUIDemoPage} />
               <Route path="/summary" component={SummaryPage} />
+              <Route path="/email-automation" component={EmailAutomationPage} />
               <Route component={NotFound} />
             </Switch>
           </Suspense>
