@@ -12,6 +12,7 @@ const { aiWeeklyRecapEngine } = require('./aiWeeklyRecapEngine');
 const { smartCoachingMarketplace } = require('./smartCoachingMarketplace');
 const { familyCaregiverSharing } = require('./familyCaregiverSharing');
 const { medicalClaimIntegration } = require('./medicalClaimIntegration');
+const { federatedHealthIntelligence } = require('./federatedHealthIntelligence');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1261,6 +1262,178 @@ router.get('/api/medical-claims/reimbursement-estimate', async (req, res) => {
     console.error('Reimbursement estimation error:', error);
     res.status(500).json({
       error: 'Failed to estimate reimbursement',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Federated Health Intelligence API Endpoints
+ */
+router.get('/api/federated-health/participation', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Check if user is participating in federated learning
+    const participationStatus = {
+      participating: false, // In production, check actual participation status
+      privacyLevel: 'high',
+      categories: [],
+      stats: {
+        contributions: 0,
+        impactScore: 0
+      }
+    };
+    
+    res.json(participationStatus);
+  } catch (error) {
+    console.error('Participation status error:', error);
+    res.status(500).json({
+      error: 'Failed to get participation status',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/federated-health/enable', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const participationOptions = req.body;
+    
+    // Validate required fields
+    if (!participationOptions.categories || participationOptions.categories.length === 0) {
+      return res.status(400).json({
+        error: 'No categories selected',
+        message: 'At least one data category must be selected for participation'
+      });
+    }
+    
+    const participationResult = await federatedHealthIntelligence.enableFederatedParticipation(
+      userAuth.uid,
+      participationOptions
+    );
+    
+    res.json(participationResult);
+  } catch (error) {
+    console.error('Federated participation error:', error);
+    res.status(500).json({
+      error: 'Failed to enable federated participation',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/federated-health/discoveries', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { category, timeframe = '30d' } = req.query;
+    
+    const discoveriesResult = await federatedHealthIntelligence.generateBreakthroughDiscoveries(category);
+    
+    res.json(discoveriesResult);
+  } catch (error) {
+    console.error('Discoveries retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get health discoveries',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/federated-health/global-trends', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const queryParams = req.query;
+    
+    if (!queryParams.category) {
+      return res.status(400).json({
+        error: 'Missing category',
+        message: 'category parameter is required'
+      });
+    }
+    
+    const trendsResult = await federatedHealthIntelligence.discoverGlobalTrends(queryParams);
+    
+    res.json(trendsResult);
+  } catch (error) {
+    console.error('Global trends error:', error);
+    res.status(500).json({
+      error: 'Failed to discover global trends',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/federated-health/contribute', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { healthData, contributionType } = req.body;
+    
+    if (!healthData || !contributionType) {
+      return res.status(400).json({
+        error: 'Missing required data',
+        message: 'healthData and contributionType are required'
+      });
+    }
+    
+    const contributionResult = await federatedHealthIntelligence.contributeToFederatedLearning(
+      userAuth.uid,
+      healthData,
+      contributionType
+    );
+    
+    res.json(contributionResult);
+  } catch (error) {
+    console.error('Federated contribution error:', error);
+    res.status(500).json({
+      error: 'Failed to contribute to federated learning',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/federated-health/research-access/:partnerId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'admin'); // Admin only
+    const { partnerId } = req.params;
+    const researchRequest = req.query;
+    
+    const researchResult = await federatedHealthIntelligence.provideResearchAccess(
+      partnerId,
+      researchRequest
+    );
+    
+    res.json(researchResult);
+  } catch (error) {
+    console.error('Research access error:', error);
+    res.status(500).json({
+      error: 'Failed to provide research access',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const privacyGuarantees = federatedHealthIntelligence.getPrivacyGuarantees();
+    
+    res.json({
+      success: true,
+      privacy_guarantees: privacyGuarantees,
+      compliance_standards: ['GDPR', 'HIPAA', 'PIPEDA'],
+      technical_measures: [
+        'Differential Privacy',
+        'Federated Learning',
+        'Secure Multi-party Computation',
+        'K-Anonymity'
+      ]
+    });
+  } catch (error) {
+    console.error('Privacy guarantees error:', error);
+    res.status(500).json({
+      error: 'Failed to get privacy guarantees',
       message: error.message
     });
   }
