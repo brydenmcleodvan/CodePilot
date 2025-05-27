@@ -45,7 +45,7 @@ class ErrorBoundary extends React.Component {
 
   logErrorToService = async (error, errorInfo) => {
     try {
-      // Log to your analytics service (Firebase, Sentry, etc.)
+      // Enhanced error data collection
       const errorData = {
         errorId: this.state.errorId,
         message: error.message,
@@ -54,23 +54,80 @@ class ErrorBoundary extends React.Component {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href,
-        userId: this.props.userId || 'anonymous'
+        userId: this.props.userId || 'anonymous',
+        severity: this.calculateErrorSeverity(error),
+        browserInfo: {
+          language: navigator.language,
+          platform: navigator.platform,
+          cookieEnabled: navigator.cookieEnabled,
+          onLine: navigator.onLine
+        },
+        performanceInfo: this.getPerformanceInfo()
       };
 
-      // If Firebase is available, log there
-      if (window.db) {
-        const { collection, addDoc } = await import('firebase/firestore');
-        await addDoc(collection(window.db, 'error_logs'), errorData);
-      } else {
-        // Fallback to localStorage for later sync
-        const errorLogs = JSON.parse(localStorage.getItem('healthmap_error_logs') || '[]');
-        errorLogs.push(errorData);
-        localStorage.setItem('healthmap_error_logs', JSON.stringify(errorLogs.slice(-50))); // Keep last 50 errors
+      // Send to server endpoint for centralized logging
+      try {
+        await fetch('/api/log-error', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(errorData)
+        });
+        console.log('Error logged to server:', this.state.errorId);
+      } catch (serverError) {
+        console.warn('Failed to log to server, using local storage:', serverError);
+        this.storeErrorLocally(errorData);
       }
 
-      console.log('Error logged successfully:', this.state.errorId);
     } catch (logError) {
       console.error('Failed to log error:', logError);
+      this.storeErrorLocally({
+        errorId: this.state.errorId,
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        fallback: true
+      });
+    }
+  };
+
+  calculateErrorSeverity = (error) => {
+    const criticalKeywords = ['network', 'chunk', 'loading'];
+    const warningKeywords = ['validation', 'form', 'input'];
+    
+    const message = error.message.toLowerCase();
+    
+    if (criticalKeywords.some(keyword => message.includes(keyword))) {
+      return 'critical';
+    } else if (warningKeywords.some(keyword => message.includes(keyword))) {
+      return 'warning';
+    }
+    return 'error';
+  };
+
+  getPerformanceInfo = () => {
+    try {
+      const navigation = performance.getEntriesByType('navigation')[0];
+      return {
+        loadTime: navigation ? Math.round(navigation.loadEventEnd - navigation.fetchStart) : null,
+        domContentLoaded: navigation ? Math.round(navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart) : null,
+        memoryUsage: window.performance && window.performance.memory ? {
+          used: Math.round(window.performance.memory.usedJSHeapSize / 1048576),
+          total: Math.round(window.performance.memory.totalJSHeapSize / 1048576)
+        } : null
+      };
+    } catch (e) {
+      return null;
+    }
+  };
+
+  storeErrorLocally = (errorData) => {
+    try {
+      const errorLogs = JSON.parse(localStorage.getItem('healthmap_error_logs') || '[]');
+      errorLogs.push(errorData);
+      localStorage.setItem('healthmap_error_logs', JSON.stringify(errorLogs.slice(-50)));
+    } catch (storageError) {
+      console.error('Failed to store error locally:', storageError);
     }
   };
 
