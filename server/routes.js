@@ -8,6 +8,7 @@ const { backgroundTaskQueue } = require('./backgroundTaskQueue');
 const { FirebaseSecurityService } = require('./firebase-admin');
 const { customAlertsEngine } = require('./customAlertsEngine');
 const { insightCorrelationEngine } = require('./insightCorrelationEngine');
+const { aiWeeklyRecapEngine } = require('./aiWeeklyRecapEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -537,6 +538,68 @@ router.get('/api/health-insights/cached', async (req, res) => {
     console.error('Cached insights error:', error);
     res.status(500).json({
       error: 'Failed to get cached insights',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * AI Weekly Recap API Endpoints
+ */
+router.get('/api/weekly-recap', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { week = '0' } = req.query;
+    
+    const weekOffset = parseInt(week);
+    if (isNaN(weekOffset) || weekOffset < 0 || weekOffset > 8) {
+      return res.status(400).json({
+        error: 'Invalid week parameter',
+        message: 'Week must be between 0 and 8'
+      });
+    }
+    
+    // Check for cached recap first
+    const cachedRecap = aiWeeklyRecapEngine.getCachedRecap(userAuth.uid, weekOffset);
+    if (cachedRecap) {
+      return res.json({
+        success: true,
+        recap: cachedRecap,
+        cached: true
+      });
+    }
+    
+    // Generate new recap
+    const recapResult = await aiWeeklyRecapEngine.generateWeeklyRecap(userAuth.uid, weekOffset);
+    
+    res.json(recapResult);
+  } catch (error) {
+    console.error('Weekly recap generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate weekly recap',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/weekly-recap/regenerate', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { week = '0' } = req.body;
+    
+    const weekOffset = parseInt(week);
+    
+    // Force regeneration by clearing cache and generating new recap
+    const recapResult = await aiWeeklyRecapEngine.generateWeeklyRecap(userAuth.uid, weekOffset);
+    
+    res.json({
+      ...recapResult,
+      regenerated: true
+    });
+  } catch (error) {
+    console.error('Weekly recap regeneration error:', error);
+    res.status(500).json({
+      error: 'Failed to regenerate weekly recap',
       message: error.message
     });
   }
