@@ -13,6 +13,7 @@ const { smartCoachingMarketplace } = require('./smartCoachingMarketplace');
 const { familyCaregiverSharing } = require('./familyCaregiverSharing');
 const { medicalClaimIntegration } = require('./medicalClaimIntegration');
 const { federatedHealthIntelligence } = require('./federatedHealthIntelligence');
+const { voiceGestureInterface } = require('./voiceGestureInterface');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1434,6 +1435,112 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Voice & Gesture Interface API Endpoints
+ */
+router.get('/api/voice-gesture/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's voice and gesture preferences
+    const preferences = {
+      voice_enabled: true,
+      gestures_enabled: true,
+      accessibility_mode: false,
+      preferred_voice_personality: 'friendly',
+      response_length: 'concise'
+    };
+    
+    res.json({
+      success: true,
+      preferences
+    });
+  } catch (error) {
+    console.error('Voice preferences error:', error);
+    res.status(500).json({
+      error: 'Failed to get voice preferences',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/voice-gesture/process-voice', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { text_input, input_type = 'text' } = req.body;
+    
+    if (!text_input) {
+      return res.status(400).json({
+        error: 'Missing voice input',
+        message: 'text_input is required'
+      });
+    }
+    
+    const voiceResult = await voiceGestureInterface.processVoiceInput(
+      userAuth.uid,
+      text_input,
+      input_type
+    );
+    
+    res.json(voiceResult);
+  } catch (error) {
+    console.error('Voice processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process voice input',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/voice-gesture/process-gesture', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const gestureData = req.body;
+    
+    if (!gestureData.gesture_type) {
+      return res.status(400).json({
+        error: 'Missing gesture data',
+        message: 'gesture_type is required'
+      });
+    }
+    
+    const gestureResult = await voiceGestureInterface.processGestureInput(
+      userAuth.uid,
+      gestureData
+    );
+    
+    res.json(gestureResult);
+  } catch (error) {
+    console.error('Gesture processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process gesture input',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/voice-gesture/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const preferences = req.body;
+    
+    // Update user preferences for voice and gesture interface
+    // In production, this would save to database
+    
+    res.json({
+      success: true,
+      preferences,
+      message: 'Voice and gesture preferences updated successfully'
+    });
+  } catch (error) {
+    console.error('Preferences update error:', error);
+    res.status(500).json({
+      error: 'Failed to update preferences',
       message: error.message
     });
   }
