@@ -6,6 +6,7 @@ const express = require('express');
 const { rateLimitingService } = require('./rateLimitingService');
 const { backgroundTaskQueue } = require('./backgroundTaskQueue');
 const { FirebaseSecurityService } = require('./firebase-admin');
+const { customAlertsEngine } = require('./customAlertsEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -353,6 +354,138 @@ router.get('/api/health-metrics', async (req, res) => {
     console.error('Health metrics error:', error);
     res.status(500).json({
       error: 'Failed to get health metrics',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Custom Alerts API Endpoints
+ */
+router.get('/api/custom-alerts', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const alerts = customAlertsEngine.getUserAlerts(userAuth.uid);
+    
+    res.json(alerts);
+  } catch (error) {
+    console.error('Get custom alerts error:', error);
+    res.status(500).json({
+      error: 'Failed to get custom alerts',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/custom-alerts', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const alertData = req.body;
+    
+    const alert = await customAlertsEngine.createAlert(userAuth.uid, alertData);
+    
+    res.status(201).json({
+      success: true,
+      alert,
+      message: 'Custom alert created successfully'
+    });
+  } catch (error) {
+    console.error('Create custom alert error:', error);
+    res.status(400).json({
+      error: 'Failed to create custom alert',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/custom-alerts/:alertId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { alertId } = req.params;
+    const alertData = req.body;
+    
+    const alert = await customAlertsEngine.updateAlert(alertId, userAuth.uid, alertData);
+    
+    res.json({
+      success: true,
+      alert,
+      message: 'Alert updated successfully'
+    });
+  } catch (error) {
+    console.error('Update custom alert error:', error);
+    res.status(400).json({
+      error: 'Failed to update custom alert',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/custom-alerts/:alertId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { alertId } = req.params;
+    
+    await customAlertsEngine.deleteAlert(alertId, userAuth.uid);
+    
+    res.json({
+      success: true,
+      message: 'Alert deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete custom alert error:', error);
+    res.status(400).json({
+      error: 'Failed to delete custom alert',
+      message: error.message
+    });
+  }
+});
+
+router.patch('/api/custom-alerts/:alertId/toggle', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { alertId } = req.params;
+    const { isActive } = req.body;
+    
+    const alert = await customAlertsEngine.toggleAlert(alertId, userAuth.uid, isActive);
+    
+    res.json({
+      success: true,
+      alert,
+      message: `Alert ${isActive ? 'activated' : 'deactivated'} successfully`
+    });
+  } catch (error) {
+    console.error('Toggle custom alert error:', error);
+    res.status(400).json({
+      error: 'Failed to toggle custom alert',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Health data processing endpoint for alerts
+ */
+router.post('/api/health-data/process-alerts', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const healthData = req.body;
+    
+    // Process health data through alerts engine
+    const triggeredAlerts = await customAlertsEngine.processHealthData(userAuth.uid, healthData);
+    
+    res.json({
+      success: true,
+      triggeredAlerts: triggeredAlerts.length,
+      alerts: triggeredAlerts.map(alert => ({
+        id: alert.id,
+        name: alert.name,
+        message: `Alert triggered: ${alert.name}`
+      }))
+    });
+  } catch (error) {
+    console.error('Process health alerts error:', error);
+    res.status(500).json({
+      error: 'Failed to process health alerts',
       message: error.message
     });
   }
