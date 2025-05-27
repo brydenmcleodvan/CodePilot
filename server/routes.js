@@ -9,6 +9,7 @@ const { FirebaseSecurityService } = require('./firebase-admin');
 const { customAlertsEngine } = require('./customAlertsEngine');
 const { insightCorrelationEngine } = require('./insightCorrelationEngine');
 const { aiWeeklyRecapEngine } = require('./aiWeeklyRecapEngine');
+const { smartCoachingMarketplace } = require('./smartCoachingMarketplace');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -600,6 +601,184 @@ router.post('/api/weekly-recap/regenerate', async (req, res) => {
     console.error('Weekly recap regeneration error:', error);
     res.status(500).json({
       error: 'Failed to regenerate weekly recap',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Smart Coaching Marketplace API Endpoints
+ */
+router.get('/api/coaching/matches', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { specialty, priceRange } = req.query;
+    
+    const preferences = {
+      specialty,
+      priceRange,
+      budget: priceRange === 'budget' ? 75 : priceRange === 'standard' ? 100 : 150
+    };
+    
+    const matches = await smartCoachingMarketplace.findMatchingCoaches(userAuth.uid, preferences);
+    
+    res.json(matches);
+  } catch (error) {
+    console.error('Coach matching error:', error);
+    res.status(500).json({
+      error: 'Failed to find matching coaches',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/coaching/book-session', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const sessionData = req.body;
+    
+    // Validate required fields
+    if (!sessionData.coachId || !sessionData.scheduledTime) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'coachId and scheduledTime are required'
+      });
+    }
+    
+    const bookingResult = await smartCoachingMarketplace.bookCoachingSession(
+      userAuth.uid,
+      sessionData.coachId,
+      sessionData
+    );
+    
+    res.json(bookingResult);
+  } catch (error) {
+    console.error('Session booking error:', error);
+    res.status(500).json({
+      error: 'Failed to book session',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/coaching/my-sessions', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's coaching sessions
+    const sessions = Array.from(smartCoachingMarketplace.coachingSessions.values())
+      .filter(session => session.userId === userAuth.uid)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.json({
+      success: true,
+      sessions,
+      totalSessions: sessions.length
+    });
+  } catch (error) {
+    console.error('Sessions retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get sessions',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/coaching/message', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { sessionId, message, messageType } = req.body;
+    
+    if (!sessionId || !message) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'sessionId and message are required'
+      });
+    }
+    
+    const messageResult = await smartCoachingMarketplace.sendCoachingMessage(
+      sessionId,
+      userAuth.uid,
+      message,
+      messageType
+    );
+    
+    res.json(messageResult);
+  } catch (error) {
+    console.error('Message sending error:', error);
+    res.status(500).json({
+      error: 'Failed to send message',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/coaching/anonymized-data/:sessionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { sessionId } = req.params;
+    
+    // This endpoint is for coaches to access anonymized user data
+    const dataResult = await smartCoachingMarketplace.getAnonymizedUserData(
+      userAuth.uid,
+      userAuth.uid, // In production, this would be the coach's ID
+      sessionId
+    );
+    
+    res.json(dataResult);
+  } catch (error) {
+    console.error('Data access error:', error);
+    res.status(500).json({
+      error: 'Failed to get anonymized data',
+      message: error.message
+    });
+  }
+});
+
+// Coach-specific endpoints
+router.post('/api/coaching/coach/register', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const coachData = {
+      ...req.body,
+      userId: userAuth.uid
+    };
+    
+    const registrationResult = await smartCoachingMarketplace.registerCoach(coachData);
+    
+    res.json(registrationResult);
+  } catch (error) {
+    console.error('Coach registration error:', error);
+    res.status(500).json({
+      error: 'Failed to register coach',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/coaching/coach/analytics', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { timeframe = '30d' } = req.query;
+    
+    // Find coach by user ID
+    const coach = Array.from(smartCoachingMarketplace.coaches.values())
+      .find(c => c.userId === userAuth.uid);
+    
+    if (!coach) {
+      return res.status(404).json({
+        error: 'Coach profile not found',
+        message: 'You are not registered as a coach'
+      });
+    }
+    
+    const analytics = await smartCoachingMarketplace.getCoachAnalytics(coach.id, timeframe);
+    
+    res.json(analytics);
+  } catch (error) {
+    console.error('Coach analytics error:', error);
+    res.status(500).json({
+      error: 'Failed to get analytics',
       message: error.message
     });
   }
