@@ -14,6 +14,7 @@ const { familyCaregiverSharing } = require('./familyCaregiverSharing');
 const { medicalClaimIntegration } = require('./medicalClaimIntegration');
 const { federatedHealthIntelligence } = require('./federatedHealthIntelligence');
 const { voiceGestureInterface } = require('./voiceGestureInterface');
+const { digitalTwinSimulation } = require('./digitalTwinSimulation');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1435,6 +1436,126 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Digital Twin Simulation API Endpoints
+ */
+router.get('/api/digital-twin/status', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Check if user has a digital twin
+    const hasTwin = digitalTwinSimulation.userModels.has(userAuth.uid);
+    
+    if (hasTwin) {
+      const twinData = digitalTwinSimulation.userModels.get(userAuth.uid);
+      res.json({
+        success: true,
+        hasTwin: true,
+        accuracy: twinData.dataQuality.accuracy,
+        lastUpdated: twinData.lastUpdated,
+        dataPoints: twinData.baselineMetrics ? Object.keys(twinData.baselineMetrics).length : 0
+      });
+    } else {
+      res.json({
+        success: true,
+        hasTwin: false,
+        message: 'Digital twin not created yet'
+      });
+    }
+  } catch (error) {
+    console.error('Digital twin status error:', error);
+    res.status(500).json({
+      error: 'Failed to get digital twin status',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/digital-twin/create', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const twinResult = await digitalTwinSimulation.createDigitalTwin(userAuth.uid);
+    
+    res.json(twinResult);
+  } catch (error) {
+    console.error('Digital twin creation error:', error);
+    res.status(500).json({
+      error: 'Failed to create digital twin',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/digital-twin/simulate', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const simulationRequest = req.body;
+    
+    if (!simulationRequest.scenario_type) {
+      return res.status(400).json({
+        error: 'Missing simulation parameters',
+        message: 'scenario_type is required'
+      });
+    }
+    
+    const simulationResult = await digitalTwinSimulation.runSimulation(
+      userAuth.uid,
+      simulationRequest
+    );
+    
+    res.json(simulationResult);
+  } catch (error) {
+    console.error('Simulation execution error:', error);
+    res.status(500).json({
+      error: 'Failed to run simulation',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/digital-twin/simulations', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const userSimulations = digitalTwinSimulation.simulationHistory.get(userAuth.uid) || [];
+    
+    res.json({
+      success: true,
+      simulations: userSimulations.slice(-10) // Return last 10 simulations
+    });
+  } catch (error) {
+    console.error('Simulation history error:', error);
+    res.status(500).json({
+      error: 'Failed to get simulation history',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/digital-twin/simulation/:simulationId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { simulationId } = req.params;
+    
+    const userSimulations = digitalTwinSimulation.simulationHistory.get(userAuth.uid) || [];
+    const filteredSimulations = userSimulations.filter(sim => sim.id !== simulationId);
+    
+    digitalTwinSimulation.simulationHistory.set(userAuth.uid, filteredSimulations);
+    
+    res.json({
+      success: true,
+      message: 'Simulation deleted successfully'
+    });
+  } catch (error) {
+    console.error('Simulation deletion error:', error);
+    res.status(500).json({
+      error: 'Failed to delete simulation',
       message: error.message
     });
   }
