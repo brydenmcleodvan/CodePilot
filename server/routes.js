@@ -11,6 +11,7 @@ const { insightCorrelationEngine } = require('./insightCorrelationEngine');
 const { aiWeeklyRecapEngine } = require('./aiWeeklyRecapEngine');
 const { smartCoachingMarketplace } = require('./smartCoachingMarketplace');
 const { familyCaregiverSharing } = require('./familyCaregiverSharing');
+const { medicalClaimIntegration } = require('./medicalClaimIntegration');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1005,6 +1006,261 @@ router.get('/api/family-sharing/emergency-contacts', async (req, res) => {
     console.error('Emergency contacts error:', error);
     res.status(500).json({
       error: 'Failed to get emergency contacts',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Medical Claim Integration API Endpoints
+ */
+router.post('/api/medical-claims/generate', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const exportRequest = req.body;
+    
+    // Validate required fields
+    if (!exportRequest.claimType || !exportRequest.format) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'claimType and format are required'
+      });
+    }
+
+    if (!exportRequest.includeCategories || exportRequest.includeCategories.length === 0) {
+      return res.status(400).json({
+        error: 'No data categories selected',
+        message: 'At least one data category must be included'
+      });
+    }
+    
+    const claimExport = await medicalClaimIntegration.generateClaimExport(
+      userAuth.uid,
+      exportRequest
+    );
+    
+    res.json(claimExport);
+  } catch (error) {
+    console.error('Medical claim generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate claim export',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/exports', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's export history
+    const exports = Array.from(medicalClaimIntegration.exportHistory.values())
+      .filter(exp => exp.userId === userAuth.uid)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.json({
+      success: true,
+      exports,
+      totalExports: exports.length
+    });
+  } catch (error) {
+    console.error('Export history error:', error);
+    res.status(500).json({
+      error: 'Failed to get export history',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/export/:exportId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { exportId } = req.params;
+    
+    const exportRecord = medicalClaimIntegration.exportHistory.get(exportId);
+    
+    if (!exportRecord) {
+      return res.status(404).json({
+        error: 'Export not found',
+        message: 'The requested export does not exist'
+      });
+    }
+
+    if (exportRecord.userId !== userAuth.uid) {
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'You do not have permission to access this export'
+      });
+    }
+    
+    res.json({
+      success: true,
+      export: exportRecord
+    });
+  } catch (error) {
+    console.error('Export retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get export',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/download/:exportId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { exportId } = req.params;
+    
+    const exportRecord = medicalClaimIntegration.exportHistory.get(exportId);
+    
+    if (!exportRecord || exportRecord.userId !== userAuth.uid) {
+      return res.status(404).json({
+        error: 'Export not found',
+        message: 'The requested export does not exist or you do not have access'
+      });
+    }
+
+    if (exportRecord.expiresAt < new Date()) {
+      return res.status(410).json({
+        error: 'Export expired',
+        message: 'This export has expired and is no longer available for download'
+      });
+    }
+
+    // In production, this would serve the actual file
+    res.set({
+      'Content-Type': 'application/json',
+      'Content-Disposition': `attachment; filename="claim-export-${exportId}.json"`
+    });
+    
+    res.json({
+      exportId,
+      format: exportRecord.format,
+      claimType: exportRecord.claimType,
+      generatedAt: exportRecord.createdAt,
+      data: "/* Actual claim data would be here */"
+    });
+  } catch (error) {
+    console.error('Export download error:', error);
+    res.status(500).json({
+      error: 'Failed to download export',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/medical-claims/submit/:exportId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { exportId } = req.params;
+    const { providerId, submissionOptions } = req.body;
+    
+    if (!providerId) {
+      return res.status(400).json({
+        error: 'Missing provider ID',
+        message: 'Insurance provider ID is required for submission'
+      });
+    }
+    
+    const submissionResult = await medicalClaimIntegration.submitClaimToInsurance(
+      exportId,
+      providerId,
+      submissionOptions
+    );
+    
+    res.json(submissionResult);
+  } catch (error) {
+    console.error('Claim submission error:', error);
+    res.status(500).json({
+      error: 'Failed to submit claim',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/insurance-providers', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { region } = req.query;
+    
+    // Get available insurance providers
+    const providers = Array.from(medicalClaimIntegration.insuranceProviders.entries())
+      .map(([id, provider]) => ({
+        id,
+        ...provider
+      }));
+    
+    // Filter by region if specified
+    const filteredProviders = region ? 
+      providers.filter(p => p.regions?.includes(region)) : 
+      providers;
+    
+    res.json({
+      success: true,
+      providers: filteredProviders,
+      totalProviders: filteredProviders.length
+    });
+  } catch (error) {
+    console.error('Providers retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get insurance providers',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/formats', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    res.json({
+      success: true,
+      codingSystems: medicalClaimIntegration.codingSystems,
+      insuranceFormats: medicalClaimIntegration.insuranceFormats,
+      claimTypes: medicalClaimIntegration.claimTypes
+    });
+  } catch (error) {
+    console.error('Formats retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get supported formats',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/medical-claims/reimbursement-estimate', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { claimType, dateRange, categories } = req.query;
+    
+    if (!claimType) {
+      return res.status(400).json({
+        error: 'Missing claim type',
+        message: 'claimType parameter is required'
+      });
+    }
+    
+    // Get health data for estimation
+    const healthData = await medicalClaimIntegration.getHealthDataForClaims(
+      userAuth.uid,
+      dateRange ? JSON.parse(dateRange) : null,
+      categories ? categories.split(',') : null
+    );
+    
+    // Map to codes and calculate estimate
+    const codedData = await medicalClaimIntegration.mapHealthDataToCodes(healthData, claimType);
+    const estimate = medicalClaimIntegration.calculateReimbursementEstimate(codedData, claimType);
+    
+    res.json({
+      success: true,
+      estimate,
+      dataPoints: healthData.length,
+      eligibleItems: codedData.filter(item => item.eligibleForReimbursement).length
+    });
+  } catch (error) {
+    console.error('Reimbursement estimation error:', error);
+    res.status(500).json({
+      error: 'Failed to estimate reimbursement',
       message: error.message
     });
   }
