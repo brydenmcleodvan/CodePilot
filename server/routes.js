@@ -7,6 +7,7 @@ const { rateLimitingService } = require('./rateLimitingService');
 const { backgroundTaskQueue } = require('./backgroundTaskQueue');
 const { FirebaseSecurityService } = require('./firebase-admin');
 const { customAlertsEngine } = require('./customAlertsEngine');
+const { insightCorrelationEngine } = require('./insightCorrelationEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -457,6 +458,85 @@ router.patch('/api/custom-alerts/:alertId/toggle', async (req, res) => {
     console.error('Toggle custom alert error:', error);
     res.status(400).json({
       error: 'Failed to toggle custom alert',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Health Insights & Correlation API Endpoints
+ */
+router.get('/api/health-insights/correlations', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { timeframe = '30' } = req.query;
+    
+    const insights = await insightCorrelationEngine.analyzeUserCorrelations(
+      userAuth.uid, 
+      parseInt(timeframe)
+    );
+    
+    res.json(insights);
+  } catch (error) {
+    console.error('Health insights correlation error:', error);
+    res.status(500).json({
+      error: 'Failed to analyze health correlations',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/health-insights/visualization', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { metric1, metric2, timeframe = '30' } = req.query;
+    
+    if (!metric1 || !metric2) {
+      return res.status(400).json({
+        error: 'Missing required parameters',
+        message: 'Both metric1 and metric2 are required'
+      });
+    }
+    
+    const visualization = insightCorrelationEngine.getCorrelationVisualization(
+      userAuth.uid,
+      metric1,
+      metric2,
+      parseInt(timeframe)
+    );
+    
+    res.json(visualization);
+  } catch (error) {
+    console.error('Visualization data error:', error);
+    res.status(500).json({
+      error: 'Failed to get visualization data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/health-insights/cached', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const cachedInsights = insightCorrelationEngine.getCachedInsights(userAuth.uid);
+    
+    if (!cachedInsights) {
+      return res.status(404).json({
+        error: 'No cached insights found',
+        message: 'Run correlation analysis to generate insights'
+      });
+    }
+    
+    res.json({
+      success: true,
+      insights: cachedInsights,
+      cached: true
+    });
+  } catch (error) {
+    console.error('Cached insights error:', error);
+    res.status(500).json({
+      error: 'Failed to get cached insights',
       message: error.message
     });
   }
