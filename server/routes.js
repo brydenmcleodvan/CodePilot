@@ -15,6 +15,7 @@ const { medicalClaimIntegration } = require('./medicalClaimIntegration');
 const { federatedHealthIntelligence } = require('./federatedHealthIntelligence');
 const { voiceGestureInterface } = require('./voiceGestureInterface');
 const { digitalTwinSimulation } = require('./digitalTwinSimulation');
+const { proactiveAlertSystem } = require('./proactiveAlertSystem');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1436,6 +1437,175 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Proactive Alert & Risk System API Endpoints
+ */
+router.get('/api/alerts/current', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get current active alerts for user
+    const alertHistory = proactiveAlertSystem.alertHistory.get(userAuth.uid) || [];
+    const currentAlerts = alertHistory
+      .filter(alert => !alert.dismissed && alert.timestamp > Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+      .slice(-5); // Most recent 5 alerts
+    
+    res.json({
+      success: true,
+      alerts: currentAlerts,
+      total_active: currentAlerts.length
+    });
+  } catch (error) {
+    console.error('Current alerts error:', error);
+    res.status(500).json({
+      error: 'Failed to get current alerts',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/alerts/risk-scores', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get current risk scores for user
+    const riskScores = proactiveAlertSystem.riskScores.get(userAuth.uid) || {};
+    
+    res.json({
+      success: true,
+      risk_scores: riskScores,
+      last_updated: riskScores.last_updated || new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Risk scores error:', error);
+    res.status(500).json({
+      error: 'Failed to get risk scores',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/alerts/history', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { limit = 20, offset = 0 } = req.query;
+    
+    const alertHistory = proactiveAlertSystem.alertHistory.get(userAuth.uid) || [];
+    const paginatedHistory = alertHistory
+      .slice(parseInt(offset), parseInt(offset) + parseInt(limit));
+    
+    res.json({
+      success: true,
+      history: paginatedHistory,
+      total: alertHistory.length
+    });
+  } catch (error) {
+    console.error('Alert history error:', error);
+    res.status(500).json({
+      error: 'Failed to get alert history',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/alerts/:alertId/dismiss', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { alertId } = req.params;
+    
+    const alertHistory = proactiveAlertSystem.alertHistory.get(userAuth.uid) || [];
+    const alertIndex = alertHistory.findIndex(alert => alert.id === alertId);
+    
+    if (alertIndex !== -1) {
+      alertHistory[alertIndex].dismissed = true;
+      alertHistory[alertIndex].dismissed_at = new Date().toISOString();
+      proactiveAlertSystem.alertHistory.set(userAuth.uid, alertHistory);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Alert dismissed successfully'
+    });
+  } catch (error) {
+    console.error('Alert dismissal error:', error);
+    res.status(500).json({
+      error: 'Failed to dismiss alert',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/alerts/process-health-data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const healthData = req.body;
+    
+    if (!healthData || Object.keys(healthData).length === 0) {
+      return res.status(400).json({
+        error: 'Missing health data',
+        message: 'Health data is required for alert processing'
+      });
+    }
+    
+    const alertResult = await proactiveAlertSystem.processHealthData(
+      userAuth.uid,
+      healthData
+    );
+    
+    res.json(alertResult);
+  } catch (error) {
+    console.error('Health data processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process health data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/alerts/risk-profile', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const riskProfile = await proactiveAlertSystem.getUserRiskProfile(userAuth.uid);
+    
+    res.json({
+      success: true,
+      risk_profile: riskProfile
+    });
+  } catch (error) {
+    console.error('Risk profile error:', error);
+    res.status(500).json({
+      error: 'Failed to get risk profile',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/alerts/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const preferences = req.body;
+    
+    // Update user alert preferences
+    const riskProfile = await proactiveAlertSystem.getUserRiskProfile(userAuth.uid);
+    riskProfile.alert_preferences = { ...riskProfile.alert_preferences, ...preferences };
+    
+    proactiveAlertSystem.userRiskProfiles.set(userAuth.uid, riskProfile);
+    
+    res.json({
+      success: true,
+      preferences: riskProfile.alert_preferences,
+      message: 'Alert preferences updated successfully'
+    });
+  } catch (error) {
+    console.error('Preferences update error:', error);
+    res.status(500).json({
+      error: 'Failed to update preferences',
       message: error.message
     });
   }
