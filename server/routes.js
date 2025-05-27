@@ -10,6 +10,7 @@ const { customAlertsEngine } = require('./customAlertsEngine');
 const { insightCorrelationEngine } = require('./insightCorrelationEngine');
 const { aiWeeklyRecapEngine } = require('./aiWeeklyRecapEngine');
 const { smartCoachingMarketplace } = require('./smartCoachingMarketplace');
+const { familyCaregiverSharing } = require('./familyCaregiverSharing');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -779,6 +780,231 @@ router.get('/api/coaching/coach/analytics', async (req, res) => {
     console.error('Coach analytics error:', error);
     res.status(500).json({
       error: 'Failed to get analytics',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Family & Caregiver Sharing API Endpoints
+ */
+router.post('/api/family-sharing/invite', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const inviteData = req.body;
+    
+    // Validate required fields
+    if (!inviteData.email || !inviteData.name || !inviteData.relationship) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'email, name, and relationship are required'
+      });
+    }
+
+    if (!inviteData.sharedCategories || inviteData.sharedCategories.length === 0) {
+      return res.status(400).json({
+        error: 'No data categories selected',
+        message: 'At least one data category must be shared'
+      });
+    }
+    
+    const invitationResult = await familyCaregiverSharing.createSharingInvitation(
+      userAuth.uid,
+      inviteData
+    );
+    
+    res.json(invitationResult);
+  } catch (error) {
+    console.error('Family sharing invitation error:', error);
+    res.status(500).json({
+      error: 'Failed to send invitation',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/family-sharing/accept/:invitationId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { invitationId } = req.params;
+    
+    const acceptanceResult = await familyCaregiverSharing.acceptSharingInvitation(
+      invitationId,
+      userAuth.uid
+    );
+    
+    res.json(acceptanceResult);
+  } catch (error) {
+    console.error('Invitation acceptance error:', error);
+    res.status(500).json({
+      error: 'Failed to accept invitation',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/family-sharing/connections', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { role = 'all' } = req.query;
+    
+    const connectionsResult = await familyCaregiverSharing.getUserSharingConnections(
+      userAuth.uid,
+      role
+    );
+    
+    res.json(connectionsResult);
+  } catch (error) {
+    console.error('Connections retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get sharing connections',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/family-sharing/shared-data/:connectionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { connectionId } = req.params;
+    const { category, limit, startDate, endDate } = req.query;
+    
+    if (!category) {
+      return res.status(400).json({
+        error: 'Missing data category',
+        message: 'category parameter is required'
+      });
+    }
+    
+    const filters = {
+      limit: limit ? parseInt(limit) : 50,
+      startDate,
+      endDate
+    };
+    
+    const sharedDataResult = await familyCaregiverSharing.getSharedData(
+      connectionId,
+      userAuth.uid,
+      category,
+      filters
+    );
+    
+    res.json(sharedDataResult);
+  } catch (error) {
+    console.error('Shared data access error:', error);
+    res.status(500).json({
+      error: 'Failed to get shared data',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/family-sharing/permissions/:connectionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { connectionId } = req.params;
+    const updates = req.body;
+    
+    const updateResult = await familyCaregiverSharing.updateSharingPermissions(
+      connectionId,
+      userAuth.uid,
+      updates
+    );
+    
+    res.json(updateResult);
+  } catch (error) {
+    console.error('Permission update error:', error);
+    res.status(500).json({
+      error: 'Failed to update permissions',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/family-sharing/connections/:connectionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { connectionId } = req.params;
+    const { reason } = req.body;
+    
+    const revokeResult = await familyCaregiverSharing.revokeSharingAccess(
+      connectionId,
+      userAuth.uid,
+      reason
+    );
+    
+    res.json(revokeResult);
+  } catch (error) {
+    console.error('Access revocation error:', error);
+    res.status(500).json({
+      error: 'Failed to revoke access',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/family-sharing/notes/:connectionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { connectionId } = req.params;
+    const noteData = req.body;
+    
+    if (!noteData.title || !noteData.content) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'title and content are required'
+      });
+    }
+    
+    const noteResult = await familyCaregiverSharing.addCaregiverNote(
+      connectionId,
+      userAuth.uid,
+      noteData
+    );
+    
+    res.json(noteResult);
+  } catch (error) {
+    console.error('Note addition error:', error);
+    res.status(500).json({
+      error: 'Failed to add note',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/family-sharing/access-logs/:connectionId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { connectionId } = req.params;
+    const { limit = '50' } = req.query;
+    
+    const logsResult = await familyCaregiverSharing.getAccessLogs(
+      connectionId,
+      userAuth.uid,
+      parseInt(limit)
+    );
+    
+    res.json(logsResult);
+  } catch (error) {
+    console.error('Access logs error:', error);
+    res.status(500).json({
+      error: 'Failed to get access logs',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/family-sharing/emergency-contacts', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const emergencyContactsResult = await familyCaregiverSharing.getEmergencyContacts(userAuth.uid);
+    
+    res.json(emergencyContactsResult);
+  } catch (error) {
+    console.error('Emergency contacts error:', error);
+    res.status(500).json({
+      error: 'Failed to get emergency contacts',
       message: error.message
     });
   }
