@@ -9,6 +9,8 @@ import { deviceManager } from './integrations/device-manager';
 import { streakEngine } from './streak-engine';
 import { recommendationEngine } from './recommendation-engine';
 import { aiHealthCoach } from './ai-health-coach';
+import { streakCounter } from './streak-counter';
+import { weeklySummaryScheduler } from './weekly-summary-scheduler';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
