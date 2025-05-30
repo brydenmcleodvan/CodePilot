@@ -15,6 +15,7 @@ import { LongevityScoreCard } from "@/components/longevity/longevity-score-card"
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import { RiskAlertCard } from "@/components/RiskAlertCard";
 import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
+import { HabitTrackerDashboard } from "@/components/HabitTrackerDashboard";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -213,6 +214,12 @@ export default function Dashboard() {
               className="mb-6"
             />
           )}
+
+          {/* Habit Tracker Dashboard - Always show for habit formation */}
+          <HabitTrackerDashboard 
+            userId={user?.id} 
+            className="mb-6"
+          />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (
@@ -945,50 +952,82 @@ export default function Dashboard() {
         )}
 
         {/* Habits & Behavioral Psychology Tab */}
-        <TabsContent value="habits" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-green-500" />
-                Habit Formation
-              </CardTitle>
-              <CardDescription>
-                Build sustainable health habits through behavioral psychology
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="text-center p-6 border rounded-lg">
-                  <Clock className="h-8 w-8 text-blue-500 mx-auto mb-3" />
-                  <h4 className="font-semibold mb-2">Current Streaks</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Morning Exercise</span>
-                      <Badge>7 days</Badge>
+        <TabsContent value="habits" className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-center mb-6">
+              <TrendingUp className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Habit Formation & Psychology</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Build sustainable health improvements through evidence-based behavioral science
+              </p>
+            </div>
+
+            {/* Enhanced Habit Tracker Dashboard */}
+            <HabitTrackerDashboard 
+              userId={user?.id}
+              className="mb-6"
+            />
+
+            {/* Behavioral Psychology Insights */}
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-purple-500" />
+                    Psychology Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <h5 className="font-medium text-blue-800 dark:text-blue-300 mb-1">
+                        Habit Loop Analysis
+                      </h5>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        Your morning routine shows strong cue-action-reward patterns
+                      </p>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Meditation</span>
-                      <Badge>12 days</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Water Intake</span>
-                      <Badge>3 days</Badge>
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <h5 className="font-medium text-green-800 dark:text-green-300 mb-1">
+                        Implementation Intentions
+                      </h5>
+                      <p className="text-sm text-green-700 dark:text-green-400">
+                        "When I wake up, I will drink water" - 85% success rate
+                      </p>
                     </div>
                   </div>
-                </div>
-                
-                <div className="text-center p-6 border rounded-lg">
-                  <Award className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
-                  <h4 className="font-semibold mb-2">Habit Achievements</h4>
-                  <div className="space-y-2">
-                    <Badge variant="secondary">30-Day Exercise</Badge>
-                    <Badge variant="secondary">Mindful Eating</Badge>
-                    <Badge variant="secondary">Sleep Consistency</Badge>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-orange-500" />
+                    Habit Stacking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <div className="font-medium mb-1">Suggested Stack:</div>
+                      <div className="space-y-1 text-gray-600">
+                        <div>1. Morning alarm → Drink water</div>
+                        <div>2. Drink water → 5-minute meditation</div>
+                        <div>3. Meditation → Review daily goals</div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Link href="/habits/create">Create Habit Stack</Link>
+                    </Button>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
         </TabsContent>
 
         {/* Health Outcomes & Progress Tab */}
