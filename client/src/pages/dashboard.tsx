@@ -13,6 +13,7 @@ import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, Ch
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
+import { RiskAlertCard } from "@/components/RiskAlertCard";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -191,6 +192,12 @@ export default function Dashboard() {
           >
             Wellness Dashboard
           </motion.h1>
+
+          {/* Risk Alert Card - Prominent placement at top */}
+          <RiskAlertCard 
+            userId={user?.id} 
+            className="mb-6"
+          />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (
