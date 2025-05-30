@@ -1,12 +1,44 @@
 import { useState, useEffect } from "react";
-import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  timestamp: string;
+  thumbnail?: string;
+}
+
 interface NewsUpdatesProps {
-  newsItems: NewsUpdate[];
+  newsItems: NewsItem[];
   isLoading: boolean;
 }
+
+// Helper function to format news date with fallback
+const formatNewsDate = (timestamp: string | Date | undefined): string => {
+  if (!timestamp) {
+    return 'Recently'; // Fallback for missing dates
+  }
+
+  try {
+    const date = new Date(timestamp);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Recently'; // Fallback for invalid dates
+    }
+
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  } catch (error) {
+    return 'Recently'; // Fallback for parsing errors
+  }
+};
 
 const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (isLoading) {
@@ -69,11 +101,7 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
               <p className="mt-2 text-gray-600 dark:text-gray-300 line-clamp-2">{news.content}</p>
               <div className="mt-4 flex justify-between items-center">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(news.timestamp).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                  })}
+                  {formatNewsDate(news.timestamp)}
                 </span>
                 <button className="text-primary hover:text-secondary">Read More</button>
               </div>
