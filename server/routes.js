@@ -19,6 +19,7 @@ const { proactiveAlertSystem } = require('./proactiveAlertSystem');
 const { geneticHealthEngine } = require('./geneticHealthEngine');
 const { healthPlanningToolkit } = require('./healthPlanningToolkit');
 const { behavioralPsychologyLayer } = require('./behavioralPsychologyLayer');
+const { medicalProviderMode } = require('./medicalProviderMode');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1440,6 +1441,171 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Medical Provider Mode API Endpoints
+ */
+router.get('/api/provider/dashboard', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'provider');
+    
+    const dashboard = await medicalProviderMode.getProviderDashboard(userAuth.uid);
+    
+    res.json(dashboard);
+  } catch (error) {
+    console.error('Provider dashboard error:', error);
+    res.status(500).json({
+      error: 'Failed to get provider dashboard',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/provider/register', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const providerData = req.body;
+    
+    if (!providerData.license_number || !providerData.specialty) {
+      return res.status(400).json({
+        error: 'Missing required provider information',
+        message: 'license_number and specialty are required'
+      });
+    }
+    
+    const registrationResult = await medicalProviderMode.registerProvider({
+      ...providerData,
+      user_id: userAuth.uid
+    });
+    
+    res.json(registrationResult);
+  } catch (error) {
+    console.error('Provider registration error:', error);
+    res.status(500).json({
+      error: 'Failed to register provider',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/provider/patient/:patientId/analysis', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'provider');
+    const { patientId } = req.params;
+    const { timeframe = 30 } = req.query;
+    
+    const analysis = await medicalProviderMode.generatePatientTrendAnalysis(
+      userAuth.uid,
+      patientId,
+      parseInt(timeframe)
+    );
+    
+    res.json(analysis);
+  } catch (error) {
+    console.error('Patient analysis error:', error);
+    res.status(500).json({
+      error: 'Failed to generate patient analysis',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/provider/generate-report', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'provider');
+    const { patient_id, report_type = 'comprehensive' } = req.body;
+    
+    if (!patient_id) {
+      return res.status(400).json({
+        error: 'Missing patient ID',
+        message: 'patient_id is required'
+      });
+    }
+    
+    const reportResult = await medicalProviderMode.generateDoctorSummaryPDF(
+      userAuth.uid,
+      patient_id,
+      report_type
+    );
+    
+    res.json(reportResult);
+  } catch (error) {
+    console.error('Report generation error:', error);
+    res.status(500).json({
+      error: 'Failed to generate report',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/provider/care-plan', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'provider');
+    const { patient_id, plan_template } = req.body;
+    
+    if (!patient_id || !plan_template) {
+      return res.status(400).json({
+        error: 'Missing required data',
+        message: 'patient_id and plan_template are required'
+      });
+    }
+    
+    const carePlan = await medicalProviderMode.createCustomCarePlan(
+      userAuth.uid,
+      patient_id,
+      plan_template
+    );
+    
+    res.json(carePlan);
+  } catch (error) {
+    console.error('Care plan creation error:', error);
+    res.status(500).json({
+      error: 'Failed to create care plan',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/provider/patients', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'provider');
+    
+    const provider = medicalProviderMode.providerAccounts.get(userAuth.uid);
+    if (!provider) {
+      return res.status(404).json({
+        error: 'Provider not found',
+        message: 'Provider account not registered'
+      });
+    }
+    
+    // Get patient list with basic info and recent metrics
+    const patients = provider.patients.map(patientId => ({
+      id: patientId,
+      name: `Patient ${patientId.slice(-4)}`, // Anonymized for demo
+      age: 45,
+      last_sync: '2 hours ago',
+      risk_level: 'medium',
+      alerts: 1,
+      recent_metrics: {
+        blood_pressure: '125/82',
+        heart_rate: 72,
+        weight: 165
+      }
+    }));
+    
+    res.json({
+      success: true,
+      patients,
+      total: patients.length
+    });
+  } catch (error) {
+    console.error('Patient list error:', error);
+    res.status(500).json({
+      error: 'Failed to get patient list',
       message: error.message
     });
   }
