@@ -46,6 +46,12 @@ const GlobalCompliancePage = lazy(() => import("@/pages/global-compliance"));
 const AffiliateMarketplacePage = lazy(() => import("@/pages/affiliate-marketplace"));
 const B2BLicensingPage = lazy(() => import("@/pages/b2b-licensing"));
 
+// Health Module Pages (lazy loaded for performance)
+const ProgressPage = lazy(() => import("@/pages/progress"));
+const DNAInsightsPage = lazy(() => import("@/pages/dna-insights"));
+const ProviderDashboardPage = lazy(() => import("@/pages/provider-dashboard"));
+const HabitsPage = lazy(() => import("@/pages/habits"));
+
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
@@ -102,6 +108,10 @@ function Router() {
               <Route path="/privacy-policy" component={PrivacyPolicyPage} />
               <Route path="/settings" component={SettingsPage} />
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
+              <Route path="/progress" component={ProgressPage} />
+              <Route path="/dna" component={DNAInsightsPage} />
+              <Route path="/provider" component={ProviderDashboardPage} />
+              <Route path="/habits" component={HabitsPage} />
               <Route path="/changelog" component={ChangelogPage} />
               <Route path="/feature-voting" component={FeatureVotingPage} />
               <Route path="/skeleton-demo" component={SkeletonDemoPage} />
