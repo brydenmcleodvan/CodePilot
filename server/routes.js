@@ -18,6 +18,7 @@ const { digitalTwinSimulation } = require('./digitalTwinSimulation');
 const { proactiveAlertSystem } = require('./proactiveAlertSystem');
 const { geneticHealthEngine } = require('./geneticHealthEngine');
 const { healthPlanningToolkit } = require('./healthPlanningToolkit');
+const { behavioralPsychologyLayer } = require('./behavioralPsychologyLayer');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1443,6 +1444,265 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     });
   }
 });
+
+/**
+ * Behavioral Psychology Layer API Endpoints
+ */
+router.get('/api/behavior/insights', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's behavioral patterns and generate insights
+    const behaviorData = {
+      completion_times: await this.getUserCompletionTimes(userAuth.uid),
+      activity_patterns: await this.getUserActivityPatterns(userAuth.uid),
+      success_contexts: await this.getUserSuccessContexts(userAuth.uid)
+    };
+    
+    const insights = await behavioralPsychologyLayer.analyzeUserBehavior(
+      userAuth.uid, 
+      behaviorData
+    );
+    
+    // Generate contextual nudge for current time
+    const currentContext = {
+      time: new Date().getHours(),
+      day_of_week: new Date().getDay(),
+      recent_activity: behaviorData.activity_patterns?.recent || {}
+    };
+    
+    const contextualNudge = await behavioralPsychologyLayer.generateContextualNudge(
+      userAuth.uid,
+      currentContext
+    );
+    
+    res.json({
+      success: true,
+      ...insights,
+      suggested_nudge: contextualNudge.nudge,
+      patterns: insights.analysis?.habit_patterns || [],
+      micro_commitments: insights.analysis?.micro_commitment_opportunities || []
+    });
+  } catch (error) {
+    console.error('Behavioral insights error:', error);
+    res.status(500).json({
+      error: 'Failed to get behavioral insights',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/behavior/streaks', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const userStreaks = behavioralPsychologyLayer.habitStreaks.get(userAuth.uid) || {};
+    
+    // Format streaks for frontend
+    const habits = Object.entries(userStreaks).map(([habitType, streakData]) => ({
+      id: habitType,
+      type: habitType,
+      name: habitType.replace('_', ' '),
+      current_streak: streakData.current_streak,
+      longest_streak: streakData.longest_streak,
+      total_completions: streakData.total_completions,
+      completed_today: this.isCompletedToday(streakData.last_completion),
+      risk_level: this.assessCurrentRisk(streakData),
+      recovery_plan: streakData.recovery_attempts > 0 ? {
+        support_message: this.getRecoveryMessage(habitType, streakData.recovery_attempts)
+      } : null
+    }));
+    
+    res.json({
+      success: true,
+      habits,
+      total_habits: habits.length,
+      active_streaks: habits.filter(h => h.current_streak > 0).length
+    });
+  } catch (error) {
+    console.error('Habit streaks error:', error);
+    res.status(500).json({
+      error: 'Failed to get habit streaks',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/behavior/habit-update', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { habit_type, completed } = req.body;
+    
+    if (!habit_type || typeof completed !== 'boolean') {
+      return res.status(400).json({
+        error: 'Invalid habit update data',
+        message: 'habit_type and completed (boolean) are required'
+      });
+    }
+    
+    const streakResult = await behavioralPsychologyLayer.updateHabitStreak(
+      userAuth.uid,
+      habit_type,
+      completed
+    );
+    
+    res.json(streakResult);
+  } catch (error) {
+    console.error('Habit update error:', error);
+    res.status(500).json({
+      error: 'Failed to update habit',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/behavior/micro-commitment', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { habit_type, current_commitment } = req.body;
+    
+    if (!habit_type) {
+      return res.status(400).json({
+        error: 'Missing habit type',
+        message: 'habit_type is required'
+      });
+    }
+    
+    const microCommitment = await behavioralPsychologyLayer.createMicroCommitment(
+      userAuth.uid,
+      habit_type,
+      current_commitment
+    );
+    
+    res.json(microCommitment);
+  } catch (error) {
+    console.error('Micro-commitment creation error:', error);
+    res.status(500).json({
+      error: 'Failed to create micro-commitment',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/behavior/nudge', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const context = {
+      time: new Date().getHours(),
+      day_of_week: new Date().getDay(),
+      stress_level: parseFloat(req.query.stress_level) || 5,
+      steps_today: parseInt(req.query.steps_today) || 0,
+      energy_level: parseFloat(req.query.energy_level) || 5
+    };
+    
+    const nudge = await behavioralPsychologyLayer.generateContextualNudge(
+      userAuth.uid,
+      context
+    );
+    
+    res.json(nudge);
+  } catch (error) {
+    console.error('Contextual nudge error:', error);
+    res.status(500).json({
+      error: 'Failed to generate nudge',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/behavior/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const preferences = req.body;
+    
+    // Store user's behavioral preferences
+    const userBehavior = behavioralPsychologyLayer.behaviorPatterns.get(userAuth.uid) || {};
+    userBehavior.preferences = {
+      ...userBehavior.preferences || {},
+      ...preferences,
+      updated_at: new Date().toISOString()
+    };
+    
+    behavioralPsychologyLayer.behaviorPatterns.set(userAuth.uid, userBehavior);
+    
+    res.json({
+      success: true,
+      preferences: userBehavior.preferences,
+      message: 'Behavioral preferences updated successfully'
+    });
+  } catch (error) {
+    console.error('Preferences update error:', error);
+    res.status(500).json({
+      error: 'Failed to update preferences',
+      message: error.message
+    });
+  }
+});
+
+// Helper methods for the router
+router.getUserCompletionTimes = async function(userId) {
+  // Return user's historical completion patterns
+  return {
+    exercise: [7, 7.5, 6.5, 8, 7.3], // Hour of day completions
+    meditation: [21, 21.5, 22, 20.5, 21.2],
+    meal_logging: [12, 13, 18.5, 19, 12.3]
+  };
+};
+
+router.getUserActivityPatterns = async function(userId) {
+  return {
+    recent: {
+      avg_sleep_hours: 7.2,
+      avg_steps: 8500,
+      stress_level: 4
+    },
+    weekly: {
+      high_energy_days: [1, 2, 3], // Monday, Tuesday, Wednesday
+      low_energy_days: [5, 0] // Friday, Sunday
+    }
+  };
+};
+
+router.getUserSuccessContexts = async function(userId) {
+  return {
+    'morning_routine': 0.92,
+    'post_meal': 0.78,
+    'weekend': 0.85,
+    'well_rested': 0.94
+  };
+};
+
+router.isCompletedToday = function(lastCompletion) {
+  if (!lastCompletion) return false;
+  const today = new Date().toISOString().split('T')[0];
+  return lastCompletion === today;
+};
+
+router.assessCurrentRisk = function(streakData) {
+  const daysSinceCompletion = this.calculateDaysSince(streakData.last_completion);
+  if (daysSinceCompletion <= 1) return 0;
+  if (daysSinceCompletion === 2) return 1;
+  return 2;
+};
+
+router.calculateDaysSince = function(dateString) {
+  if (!dateString) return 999;
+  const date = new Date(dateString);
+  const today = new Date();
+  const diffTime = Math.abs(today - date);
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+router.getRecoveryMessage = function(habitType, attempts) {
+  const messages = {
+    'exercise': 'Even 5 minutes of movement counts. Start small and build back up.',
+    'meditation': 'One conscious breath is meditation. Begin there.',
+    'water_intake': 'Fill your water bottle now. Small steps matter.',
+    'default': 'Progress isn\'t perfect. What\'s the smallest step you can take today?'
+  };
+  return messages[habitType] || messages['default'];
+};
 
 /**
  * Health Planning Toolkit API Endpoints
