@@ -9,12 +9,12 @@ export default function ConnectHealthDataButton() {
   const handleClick = () => {
     // Show toast notification
     toast({
-      title: "Redirecting to Health Shop",
-      description: "Discover products tailored to your health needs",
+      title: "Connect Health Data",
+      description: "Connect your health apps and devices to sync your data",
     });
     
-    // Navigate to the shop page
-    navigate("/shop");
+    // Navigate to the integrations page
+    navigate("/integrations");
   };
 
   return (

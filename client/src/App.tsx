@@ -109,6 +109,7 @@ function Router() {
               <Route path="/privacy-policy" component={PrivacyPolicyPage} />
               <Route path="/settings" component={SettingsPage} />
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
+              <Route path="/settings/connected-services" component={IntegrationsPage} />
               <Route path="/progress" component={ProgressPage} />
               <Route path="/dna" component={DNAInsightsPage} />
               <Route path="/provider" component={ProviderDashboardPage} />
