@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import { RiskAlertCard } from "@/components/RiskAlertCard";
+import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -154,6 +155,12 @@ export default function Dashboard() {
             <TabsTrigger value="nutrition" className="text-sm rounded-md">Nutrition</TabsTrigger>
             <TabsTrigger value="mental" className="text-sm rounded-md">Mental Health</TabsTrigger>
             <TabsTrigger value="library" className="text-sm rounded-md">Health Library</TabsTrigger>
+            {hasGeneticData && (
+              <TabsTrigger value="dna-health" className="text-sm rounded-md flex items-center">
+                <Dna className="h-4 w-4 mr-1 text-purple-500" />
+                DNA Health
+              </TabsTrigger>
+            )}
             {hasActiveAlerts && (
               <TabsTrigger value="alerts" className="text-sm rounded-md flex items-center">
                 <AlertTriangle className="h-4 w-4 mr-1 text-orange-500" />
@@ -198,6 +205,14 @@ export default function Dashboard() {
             userId={user?.id} 
             className="mb-6"
           />
+
+          {/* Genetic Risk Panel - Show if user has DNA data */}
+          {hasGeneticData && (
+            <GeneticRiskPanel 
+              userId={user?.id} 
+              className="mb-6"
+            />
+          )}
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (
@@ -797,6 +812,79 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* DNA Health Tab */}
+        {hasGeneticData && (
+          <TabsContent value="dna-health" className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="text-center mb-6">
+                <Dna className="h-12 w-12 text-purple-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">DNA Health Analysis</h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Personalized health insights based on your genetic profile
+                </p>
+              </div>
+
+              {/* Full Genetic Risk Panel */}
+              <GeneticRiskPanel 
+                userId={user?.id}
+                className="mb-6"
+              />
+
+              {/* Quick Actions */}
+              <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <Dna className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Upload New Data</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Update your genetic analysis with new test results
+                    </p>
+                    <Link href="/dna-insights">
+                      <Button variant="outline" size="sm">
+                        Upload DNA
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <Shield className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Privacy Settings</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Manage your genetic data privacy and sharing preferences
+                    </p>
+                    <Link href="/dna-insights?tab=privacy">
+                      <Button variant="outline" size="sm">
+                        Privacy Controls
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <TrendingUp className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+                    <h3 className="font-semibold mb-2">Full Report</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      View comprehensive genetic analysis and recommendations
+                    </p>
+                    <Link href="/dna-insights">
+                      <Button variant="outline" size="sm">
+                        View Report
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.div>
+          </TabsContent>
+        )}
 
         {/* Risk Detection & Alerts Tab */}
         {hasActiveAlerts && (
