@@ -193,6 +193,16 @@ export default function HealthGoalsPage() {
         }}
       />
 
+      {/* Basic Goal Creator Dialog */}
+      <Dialog open={isBasicCreatorOpen} onOpenChange={setIsBasicCreatorOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Quick Goal Creator</DialogTitle>
+          </DialogHeader>
+          <GoalCreator />
+        </DialogContent>
+      </Dialog>
+
       {/* Main Content with Tabs */}
       <Tabs defaultValue="my-goals" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
