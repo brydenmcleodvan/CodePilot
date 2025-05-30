@@ -9,13 +9,14 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import { RiskAlertCard } from "@/components/RiskAlertCard";
 import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
 import { HabitTrackerDashboard } from "@/components/HabitTrackerDashboard";
+import { ProviderDashboardView } from "@/components/ProviderDashboardView";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -1172,30 +1173,27 @@ export default function Dashboard() {
 
         {/* Medical Provider Mode Tab */}
         {isProviderUser && (
-          <TabsContent value="provider" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Stethoscope className="h-6 w-6 text-blue-500" />
-                  Provider Dashboard
-                </CardTitle>
-                <CardDescription>
-                  Clinical view of patient health data and care plan management
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Stethoscope className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Medical Provider Mode</h3>
-                  <p className="text-gray-600 mb-4">
-                    Access patient health trends, generate reports, and manage care plans
-                  </p>
-                  <Button>
-                    <Link href="/provider-dashboard">Open Provider Dashboard</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="provider" className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="text-center mb-6">
+                <Stethoscope className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Medical Provider Dashboard</h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Secure clinical interface for authorized healthcare professionals
+                </p>
+              </div>
+
+              {/* Enhanced Provider Dashboard with Role-Based Access */}
+              <ProviderDashboardView 
+                userId={user?.id}
+                userRole={user?.role}
+                className="mb-6"
+              />
+            </motion.div>
           </TabsContent>
         )}
 
