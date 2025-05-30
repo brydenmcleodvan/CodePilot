@@ -5,6 +5,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import HealthGoalCard from '@/components/health-goal-card';
 import GoalAIRecommendations from '@/components/goal-ai-recommendations';
 import SmartGoalCreator from '@/components/smart-goal-creator';
+import GoalCreator from '@/components/goal-creator';
 import {
   Card,
   CardContent,
@@ -84,6 +85,7 @@ interface HealthGoalWithProgress {
 
 export default function HealthGoalsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isBasicCreatorOpen, setIsBasicCreatorOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<HealthGoalWithProgress | null>(null);
 
   const form = useForm<CreateGoalForm>({
@@ -169,10 +171,16 @@ export default function HealthGoalsPage() {
             Set and track your personal health objectives
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Goal
-        </Button>
+        <div className="flex space-x-3">
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Smart Goal
+          </Button>
+          <Button variant="outline" onClick={() => setIsBasicCreatorOpen(true)}>
+            <Target className="h-4 w-4 mr-2" />
+            Quick Goal
+          </Button>
+        </div>
       </div>
 
       {/* Smart Goal Creator */}

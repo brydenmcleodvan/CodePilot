@@ -1,0 +1,61 @@
+// ===============================
+// GoalCreator.jsx
+// ===============================
+import { useState } from 'react';
+
+export default function GoalCreator() {
+const \[goalType, setGoalType] = useState('');
+const \[target, setTarget] = useState('');
+const \[duration, setDuration] = useState('');
+
+const handleSubmit = (e) => {
+e.preventDefault();
+// Submit goal to Firestore or backend logic here
+console.log('Goal set:', { goalType, target, duration });
+};
+
+return ( <div className="p-6 max-w-xl mx-auto"> <h2 className="text-2xl font-bold mb-4">Set a Health Goal</h2> <form onSubmit={handleSubmit} className="space-y-4"> <div> <label className="block font-medium">Goal Type</label>
+\<select value={goalType} onChange={(e) => setGoalType(e.target.value)} className="w-full border p-2 rounded"> <option value="">Select...</option> <option value="steps">Daily Steps</option> <option value="sleep">Sleep Hours</option> <option value="nutrition">Nutrition Goal</option> <option value="stress">Mindfulness/Stress</option> </select> </div> <div> <label className="block font-medium">Target</label>
+\<input
+type="number"
+value={target}
+onChange={(e) => setTarget(e.target.value)}
+placeholder="e.g., 10000 steps"
+className="w-full border p-2 rounded"
+/> </div> <div> <label className="block font-medium">Duration (in days)</label>
+\<input
+type="number"
+value={duration}
+onChange={(e) => setDuration(e.target.value)}
+placeholder="e.g., 30"
+className="w-full border p-2 rounded"
+/> </div> <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Goal</button> </form> </div>
+);
+}
+
+// ===============================
+// ConnectedServicesSettings.jsx
+// ===============================
+import { useState } from 'react';
+
+export default function ConnectedServicesSettings() {
+const \[services, setServices] = useState({
+healthApp: true,
+dnaService: true,
+familyTree: false
+});
+
+const toggleConnection = (key) => {
+setServices({ ...services, \[key]: !services\[key] });
+};
+
+return ( <div className="p-6 max-w-xl mx-auto"> <h2 className="text-2xl font-bold mb-4">Connected Services</h2> <div className="space-y-4">
+{Object.entries(services).map((\[key, connected]) => ( <div key={key} className="flex justify-between items-center border p-3 rounded"> <span className="capitalize">{key.replace(/(\[A-Z])/g, ' \$1')}</span>
+\<button
+onClick={() => toggleConnection(key)}
+className={`px-3 py-1 rounded ${connected ? 'bg-red-500 text-white' : 'bg-green-600 text-white'}`}
+\>
+{connected ? 'Disconnect' : 'Connect'} </button> </div>
+))} </div> </div>
+);
+}

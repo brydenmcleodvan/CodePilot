@@ -56,6 +56,7 @@ const HealthGoalsPage = lazy(() => import("@/pages/health-goals"));
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
 const SettingsPage = lazy(() => import("@/pages/settings"));
+const ConnectedServicesPage = lazy(() => import("@/pages/connected-services"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -109,7 +110,7 @@ function Router() {
               <Route path="/privacy-policy" component={PrivacyPolicyPage} />
               <Route path="/settings" component={SettingsPage} />
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
-              <Route path="/settings/connected-services" component={IntegrationsPage} />
+              <Route path="/settings/connected-services" component={ConnectedServicesPage} />
               <Route path="/progress" component={ProgressPage} />
               <Route path="/dna" component={DNAInsightsPage} />
               <Route path="/provider" component={ProviderDashboardPage} />
