@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope, Target } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope, Target, BarChart3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
@@ -17,6 +17,7 @@ import { RiskAlertCard } from "@/components/RiskAlertCard";
 import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
 import { HabitTrackerDashboard } from "@/components/HabitTrackerDashboard";
 import { ProviderDashboardView } from "@/components/ProviderDashboardView";
+import { ProgressDashboard } from "@/components/ProgressDashboard";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -176,7 +177,10 @@ export default function Dashboard() {
               </TabsTrigger>
             )}
             <TabsTrigger value="habits" className="text-sm rounded-md">Habits</TabsTrigger>
-            <TabsTrigger value="outcomes" className="text-sm rounded-md">Progress</TabsTrigger>
+            <TabsTrigger value="progress" className="text-sm rounded-md flex items-center">
+              <BarChart3 className="h-4 w-4 mr-1 text-blue-500" />
+              Progress
+            </TabsTrigger>
             <TabsTrigger value="marketplace" className="text-sm rounded-md">Shop</TabsTrigger>
             <TabsTrigger value="privacy" className="text-sm rounded-md">
               <Shield className="h-4 w-4 mr-1" />
@@ -1031,38 +1035,27 @@ export default function Dashboard() {
           </motion.div>
         </TabsContent>
 
-        {/* Health Outcomes & Progress Tab */}
-        <TabsContent value="outcomes" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-6 w-6 text-blue-500" />
-                Health Outcomes Report
-              </CardTitle>
-              <CardDescription>
-                Measurable health improvements and progress tracking
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 md:grid-cols-3">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">+23%</div>
-                  <div className="text-sm text-gray-600">Sleep Quality Improvement</div>
-                  <div className="text-xs text-gray-500">vs. baseline</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">+15%</div>
-                  <div className="text-sm text-gray-600">Energy Levels</div>
-                  <div className="text-xs text-gray-500">vs. population avg</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">+31%</div>
-                  <div className="text-sm text-gray-600">Stress Management</div>
-                  <div className="text-xs text-gray-500">last 30 days</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Progress & Health Outcomes Tab */}
+        <TabsContent value="progress" className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-center mb-6">
+              <BarChart3 className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Health Progress & Outcomes</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Real-world biometric trends and measurable health improvements
+              </p>
+            </div>
+
+            {/* Comprehensive Progress Dashboard */}
+            <ProgressDashboard 
+              userId={user?.id}
+              className="mb-6"
+            />
+          </motion.div>
         </TabsContent>
 
         {/* Marketplace Tab */}
