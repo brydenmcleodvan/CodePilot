@@ -612,7 +612,7 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {mealPlans.length > 0 ? (
+              {(mealPlans || []).length > 0 ? (
                 <div className="space-y-6">
                   {(mealPlans || []).map((plan: any) => (
                     <div key={plan.id} className="border rounded-lg p-4 space-y-3">
@@ -703,7 +703,7 @@ export default function Dashboard() {
                     <Button variant="outline" size="sm">Take New Assessment</Button>
                   </div>
                   
-                  {mentalHealthAssessments.map((assessment: MentalHealthAssessment) => (
+                  {(mentalHealthAssessments || []).map((assessment: any) => (
                     <div key={assessment.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -773,7 +773,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {healthArticles.map((article: HealthArticle) => (
+                {(healthArticles || []).map((article: any) => (
                   <Card key={article.id} className="overflow-hidden">
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden">
