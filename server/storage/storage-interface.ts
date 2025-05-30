@@ -118,4 +118,15 @@ export interface IStorage {
   addHealthArticle(article: InsertHealthArticle): Promise<HealthArticle>;
   updateHealthArticle(id: number, article: Partial<HealthArticle>): Promise<HealthArticle>;
   deleteHealthArticle(id: number): Promise<boolean>;
+  
+  // Health Goals
+  getHealthGoals(userId: number): Promise<any[]>;
+  addHealthGoal(goal: any): Promise<any>;
+  getGoalProgress(userId: number, goalId: string, days?: number): Promise<any[]>;
+  addGoalProgress(progress: any): Promise<any>;
+  getGoalStreak(userId: number, goalId: string): Promise<number>;
+  
+  // Connected Services
+  getConnectedServices(userId: number): Promise<any[]>;
+  updateConnectedService(serviceData: any): Promise<any>;
 }

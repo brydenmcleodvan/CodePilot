@@ -48,6 +48,9 @@ export class MemStorage implements IStorage {
   private userFeedback: UserFeedback[] = [];
   private errorLogs: ErrorLog[] = [];
   private healthArticles: HealthArticle[] = [];
+  private healthGoals: any[] = [];
+  private goalProgress: any[] = [];
+  private connectedServices: any[] = [];
   private nextId = 1;
 
   constructor() {
@@ -549,5 +552,88 @@ export class MemStorage implements IStorage {
     const initialLength = this.healthArticles.length;
     this.healthArticles = this.healthArticles.filter(article => article.id !== id);
     return initialLength !== this.healthArticles.length;
+  }
+
+  // Health Goals
+  async getHealthGoals(userId: number): Promise<any[]> {
+    return this.healthGoals.filter(goal => goal.userId === userId);
+  }
+
+  async addHealthGoal(goal: any): Promise<any> {
+    const newGoal = {
+      id: this.nextId++,
+      ...goal,
+      createdAt: goal.createdAt || new Date()
+    };
+    this.healthGoals.push(newGoal);
+    return newGoal;
+  }
+
+  async getGoalProgress(userId: number, goalId: string): Promise<any[]> {
+    return this.goalProgress.filter(progress => 
+      progress.userId === userId && progress.goalId === goalId
+    );
+  }
+
+  async addGoalProgress(progress: any): Promise<any> {
+    const newProgress = {
+      id: this.nextId++,
+      ...progress,
+      createdAt: progress.createdAt || new Date()
+    };
+    this.goalProgress.push(newProgress);
+    return newProgress;
+  }
+
+  async getGoalStreak(userId: number, goalId: string): Promise<number> {
+    const progress = await this.getGoalProgress(userId, goalId);
+    const sortedProgress = progress
+      .filter(p => p.achieved)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    let streak = 0;
+    const today = new Date();
+    
+    for (let i = 0; i < sortedProgress.length; i++) {
+      const progressDate = new Date(sortedProgress[i].date);
+      const daysDiff = Math.floor((today.getTime() - progressDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysDiff === i) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
+  // Connected Services
+  async getConnectedServices(userId: number): Promise<any[]> {
+    return this.connectedServices.filter(service => service.userId === userId);
+  }
+
+  async updateConnectedService(serviceData: any): Promise<any> {
+    const existingIndex = this.connectedServices.findIndex(
+      service => service.userId === serviceData.userId && service.serviceId === serviceData.serviceId
+    );
+
+    if (existingIndex !== -1) {
+      this.connectedServices[existingIndex] = {
+        ...this.connectedServices[existingIndex],
+        ...serviceData,
+        updatedAt: serviceData.updatedAt || new Date()
+      };
+      return this.connectedServices[existingIndex];
+    } else {
+      const newService = {
+        id: this.nextId++,
+        ...serviceData,
+        createdAt: new Date(),
+        updatedAt: serviceData.updatedAt || new Date()
+      };
+      this.connectedServices.push(newService);
+      return newService;
+    }
   }
 }
