@@ -390,7 +390,7 @@ export default function Dashboard() {
                 <Button variant="outline" size="sm">Add New Entry</Button>
               </div>
               
-              {journeyEntries.map((entry: HealthJourneyEntry) => (
+              {(journeyEntries || []).map((entry: any) => (
                 <div key={entry.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -446,7 +446,7 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {challengeProgress.map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
+                {(challengeProgress || []).map((progress: any) => (
                   <div key={progress.id} className="space-y-3">
                     <div className="flex items-start justify-between">
                       <div>
@@ -490,8 +490,8 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {challenges
-                  .filter((challenge: WellnessChallenge) => !challengeProgress.some((p: UserChallengeProgress) => p.challengeId === challenge.id))
+                {(challenges || [])
+                  .filter((challenge: WellnessChallenge) => !(challengeProgress || []).some((p: UserChallengeProgress) => p.challengeId === challenge.id))
                   .map((challenge: WellnessChallenge) => (
                     <div key={challenge.id} className="border rounded-lg p-4 space-y-2">
                       <div className="flex items-start justify-between">
@@ -542,7 +542,7 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {coachingPlans.map((plan: HealthCoachingPlan) => (
+              {(coachingPlans || []).map((plan: any) => (
                 <div key={plan.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -614,7 +614,7 @@ export default function Dashboard() {
             <CardContent>
               {mealPlans.length > 0 ? (
                 <div className="space-y-6">
-                  {mealPlans.map((plan: MealPlan) => (
+                  {(mealPlans || []).map((plan: any) => (
                     <div key={plan.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
