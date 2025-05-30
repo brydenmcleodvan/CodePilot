@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import HealthGoalCard from '@/components/health-goal-card';
 import GoalAIRecommendations from '@/components/goal-ai-recommendations';
+import SmartGoalCreator from '@/components/smart-goal-creator';
 import {
   Card,
   CardContent,
@@ -168,163 +169,21 @@ export default function HealthGoalsPage() {
             Set and track your personal health objectives
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Goal
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create Health Goal</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="metricType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Metric Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select metric" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="sleep">Sleep Duration</SelectItem>
-                          <SelectItem value="steps">Daily Steps</SelectItem>
-                          <SelectItem value="heart_rate">Heart Rate</SelectItem>
-                          <SelectItem value="weight">Weight</SelectItem>
-                          <SelectItem value="glucose">Blood Glucose</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="goalType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Goal Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="target">Target Value</SelectItem>
-                          <SelectItem value="minimum">Minimum Value</SelectItem>
-                          <SelectItem value="maximum">Maximum Value</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="goalValue"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Goal Value</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field}
-                            onChange={e => field.onChange(parseFloat(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="unit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., hours, steps" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="timeframe"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Timeframe</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Add any additional context or motivation..."
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsCreateDialogOpen(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="flex-1"
-                    disabled={createGoalMutation.isPending}
-                  >
-                    {createGoalMutation.isPending ? 'Creating...' : 'Create Goal'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Goal
+        </Button>
       </div>
+
+      {/* Smart Goal Creator */}
+      <SmartGoalCreator
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => {
+          // Refresh goals after successful creation
+          queryClient.invalidateQueries({ queryKey: ['/api/health-goals'] });
+        }}
+      />
 
       {/* Main Content with Tabs */}
       <Tabs defaultValue="my-goals" className="space-y-6">
