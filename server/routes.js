@@ -1447,6 +1447,296 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
 });
 
 /**
+ * Accessibility & Internationalization API Endpoints
+ */
+router.post('/api/accessibility/voice-command', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { command, language } = req.body;
+    
+    if (!command) {
+      return res.status(400).json({
+        error: 'Missing voice command',
+        message: 'command is required'
+      });
+    }
+    
+    // Process voice command based on language
+    const result = await this.processVoiceCommand(command, language, userAuth.uid);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Voice command processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process voice command',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/accessibility/settings', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const settings = req.body;
+    
+    // Store accessibility settings for user
+    // In production, save to user preferences database
+    
+    res.json({
+      success: true,
+      settings,
+      message: 'Accessibility settings updated successfully'
+    });
+  } catch (error) {
+    console.error('Accessibility settings error:', error);
+    res.status(500).json({
+      error: 'Failed to update accessibility settings',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/i18n/region-data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { region } = req.query;
+    
+    if (!region) {
+      return res.status(400).json({
+        error: 'Missing region parameter',
+        message: 'region is required'
+      });
+    }
+    
+    // Get region-specific health data
+    const regionData = await this.getRegionHealthData(region);
+    
+    res.json({
+      success: true,
+      region,
+      data: regionData
+    });
+  } catch (error) {
+    console.error('Region data error:', error);
+    res.status(500).json({
+      error: 'Failed to get region data',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/i18n/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { language, region, timezone } = req.body;
+    
+    // Store user's i18n preferences
+    // In production, save to user profile database
+    
+    res.json({
+      success: true,
+      preferences: {
+        language,
+        region,
+        timezone,
+        updated_at: new Date().toISOString()
+      },
+      message: 'Language and region preferences updated successfully'
+    });
+  } catch (error) {
+    console.error('I18n preferences error:', error);
+    res.status(500).json({
+      error: 'Failed to update preferences',
+      message: error.message
+    });
+  }
+});
+
+// Helper methods for accessibility and i18n
+router.processVoiceCommand = async function(command, language, userId) {
+  const lowerCommand = command.toLowerCase();
+  
+  // Define voice command patterns by language
+  const commandPatterns = {
+    en: {
+      pain: /log.*pain.*(\d+)/i,
+      mood: /log.*mood.*(happy|sad|anxious|calm|stressed|excited)/i,
+      medication: /log.*medication|took.*medicine/i,
+      weight: /log.*weight.*(\d+)/i,
+      sleep: /log.*sleep.*(\d+)/i
+    },
+    es: {
+      pain: /registrar.*dolor.*(\d+)/i,
+      mood: /registrar.*ánimo.*(feliz|triste|ansioso|tranquilo|estresado|emocionado)/i,
+      medication: /registrar.*medicamento|tomé.*medicina/i,
+      weight: /registrar.*peso.*(\d+)/i,
+      sleep: /registrar.*sueño.*(\d+)/i
+    }
+  };
+  
+  const patterns = commandPatterns[language] || commandPatterns.en;
+  
+  // Process different types of commands
+  if (patterns.pain.test(lowerCommand)) {
+    const match = lowerCommand.match(patterns.pain);
+    const level = match ? parseInt(match[1]) : null;
+    
+    return {
+      success: true,
+      action: 'pain_logged',
+      message: language === 'es' ? 
+        `Dolor registrado: nivel ${level}/10` : 
+        `Pain logged: level ${level}/10`,
+      data: { type: 'pain', level, timestamp: new Date().toISOString() }
+    };
+  }
+  
+  if (patterns.mood.test(lowerCommand)) {
+    const match = lowerCommand.match(patterns.mood);
+    const mood = match ? match[1] : 'neutral';
+    
+    return {
+      success: true,
+      action: 'mood_logged',
+      message: language === 'es' ? 
+        `Estado de ánimo registrado: ${mood}` : 
+        `Mood logged: ${mood}`,
+      data: { type: 'mood', value: mood, timestamp: new Date().toISOString() }
+    };
+  }
+  
+  if (patterns.medication.test(lowerCommand)) {
+    return {
+      success: true,
+      action: 'medication_logged',
+      message: language === 'es' ? 
+        'Medicamento registrado exitosamente' : 
+        'Medication logged successfully',
+      data: { type: 'medication', timestamp: new Date().toISOString() }
+    };
+  }
+  
+  if (patterns.weight.test(lowerCommand)) {
+    const match = lowerCommand.match(patterns.weight);
+    const weight = match ? parseInt(match[1]) : null;
+    
+    return {
+      success: true,
+      action: 'weight_logged',
+      message: language === 'es' ? 
+        `Peso registrado: ${weight} kg` : 
+        `Weight logged: ${weight} lbs`,
+      data: { type: 'weight', value: weight, timestamp: new Date().toISOString() }
+    };
+  }
+  
+  if (patterns.sleep.test(lowerCommand)) {
+    const match = lowerCommand.match(patterns.sleep);
+    const hours = match ? parseInt(match[1]) : null;
+    
+    return {
+      success: true,
+      action: 'sleep_logged',
+      message: language === 'es' ? 
+        `Sueño registrado: ${hours} horas` : 
+        `Sleep logged: ${hours} hours`,
+      data: { type: 'sleep', hours, timestamp: new Date().toISOString() }
+    };
+  }
+  
+  // Default response for unrecognized commands
+  return {
+    success: false,
+    message: language === 'es' ? 
+      'Comando no reconocido. Intente de nuevo.' : 
+      'Command not recognized. Please try again.',
+    suggestions: language === 'es' ? [
+      'Registrar dolor de cabeza nivel 5',
+      'Registrar estado de ánimo feliz',
+      'Registrar tomé medicamento'
+    ] : [
+      'Log headache pain level 5',
+      'Log mood feeling happy',
+      'Log took medication'
+    ]
+  };
+};
+
+router.getRegionHealthData = async function(region) {
+  // In production, fetch from healthcare databases and regional health APIs
+  const regionData = {
+    north_america: {
+      climate_recommendations: {
+        seasonal_health_tips: [
+          'Increase Vitamin D intake during winter months',
+          'Stay hydrated during hot summer days',
+          'Monitor air quality during wildfire season',
+          'Be aware of seasonal affective disorder in northern regions'
+        ],
+        exercise_timing: 'Best exercise times: Early morning (6-8 AM) or evening (6-8 PM)',
+        common_health_concerns: ['allergies', 'heat_exhaustion', 'winter_depression']
+      },
+      cultural_practices: [
+        'Incorporate walking meetings into work culture',
+        'Practice mindful eating during busy schedules',
+        'Balance screen time with outdoor activities'
+      ],
+      healthcare_resources: [
+        'Telemedicine widely available',
+        '211 helpline for health resources',
+        'Urgent care centers for non-emergency needs'
+      ]
+    },
+    europe: {
+      climate_recommendations: {
+        seasonal_health_tips: [
+          'Combat seasonal depression with light therapy',
+          'Enjoy outdoor activities during mild summers',
+          'Maintain activity levels during rainy seasons',
+          'Take advantage of cycling infrastructure'
+        ],
+        exercise_timing: 'Optimal exercise: Morning walks and evening cycling',
+        common_health_concerns: ['seasonal_depression', 'air_pollution', 'work_stress']
+      },
+      cultural_practices: [
+        'Embrace walking and cycling culture',
+        'Practice work-life balance traditions',
+        'Enjoy social dining experiences'
+      ],
+      healthcare_resources: [
+        'Universal healthcare systems',
+        'Pharmacy consultation services',
+        'Community health centers'
+      ]
+    },
+    asia_pacific: {
+      climate_recommendations: {
+        seasonal_health_tips: [
+          'Protect against intense UV radiation',
+          'Manage humidity and heat stress',
+          'Stay hydrated in tropical climates',
+          'Prepare for monsoon season health challenges'
+        ],
+        exercise_timing: 'Exercise early morning or late evening to avoid heat',
+        common_health_concerns: ['heat_stress', 'air_pollution', 'tropical_diseases']
+      },
+      cultural_practices: [
+        'Traditional martial arts and tai chi',
+        'Herbal medicine integration',
+        'Community-based wellness practices'
+      ],
+      healthcare_resources: [
+        'Traditional and modern medicine integration',
+        'Community health workers',
+        'Digital health platforms'
+      ]
+    }
+  };
+  
+  return regionData[region] || regionData.north_america;
+};
+
+/**
  * Medical Provider Mode API Endpoints
  */
 router.get('/api/provider/dashboard', async (req, res) => {
