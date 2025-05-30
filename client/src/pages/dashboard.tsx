@@ -9,19 +9,18 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope } from "lucide-react";
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
-import {
-  HealthJourneyEntry,
-  HealthCoachingPlan,
-  WellnessChallenge,
-  UserChallengeProgress,
-  MentalHealthAssessment,
-  HealthArticle,
-  MealPlan
-} from "@shared/schema";
+
+// Import advanced health modules (will be dynamically loaded)
+// import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
+// import { MedicalProviderMode } from "@/components/MedicalProviderMode";
+// import { RiskDetectionDashboard } from "@/components/RiskDetectionDashboard";
+// import DNAInsightsDashboard from "@/components/DNAInsightsDashboard";
+
+import { User } from "@shared/schema";
 
 interface MetricCard {
   title: string;
@@ -34,6 +33,12 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  
+  // Check user permissions and data availability for advanced modules
+  const isProviderUser = user?.roles?.includes('provider') || user?.roles?.includes('admin');
+  const hasGeneticData = !!user?.preferences?.geneticDataUploaded;
+  const hasActiveAlerts = true; // Will be determined by risk detection queries
+  const hasHealthData = !!user?.preferences?.connectedDevices;
   
   // Use consolidated dashboard API endpoint instead of multiple requests
   const { data: dashboardData, isLoading } = useQuery({
@@ -50,49 +55,42 @@ export default function Dashboard() {
   const connections = dashboardData?.connections || [];
   const productRecommendations = dashboardData?.recommendations || [];
   
-  // Legacy API endpoints for features not yet in the consolidated endpoint
-  // Fetch health journey entries
-  const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
+  // Fetch additional data for advanced modules
+  const { data: journeyEntries = [] } = useQuery({
     queryKey: ["/api/health-journey"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
-  // Fetch coaching plans
-  const { data: coachingPlans = [] } = useQuery<HealthCoachingPlan[]>({
+  const { data: coachingPlans = [] } = useQuery({
     queryKey: ["/api/coaching-plans"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
-  // Fetch wellness challenges
-  const { data: challenges = [] } = useQuery<WellnessChallenge[]>({
+  const { data: challenges = [] } = useQuery({
     queryKey: ["/api/challenges"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  // Fetch user challenge progress
-  const { data: challengeProgress = [] } = useQuery<(UserChallengeProgress & { challenge: WellnessChallenge })[]>({
+  const { data: challengeProgress = [] } = useQuery({
     queryKey: ["/api/challenge-progress"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
-  // Fetch mental health assessments
-  const { data: mentalHealthAssessments = [] } = useQuery<MentalHealthAssessment[]>({
+  const { data: mentalHealthAssessments = [] } = useQuery({
     queryKey: ["/api/mental-health"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
-  // Fetch health articles
-  const { data: healthArticles = [] } = useQuery<HealthArticle[]>({
+  const { data: healthArticles = [] } = useQuery({
     queryKey: ["/api/health-articles"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  // Fetch meal plans
-  const { data: mealPlans = [] } = useQuery<MealPlan[]>({
+  const { data: mealPlans = [] } = useQuery({
     queryKey: ["/api/meal-plans"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
@@ -155,6 +153,31 @@ export default function Dashboard() {
             <TabsTrigger value="nutrition" className="text-sm rounded-md">Nutrition</TabsTrigger>
             <TabsTrigger value="mental" className="text-sm rounded-md">Mental Health</TabsTrigger>
             <TabsTrigger value="library" className="text-sm rounded-md">Health Library</TabsTrigger>
+            {hasActiveAlerts && (
+              <TabsTrigger value="alerts" className="text-sm rounded-md flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-1 text-orange-500" />
+                Risk Alerts
+              </TabsTrigger>
+            )}
+            {hasGeneticData && (
+              <TabsTrigger value="dna" className="text-sm rounded-md flex items-center">
+                <Dna className="h-4 w-4 mr-1 text-purple-500" />
+                DNA Insights
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="habits" className="text-sm rounded-md">Habits</TabsTrigger>
+            <TabsTrigger value="outcomes" className="text-sm rounded-md">Progress</TabsTrigger>
+            <TabsTrigger value="marketplace" className="text-sm rounded-md">Shop</TabsTrigger>
+            <TabsTrigger value="privacy" className="text-sm rounded-md">
+              <Shield className="h-4 w-4 mr-1" />
+              Privacy
+            </TabsTrigger>
+            {isProviderUser && (
+              <TabsTrigger value="provider" className="text-sm rounded-md">
+                <Stethoscope className="h-4 w-4 mr-1" />
+                Provider
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
