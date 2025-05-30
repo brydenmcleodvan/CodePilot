@@ -17,6 +17,7 @@ const { voiceGestureInterface } = require('./voiceGestureInterface');
 const { digitalTwinSimulation } = require('./digitalTwinSimulation');
 const { proactiveAlertSystem } = require('./proactiveAlertSystem');
 const { geneticHealthEngine } = require('./geneticHealthEngine');
+const { healthPlanningToolkit } = require('./healthPlanningToolkit');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1438,6 +1439,159 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Health Planning Toolkit API Endpoints
+ */
+router.get('/api/health-plan/current', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const planData = await healthPlanningToolkit.getUserPlan(userAuth.uid);
+    
+    if (!planData) {
+      return res.json({
+        success: true,
+        has_active_plan: false,
+        message: 'No active health plan found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      has_active_plan: true,
+      ...planData
+    });
+  } catch (error) {
+    console.error('Health plan retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get health plan',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/health-plan/create', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { plan_type, customizations = {} } = req.body;
+    
+    if (!plan_type) {
+      return res.status(400).json({
+        error: 'Missing plan type',
+        message: 'plan_type is required'
+      });
+    }
+    
+    const planResult = await healthPlanningToolkit.createHealthPlan(
+      userAuth.uid,
+      plan_type,
+      customizations
+    );
+    
+    res.json(planResult);
+  } catch (error) {
+    console.error('Health plan creation error:', error);
+    res.status(500).json({
+      error: 'Failed to create health plan',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/health-plan/progress', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const progressData = req.body;
+    
+    if (!progressData || Object.keys(progressData).length === 0) {
+      return res.status(400).json({
+        error: 'Missing progress data',
+        message: 'Progress data is required'
+      });
+    }
+    
+    const progressResult = await healthPlanningToolkit.updatePlanProgress(
+      userAuth.uid,
+      progressData
+    );
+    
+    res.json(progressResult);
+  } catch (error) {
+    console.error('Plan progress update error:', error);
+    res.status(500).json({
+      error: 'Failed to update plan progress',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/health-plan/templates', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const templates = Object.entries(healthPlanningToolkit.planTemplates).map(([id, template]) => ({
+      id,
+      name: template.name,
+      description: template.description,
+      duration_days: template.duration_days,
+      difficulty: template.difficulty,
+      phases: Object.keys(template.phases)
+    }));
+    
+    res.json({
+      success: true,
+      templates
+    });
+  } catch (error) {
+    console.error('Plan templates error:', error);
+    res.status(500).json({
+      error: 'Failed to get plan templates',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/health-plan/current', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Remove user's current plan
+    healthPlanningToolkit.userPlans.delete(userAuth.uid);
+    healthPlanningToolkit.progressTracking.delete(userAuth.uid);
+    
+    res.json({
+      success: true,
+      message: 'Health plan cancelled successfully'
+    });
+  } catch (error) {
+    console.error('Plan cancellation error:', error);
+    res.status(500).json({
+      error: 'Failed to cancel health plan',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/health-plan/achievements', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const achievements = healthPlanningToolkit.achievements.get(userAuth.uid) || [];
+    
+    res.json({
+      success: true,
+      achievements,
+      total_achievements: achievements.length
+    });
+  } catch (error) {
+    console.error('Achievements retrieval error:', error);
+    res.status(500).json({
+      error: 'Failed to get achievements',
       message: error.message
     });
   }
