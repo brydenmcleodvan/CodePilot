@@ -16,6 +16,7 @@ const { federatedHealthIntelligence } = require('./federatedHealthIntelligence')
 const { voiceGestureInterface } = require('./voiceGestureInterface');
 const { digitalTwinSimulation } = require('./digitalTwinSimulation');
 const { proactiveAlertSystem } = require('./proactiveAlertSystem');
+const { geneticHealthEngine } = require('./geneticHealthEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1437,6 +1438,168 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Genetic Health Insight Engine API Endpoints
+ */
+router.get('/api/genetic/insights', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const insights = await geneticHealthEngine.getUserGeneticInsights(userAuth.uid);
+    
+    if (!insights) {
+      return res.json({
+        success: true,
+        has_genetic_data: false,
+        message: 'No genetic data uploaded yet'
+      });
+    }
+    
+    res.json({
+      success: true,
+      has_genetic_data: true,
+      insights,
+      last_updated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Genetic insights error:', error);
+    res.status(500).json({
+      error: 'Failed to get genetic insights',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/genetic/upload', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const geneticData = req.body;
+    
+    if (!geneticData || !geneticData.variants) {
+      return res.status(400).json({
+        error: 'Missing genetic data',
+        message: 'Genetic variants data is required'
+      });
+    }
+    
+    const analysisResult = await geneticHealthEngine.processGeneticData(
+      userAuth.uid,
+      geneticData
+    );
+    
+    res.json(analysisResult);
+  } catch (error) {
+    console.error('Genetic data upload error:', error);
+    res.status(500).json({
+      error: 'Failed to process genetic data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/genetic/traits', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const insights = await geneticHealthEngine.getUserGeneticInsights(userAuth.uid);
+    
+    if (!insights) {
+      return res.status(404).json({
+        error: 'No genetic data found',
+        message: 'Upload genetic data first to see trait predictions'
+      });
+    }
+    
+    res.json({
+      success: true,
+      traits: insights.trait_predictions,
+      total_traits: insights.trait_predictions.length
+    });
+  } catch (error) {
+    console.error('Genetic traits error:', error);
+    res.status(500).json({
+      error: 'Failed to get genetic traits',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/genetic/ancestry', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const insights = await geneticHealthEngine.getUserGeneticInsights(userAuth.uid);
+    
+    if (!insights) {
+      return res.status(404).json({
+        error: 'No genetic data found',
+        message: 'Upload genetic data first to see ancestry insights'
+      });
+    }
+    
+    res.json({
+      success: true,
+      ancestry: insights.ancestry_insights,
+      health_predispositions: insights.health_predispositions
+    });
+  } catch (error) {
+    console.error('Genetic ancestry error:', error);
+    res.status(500).json({
+      error: 'Failed to get ancestry insights',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/genetic/nutrition', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const insights = await geneticHealthEngine.getUserGeneticInsights(userAuth.uid);
+    
+    if (!insights) {
+      return res.status(404).json({
+        error: 'No genetic data found',
+        message: 'Upload genetic data first to see nutritional recommendations'
+      });
+    }
+    
+    res.json({
+      success: true,
+      recommendations: insights.nutritional_recommendations,
+      lifestyle_optimizations: insights.lifestyle_optimizations
+    });
+  } catch (error) {
+    console.error('Genetic nutrition error:', error);
+    res.status(500).json({
+      error: 'Failed to get nutritional insights',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/genetic/data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Remove user's genetic data
+    geneticHealthEngine.userGeneticProfiles.delete(userAuth.uid);
+    geneticHealthEngine.traitPredictions.delete(userAuth.uid);
+    geneticHealthEngine.ancestryData.delete(userAuth.uid);
+    
+    res.json({
+      success: true,
+      message: 'Genetic data deleted successfully'
+    });
+  } catch (error) {
+    console.error('Genetic data deletion error:', error);
+    res.status(500).json({
+      error: 'Failed to delete genetic data',
       message: error.message
     });
   }
