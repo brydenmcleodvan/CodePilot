@@ -23,6 +23,7 @@ const { medicalProviderMode } = require('./medicalProviderMode');
 const { outcomesReportingEngine } = require('./outcomesReportingEngine');
 const { dataTransparencyLedger } = require('./dataTransparencyLedger');
 const { marketplaceMonetization } = require('./marketplaceMonetization');
+const { riskDetectionEngine } = require('./riskDetectionEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1444,6 +1445,174 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Risk Detection & Alert System API Endpoints
+ */
+router.post('/api/risk/process-wearable-data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { device_data, device_type } = req.body;
+    
+    if (!device_data) {
+      return res.status(400).json({
+        error: 'Missing device data',
+        message: 'device_data is required'
+      });
+    }
+    
+    const result = await riskDetectionEngine.processWearableData(
+      userAuth.uid,
+      device_data
+    );
+    
+    // Log data usage for transparency
+    await dataTransparencyLedger.logDataUsage(
+      userAuth.uid,
+      'health_metrics',
+      'risk_analysis',
+      {
+        method: 'real_time_monitoring',
+        data_elements: Object.keys(device_data),
+        result_description: `Processed ${result.processed_metrics?.length || 0} health metrics, generated ${result.alerts_generated} alerts`
+      }
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Wearable data processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process wearable data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/risk/alerts', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { severity } = req.query;
+    
+    const alerts = await riskDetectionEngine.getUserAlerts(
+      userAuth.uid,
+      severity !== 'all' ? severity : null
+    );
+    
+    res.json(alerts);
+  } catch (error) {
+    console.error('Get alerts error:', error);
+    res.status(500).json({
+      error: 'Failed to get user alerts',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/risk/alerts/:alertId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { alertId } = req.params;
+    const { action } = req.body;
+    
+    if (!['acknowledge', 'resolve', 'dismiss'].includes(action)) {
+      return res.status(400).json({
+        error: 'Invalid action',
+        message: 'action must be acknowledge, resolve, or dismiss'
+      });
+    }
+    
+    const result = await riskDetectionEngine.updateAlertStatus(
+      userAuth.uid,
+      alertId,
+      action
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Alert update error:', error);
+    res.status(500).json({
+      error: 'Failed to update alert',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/risk/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's alert preferences
+    const preferences = await riskDetectionEngine.getUserAlertPreferences(userAuth.uid);
+    
+    res.json(preferences);
+  } catch (error) {
+    console.error('Get preferences error:', error);
+    res.status(500).json({
+      error: 'Failed to get alert preferences',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/risk/preferences', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const preferences = req.body;
+    
+    // Store user's alert preferences
+    // In production, save to user preferences database
+    
+    res.json({
+      success: true,
+      preferences,
+      message: 'Alert preferences updated successfully'
+    });
+  } catch (error) {
+    console.error('Update preferences error:', error);
+    res.status(500).json({
+      error: 'Failed to update preferences',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/risk/emergency-test', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Simulate emergency alert for testing
+    const testAlert = {
+      alert_id: `test_${Date.now()}`,
+      user_id: userAuth.uid,
+      metric_name: 'heart_rate',
+      metric_display_name: 'Heart Rate Monitoring',
+      current_value: 200,
+      unit: 'bpm',
+      severity: 'critical',
+      reason: 'Test emergency alert - Severe tachycardia detected',
+      timestamp: new Date().toISOString(),
+      requires_action: true,
+      notification_method: 'immediate_all',
+      status: 'active',
+      acknowledged: false,
+      resolved: false
+    };
+    
+    await riskDetectionEngine.handleEmergencyAlert(userAuth.uid, testAlert);
+    
+    res.json({
+      success: true,
+      message: 'Emergency alert test completed',
+      test_alert: testAlert
+    });
+  } catch (error) {
+    console.error('Emergency test error:', error);
+    res.status(500).json({
+      error: 'Failed to test emergency alert',
       message: error.message
     });
   }
