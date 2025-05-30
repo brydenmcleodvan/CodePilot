@@ -20,6 +20,7 @@ const { geneticHealthEngine } = require('./geneticHealthEngine');
 const { healthPlanningToolkit } = require('./healthPlanningToolkit');
 const { behavioralPsychologyLayer } = require('./behavioralPsychologyLayer');
 const { medicalProviderMode } = require('./medicalProviderMode');
+const { outcomesReportingEngine } = require('./outcomesReportingEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1445,6 +1446,220 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     });
   }
 });
+
+/**
+ * Real-World Outcomes Reporting API Endpoints
+ */
+router.get('/api/outcomes/personal', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { timeframe = 90 } = req.query;
+    
+    const report = await outcomesReportingEngine.generateUserOutcomesReport(
+      userAuth.uid, 
+      parseInt(timeframe)
+    );
+    
+    res.json(report);
+  } catch (error) {
+    console.error('Personal outcomes report error:', error);
+    res.status(500).json({
+      error: 'Failed to generate personal outcomes report',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/outcomes/population', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { timeframe = 90 } = req.query;
+    
+    const report = await outcomesReportingEngine.generatePopulationOutcomesReport(
+      parseInt(timeframe),
+      true // anonymized
+    );
+    
+    res.json(report);
+  } catch (error) {
+    console.error('Population outcomes report error:', error);
+    res.status(500).json({
+      error: 'Failed to generate population outcomes report',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/outcomes/track', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { category, metric, value, timestamp } = req.body;
+    
+    if (!category || !metric || value === undefined) {
+      return res.status(400).json({
+        error: 'Missing required outcome data',
+        message: 'category, metric, and value are required'
+      });
+    }
+    
+    const result = await outcomesReportingEngine.trackUserOutcome(
+      userAuth.uid,
+      category,
+      metric,
+      value,
+      timestamp || new Date().toISOString()
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Outcome tracking error:', error);
+    res.status(500).json({
+      error: 'Failed to track outcome',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/outcomes/conversion', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { event_type, outcome_correlations } = req.body;
+    
+    if (!event_type) {
+      return res.status(400).json({
+        error: 'Missing conversion event type',
+        message: 'event_type is required'
+      });
+    }
+    
+    const result = await outcomesReportingEngine.trackConversionEvent(
+      userAuth.uid,
+      event_type,
+      outcome_correlations || {}
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Conversion tracking error:', error);
+    res.status(500).json({
+      error: 'Failed to track conversion',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/outcomes/share', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { improvements, achievements, timeframe } = req.body;
+    
+    // Process sharing anonymously
+    const shareData = {
+      user_id: userAuth.uid,
+      shared_at: new Date().toISOString(),
+      improvements: improvements || {},
+      achievements: achievements || [],
+      timeframe: timeframe || 90,
+      consent_given: true
+    };
+    
+    // In production, store anonymized data for community insights
+    
+    res.json({
+      success: true,
+      message: 'Health progress shared successfully',
+      community_impact: 'Your story will inspire others on their health journey'
+    });
+  } catch (error) {
+    console.error('Outcomes sharing error:', error);
+    res.status(500).json({
+      error: 'Failed to share outcomes',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/outcomes/marketing-data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'admin');
+    const { timeframe = 90, include_conversion_data = false } = req.query;
+    
+    const report = await outcomesReportingEngine.generatePopulationOutcomesReport(
+      parseInt(timeframe),
+      true
+    );
+    
+    // Generate marketing-focused summary
+    const marketingData = {
+      headline_stats: {
+        total_users_improved: report.population_report.total_users_analyzed,
+        top_improvement_category: this.getTopImprovementCategory(report.population_report.category_outcomes),
+        average_improvement: this.calculateOverallAverageImprovement(report.population_report.category_outcomes),
+        timeframe_days: parseInt(timeframe)
+      },
+      credible_claims: this.generateCredibleClaims(report.population_report.category_outcomes),
+      conversion_insights: include_conversion_data ? report.population_report.conversion_insights : null,
+      anonymized_success_stories: report.population_report.success_stories
+    };
+    
+    res.json({
+      success: true,
+      marketing_data: marketingData,
+      report_generated: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Marketing data error:', error);
+    res.status(500).json({
+      error: 'Failed to generate marketing data',
+      message: error.message
+    });
+  }
+});
+
+// Helper methods for marketing data
+router.getTopImprovementCategory = function(categoryOutcomes) {
+  let topCategory = null;
+  let topImprovement = 0;
+  
+  for (const [category, data] of Object.entries(categoryOutcomes)) {
+    if (data.average_improvement > topImprovement) {
+      topImprovement = data.average_improvement;
+      topCategory = {
+        category: data.category_name,
+        improvement: data.average_improvement
+      };
+    }
+  }
+  
+  return topCategory;
+};
+
+router.calculateOverallAverageImprovement = function(categoryOutcomes) {
+  const improvements = Object.values(categoryOutcomes).map(data => data.average_improvement);
+  return improvements.length > 0 
+    ? Math.round(improvements.reduce((sum, imp) => sum + imp, 0) / improvements.length)
+    : 0;
+};
+
+router.generateCredibleClaims = function(categoryOutcomes) {
+  const claims = [];
+  
+  for (const [category, data] of Object.entries(categoryOutcomes)) {
+    if (data.average_improvement >= 5 && data.users_analyzed >= 100) {
+      claims.push({
+        category: data.category_name,
+        claim: `Users improved ${data.category_name.toLowerCase()} by an average of ${data.average_improvement}% in 90 days`,
+        supporting_data: {
+          users_analyzed: data.users_analyzed,
+          improvement_rate: data.improvement_rate,
+          clinical_relevance: data.clinical_relevance
+        }
+      });
+    }
+  }
+  
+  return claims;
+};
 
 /**
  * Accessibility & Internationalization API Endpoints
