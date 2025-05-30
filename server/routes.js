@@ -21,6 +21,7 @@ const { healthPlanningToolkit } = require('./healthPlanningToolkit');
 const { behavioralPsychologyLayer } = require('./behavioralPsychologyLayer');
 const { medicalProviderMode } = require('./medicalProviderMode');
 const { outcomesReportingEngine } = require('./outcomesReportingEngine');
+const { dataTransparencyLedger } = require('./dataTransparencyLedger');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1442,6 +1443,143 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     console.error('Privacy guarantees error:', error);
     res.status(500).json({
       error: 'Failed to get privacy guarantees',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * Data Transparency & Privacy Management API Endpoints
+ */
+router.get('/api/privacy/usage-history', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { timeframe = 90 } = req.query;
+    
+    const usageHistory = await dataTransparencyLedger.getUserDataUsageHistory(
+      userAuth.uid,
+      parseInt(timeframe)
+    );
+    
+    res.json(usageHistory);
+  } catch (error) {
+    console.error('Data usage history error:', error);
+    res.status(500).json({
+      error: 'Failed to get data usage history',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/privacy/permissions', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const permissions = dataTransparencyLedger.userPermissions.get(userAuth.uid) || 
+      dataTransparencyLedger.getDefaultPermissions();
+    
+    res.json(permissions);
+  } catch (error) {
+    console.error('Privacy permissions error:', error);
+    res.status(500).json({
+      error: 'Failed to get privacy permissions',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/privacy/permissions', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const permissionUpdates = req.body;
+    
+    const result = await dataTransparencyLedger.updateUserPermissions(
+      userAuth.uid,
+      permissionUpdates
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Permission update error:', error);
+    res.status(500).json({
+      error: 'Failed to update permissions',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/privacy/compliance', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { framework = 'gdpr' } = req.query;
+    
+    const complianceReport = await dataTransparencyLedger.generateComplianceReport(
+      userAuth.uid,
+      framework
+    );
+    
+    res.json(complianceReport);
+  } catch (error) {
+    console.error('Compliance report error:', error);
+    res.status(500).json({
+      error: 'Failed to generate compliance report',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/privacy/data-request', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { request_type, details } = req.body;
+    
+    if (!request_type) {
+      return res.status(400).json({
+        error: 'Missing request type',
+        message: 'request_type is required'
+      });
+    }
+    
+    const result = await dataTransparencyLedger.processDataSubjectRequest(
+      userAuth.uid,
+      request_type,
+      details || {}
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Data subject request error:', error);
+    res.status(500).json({
+      error: 'Failed to process data request',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/privacy/log-usage', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'system');
+    const { user_id, data_category, purpose, processing_details } = req.body;
+    
+    if (!user_id || !data_category || !purpose) {
+      return res.status(400).json({
+        error: 'Missing required usage data',
+        message: 'user_id, data_category, and purpose are required'
+      });
+    }
+    
+    const result = await dataTransparencyLedger.logDataUsage(
+      user_id,
+      data_category,
+      purpose,
+      processing_details || {}
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Data usage logging error:', error);
+    res.status(500).json({
+      error: 'Failed to log data usage',
       message: error.message
     });
   }
