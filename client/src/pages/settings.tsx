@@ -17,6 +17,7 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { AccessibilitySettingsPanel } from "@/components/AccessibilitySettingsPanel";
+import { PrivacyCenter } from "@/components/PrivacyCenter";
 import { motion } from "framer-motion";
 
 export default function Settings() {
@@ -97,7 +98,13 @@ export default function Settings() {
 
           {/* Privacy Settings */}
           <TabsContent value="privacy">
-            <PrivacySettings />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <PrivacyCenter userId={user?.id} />
+            </motion.div>
           </TabsContent>
 
           {/* Appearance Settings */}
