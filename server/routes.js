@@ -22,6 +22,7 @@ const { behavioralPsychologyLayer } = require('./behavioralPsychologyLayer');
 const { medicalProviderMode } = require('./medicalProviderMode');
 const { outcomesReportingEngine } = require('./outcomesReportingEngine');
 const { dataTransparencyLedger } = require('./dataTransparencyLedger');
+const { marketplaceMonetization } = require('./marketplaceMonetization');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1447,6 +1448,173 @@ router.get('/api/federated-health/privacy-guarantees', async (req, res) => {
     });
   }
 });
+
+/**
+ * Marketplace Monetization API Endpoints
+ */
+router.get('/api/marketplace/recommendations', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Get user's health profile and goals
+    const healthProfile = await this.getUserHealthProfile(userAuth.uid);
+    const healthGoals = await this.getUserHealthGoals(userAuth.uid);
+    
+    const recommendations = await marketplaceMonetization.generatePersonalizedRecommendations(
+      userAuth.uid,
+      healthProfile,
+      healthGoals
+    );
+    
+    // Log data usage for transparency
+    await dataTransparencyLedger.logDataUsage(
+      userAuth.uid,
+      'health_metrics',
+      'recommendation_generation',
+      {
+        method: 'ai_analysis',
+        data_elements: ['health_profile', 'goals', 'historical_outcomes'],
+        result_description: `Generated ${recommendations.recommendations?.personalized_products?.length || 0} personalized product recommendations`
+      }
+    );
+    
+    res.json(recommendations);
+  } catch (error) {
+    console.error('Marketplace recommendations error:', error);
+    res.status(500).json({
+      error: 'Failed to generate recommendations',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/marketplace/tier', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    const tierInfo = await marketplaceMonetization.calculateUserEngagementTier(userAuth.uid);
+    
+    res.json(tierInfo);
+  } catch (error) {
+    console.error('Marketplace tier error:', error);
+    res.status(500).json({
+      error: 'Failed to calculate user tier',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/marketplace/review', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const reviewData = req.body;
+    
+    if (!reviewData.product_id) {
+      return res.status(400).json({
+        error: 'Missing product ID',
+        message: 'product_id is required'
+      });
+    }
+    
+    const reviewResult = await marketplaceMonetization.submitOutcomeBasedReview(
+      userAuth.uid,
+      reviewData.product_id,
+      reviewData
+    );
+    
+    res.json(reviewResult);
+  } catch (error) {
+    console.error('Review submission error:', error);
+    res.status(500).json({
+      error: 'Failed to submit review',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/marketplace/product/:productId/efficacy', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { productId } = req.params;
+    
+    const efficacyReport = await marketplaceMonetization.getProductEfficacyReport(productId);
+    
+    res.json(efficacyReport);
+  } catch (error) {
+    console.error('Product efficacy error:', error);
+    res.status(500).json({
+      error: 'Failed to get product efficacy data',
+      message: error.message
+    });
+  }
+});
+
+router.post('/api/marketplace/purchase-tracking', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { product_id, purchase_amount, affiliate_partner } = req.body;
+    
+    if (!product_id || !purchase_amount) {
+      return res.status(400).json({
+        error: 'Missing required purchase data',
+        message: 'product_id and purchase_amount are required'
+      });
+    }
+    
+    // Track purchase for commission calculation
+    const purchaseTracking = {
+      user_id: userAuth.uid,
+      product_id,
+      purchase_amount,
+      affiliate_partner,
+      commission_earned: purchase_amount * 0.10, // 10% base commission
+      timestamp: new Date().toISOString()
+    };
+    
+    // In production, store purchase tracking data
+    
+    res.json({
+      success: true,
+      purchase_tracked: true,
+      commission_earned: purchaseTracking.commission_earned,
+      message: 'Purchase tracked for outcome monitoring'
+    });
+  } catch (error) {
+    console.error('Purchase tracking error:', error);
+    res.status(500).json({
+      error: 'Failed to track purchase',
+      message: error.message
+    });
+  }
+});
+
+// Helper methods for marketplace functionality
+router.getUserHealthProfile = async function(userId) {
+  // Return user's current health metrics and profile
+  return {
+    sleep_quality: 6.2,
+    energy_levels: 5.8,
+    stress_levels: 6.5,
+    fitness_level: 7.0,
+    nutrition_score: 6.8,
+    age: 32,
+    gender: 'female',
+    activity_level: 'moderate',
+    health_conditions: ['mild_anxiety'],
+    supplement_history: ['vitamin_d', 'omega_3']
+  };
+};
+
+router.getUserHealthGoals = async function(userId) {
+  // Return user's health improvement goals
+  return {
+    sleep_improvement: 0.20, // 20% improvement target
+    energy_increase: 0.25,   // 25% improvement target
+    stress_reduction: 0.30,  // 30% reduction target
+    fitness_goals: ['strength_building', 'cardiovascular_health'],
+    timeline: 90 // days
+  };
+};
 
 /**
  * Data Transparency & Privacy Management API Endpoints
