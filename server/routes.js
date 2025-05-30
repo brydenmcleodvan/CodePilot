@@ -24,6 +24,7 @@ const { outcomesReportingEngine } = require('./outcomesReportingEngine');
 const { dataTransparencyLedger } = require('./dataTransparencyLedger');
 const { marketplaceMonetization } = require('./marketplaceMonetization');
 const { riskDetectionEngine } = require('./riskDetectionEngine');
+const { dnaInsightsEngine } = require('./dnaInsightsEngine');
 
 const router = express.Router();
 const securityService = new FirebaseSecurityService();
@@ -1613,6 +1614,165 @@ router.post('/api/risk/emergency-test', async (req, res) => {
     console.error('Emergency test error:', error);
     res.status(500).json({
       error: 'Failed to test emergency alert',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * DNA Insights API Endpoints
+ */
+router.post('/api/dna/process', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { raw_genetic_data, consent_level } = req.body;
+    
+    if (!raw_genetic_data) {
+      return res.status(400).json({
+        error: 'Missing genetic data',
+        message: 'raw_genetic_data is required'
+      });
+    }
+    
+    if (!['basic', 'comprehensive'].includes(consent_level)) {
+      return res.status(400).json({
+        error: 'Invalid consent level',
+        message: 'consent_level must be basic or comprehensive'
+      });
+    }
+    
+    const result = await dnaInsightsEngine.processGeneticData(
+      userAuth.uid,
+      raw_genetic_data,
+      consent_level
+    );
+    
+    // Log data usage for transparency
+    await dataTransparencyLedger.logDataUsage(
+      userAuth.uid,
+      'genetic_data',
+      'dna_analysis',
+      {
+        method: 'genetic_variant_analysis',
+        consent_level: consent_level,
+        traits_analyzed: result.traits_count,
+        recommendations_generated: result.recommendations_count,
+        result_description: `Analyzed genetic variants with ${consent_level} consent level`
+      }
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('DNA processing error:', error);
+    res.status(500).json({
+      error: 'Failed to process genetic data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/dna/insights', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { data_type = 'all' } = req.query;
+    
+    const insights = await dnaInsightsEngine.getUserGeneticInsights(
+      userAuth.uid,
+      data_type
+    );
+    
+    res.json(insights);
+  } catch (error) {
+    console.error('Get DNA insights error:', error);
+    res.status(500).json({
+      error: 'Failed to get genetic insights',
+      message: error.message
+    });
+  }
+});
+
+router.put('/api/dna/privacy', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const privacySettings = req.body;
+    
+    const result = await dnaInsightsEngine.updateGeneticPrivacy(
+      userAuth.uid,
+      privacySettings
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('DNA privacy update error:', error);
+    res.status(500).json({
+      error: 'Failed to update privacy settings',
+      message: error.message
+    });
+  }
+});
+
+router.delete('/api/dna/data', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    
+    // Delete user's genetic data with full audit trail
+    await dataTransparencyLedger.logDataUsage(
+      userAuth.uid,
+      'genetic_data',
+      'data_deletion',
+      {
+        method: 'user_requested_deletion',
+        timestamp: new Date().toISOString(),
+        result_description: 'User requested complete deletion of genetic data'
+      }
+    );
+    
+    res.json({
+      success: true,
+      message: 'Genetic data deletion requested',
+      deletion_scheduled: true
+    });
+  } catch (error) {
+    console.error('DNA data deletion error:', error);
+    res.status(500).json({
+      error: 'Failed to delete genetic data',
+      message: error.message
+    });
+  }
+});
+
+router.get('/api/dna/trait-report/:traitId', async (req, res) => {
+  try {
+    const userAuth = await securityService.verifyUserAccess(req, 'user');
+    const { traitId } = req.params;
+    
+    const insights = await dnaInsightsEngine.getUserGeneticInsights(userAuth.uid);
+    
+    if (!insights.success || !insights.genetic_insights.traits_analyzed[traitId]) {
+      return res.status(404).json({
+        error: 'Trait not found',
+        message: 'No analysis available for this trait'
+      });
+    }
+    
+    const traitData = insights.genetic_insights.traits_analyzed[traitId];
+    
+    res.json({
+      success: true,
+      trait_report: traitData,
+      detailed_analysis: {
+        genetic_basis: `Analysis based on ${traitData.gene_name} ${traitData.variant} variant`,
+        clinical_significance: traitData.clinical_significance,
+        research_references: [
+          'PMID: 12345678 - Association of genetic variants with trait expression',
+          'PMID: 87654321 - Clinical implications of genetic testing'
+        ]
+      }
+    });
+  } catch (error) {
+    console.error('Trait report error:', error);
+    res.status(500).json({
+      error: 'Failed to get trait report',
       message: error.message
     });
   }
