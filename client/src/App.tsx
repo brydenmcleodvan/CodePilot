@@ -48,6 +48,7 @@ const B2BLicensingPage = lazy(() => import("@/pages/b2b-licensing"));
 
 // Privacy & Security pages
 const PrivacySettingsPage = lazy(() => import("@/pages/privacy-settings-page"));
+const SettingsPage = lazy(() => import("@/pages/settings"));
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -99,6 +100,7 @@ function Router() {
               <Route path="/thank-you" component={ThankYouPage} />
               <Route path="/ai-intelligence" component={AIIntelligencePage} />
               <Route path="/privacy-policy" component={PrivacyPolicyPage} />
+              <Route path="/settings" component={SettingsPage} />
               <Route path="/settings/privacy" component={PrivacySettingsPage} />
               <Route path="/changelog" component={ChangelogPage} />
               <Route path="/feature-voting" component={FeatureVotingPage} />

@@ -6,6 +6,199 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Accessibility Support Styles */
+@layer base {
+  /* High Contrast Mode */
+  .high-contrast {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    filter: contrast(1.5);
+  }
+
+  .high-contrast * {
+    border-color: #000 !important;
+  }
+
+  .high-contrast .bg-gray-50 {
+    background-color: #ffffff !important;
+  }
+
+  .high-contrast .bg-gray-100 {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Inverted Contrast Mode */
+  .inverted-contrast {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  .inverted-contrast img,
+  .inverted-contrast video,
+  .inverted-contrast iframe {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  /* Reduced Motion */
+  .reduce-motion *,
+  .reduce-motion *::before,
+  .reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Enhanced Focus Indicators */
+  .enhanced-focus *:focus {
+    outline: 3px solid #4A90E2 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 1px #ffffff, 0 0 0 4px #4A90E2 !important;
+  }
+
+  .enhanced-focus button:focus,
+  .enhanced-focus input:focus,
+  .enhanced-focus select:focus,
+  .enhanced-focus textarea:focus {
+    transform: scale(1.02);
+  }
+
+  /* Color Blind Support */
+  .colorblind-support .text-red-500 {
+    color: #CC0000 !important;
+    text-decoration: underline;
+  }
+
+  .colorblind-support .text-green-500 {
+    color: #007700 !important;
+    font-weight: bold;
+  }
+
+  .colorblind-support .bg-red-100 {
+    background-color: #FFE6E6 !important;
+    border: 2px solid #CC0000 !important;
+  }
+
+  .colorblind-support .bg-green-100 {
+    background-color: #E6FFE6 !important;
+    border: 2px solid #007700 !important;
+  }
+
+  /* Dyslexic Font Support */
+  .font-dyslexic {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', cursive !important;
+  }
+
+  /* Simplified Interface */
+  .simplified-interface {
+    --tw-shadow: none !important;
+    --tw-ring-shadow: none !important;
+  }
+
+  .simplified-interface .border-rounded {
+    border-radius: 0 !important;
+  }
+
+  .simplified-interface .shadow,
+  .simplified-interface .shadow-lg,
+  .simplified-interface .shadow-md {
+    box-shadow: none !important;
+  }
+
+  /* RTL Support */
+  .rtl {
+    direction: rtl;
+  }
+
+  .rtl .ml-2 {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+
+  .rtl .mr-2 {
+    margin-right: 0;
+    margin-left: 0.5rem;
+  }
+
+  .rtl .text-left {
+    text-align: right;
+  }
+
+  .rtl .text-right {
+    text-align: left;
+  }
+
+  /* Screen Reader Only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Reading Guide */
+  .reading-guide {
+    position: relative;
+  }
+
+  .reading-guide::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1.5em;
+    background: linear-gradient(
+      to bottom,
+      rgba(74, 144, 226, 0.1) 0%,
+      rgba(74, 144, 226, 0.05) 100%
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* Custom Font Sizes */
+  .text-xs { font-size: 0.75rem; }
+  .text-sm { font-size: 0.875rem; }
+  .text-base { font-size: 1rem; }
+  .text-lg { font-size: 1.125rem; }
+  .text-xl { font-size: 1.25rem; }
+  .text-2xl { font-size: 1.5rem; }
+
+  /* High DPI adjustments */
+  @media (min-resolution: 2dppx) {
+    .enhanced-focus *:focus {
+      outline-width: 2px !important;
+    }
+  }
+
+  /* Keyboard navigation improvements */
+  .keyboard-user *:focus {
+    outline: 2px solid #4A90E2 !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Skip links */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #4A90E2;
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 1000;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+  }
+}
+
 /* Custom animations for skeleton loaders */
 @keyframes shimmer {
   0% {
