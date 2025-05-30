@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import HealthDashboard from "@/components/health-dashboard";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import ProgressBadges from "@/components/progress-badges";
+import { progressTracker } from "@/services/progress-tracker";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -52,6 +54,16 @@ const Profile = () => {
   const { data: healthStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/health/stats'],
     enabled: !!user,
+  });
+
+  // Query for progress data (streaks, achievements, improvements)
+  const { data: progressData, isLoading: progressLoading } = useQuery({
+    queryKey: ['/api/progress', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      return progressTracker.getProgressData(user.id);
+    },
+    enabled: !!user?.id,
   });
 
   if (!user) {
@@ -105,6 +117,18 @@ const Profile = () => {
                 >
                   <i className="ri-heart-line"></i>
                   <span>Health Data</span>
+                </a>
+                <a
+                  href="#progress-badges"
+                  onClick={() => setActiveTab("progress-badges")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "progress-badges"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20 dark:text-primary-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-trophy-line"></i>
+                  <span>Progress & Badges</span>
                 </a>
                 <a
                   href="#genetic-profile"
@@ -249,6 +273,37 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "progress-badges" && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+              <h2 className="text-2xl font-heading font-semibold mb-6 text-dark-text dark:text-white">Progress & Achievements</h2>
+              
+              {progressLoading ? (
+                <div className="text-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your progress...</p>
+                </div>
+              ) : progressData ? (
+                <ProgressBadges
+                  streaks={progressData.streaks}
+                  improvements={progressData.improvements}
+                  achievements={progressData.achievements}
+                  healthScore={progressData.healthScore}
+                  previousHealthScore={progressData.previousHealthScore}
+                />
+              ) : (
+                <div className="text-center py-10">
+                  <div className="text-gray-500 dark:text-gray-400">
+                    <i className="ri-trophy-line text-4xl mb-4 block"></i>
+                    <p>Start tracking your health goals to see progress and earn achievements!</p>
+                    <Button className="mt-4" onClick={() => setActiveTab("health-data")}>
+                      Connect Health Data
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
