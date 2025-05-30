@@ -67,22 +67,52 @@ export default function ConnectedServicesSettings() {
     const service = services.find(s => s.id === serviceId);
     if (!service) return;
 
-    setServices(prev => prev.map(s => 
-      s.id === serviceId 
-        ? { 
-            ...s, 
-            connected: !s.connected,
-            lastSync: !s.connected ? new Date().toISOString() : undefined
-          }
-        : s
-    ));
+    const newConnectionState = !service.connected;
+    
+    try {
+      // Update backend
+      const response = await fetch('/api/connected-services', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceId,
+          connected: newConnectionState,
+          lastSync: newConnectionState ? new Date().toISOString() : null
+        }),
+      });
 
-    toast({
-      title: service.connected ? "Service Disconnected" : "Service Connected",
-      description: service.connected 
-        ? `${service.name} has been disconnected from your account.`
-        : `${service.name} is now connected and syncing data.`,
-    });
+      if (!response.ok) {
+        throw new Error('Failed to update service connection');
+      }
+
+      // Update local state only after successful backend update
+      setServices(prev => prev.map(s => 
+        s.id === serviceId 
+          ? { 
+              ...s, 
+              connected: newConnectionState,
+              lastSync: newConnectionState ? new Date().toISOString() : undefined
+            }
+          : s
+      ));
+
+      toast({
+        title: service.connected ? "Service Disconnected" : "Service Connected",
+        description: service.connected 
+          ? `${service.name} has been disconnected from your account.`
+          : `${service.name} is now connected and syncing data.`,
+      });
+
+    } catch (error) {
+      console.error('Error updating service connection:', error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to update service connection. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatLastSync = (timestamp: string) => {

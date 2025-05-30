@@ -46,15 +46,29 @@ export default function GoalCreator() {
     setIsSubmitting(true);
 
     try {
-      const goalData: HealthGoal = {
-        goalType,
-        target: parseInt(target),
-        duration: parseInt(duration),
-        unit: selectedGoal?.unit || ''
+      const goalData = {
+        metricType: goalType,
+        goalType: 'target',
+        goalValue: parseInt(target),
+        unit: selectedGoal?.unit || '',
+        timeframe: 'daily',
+        notes: `${selectedGoal?.label} goal for ${duration} days`
       };
 
-      // Here you would typically send to your backend API
-      console.log('Creating health goal:', goalData);
+      // Send to backend API
+      const response = await fetch('/api/health-goals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(goalData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create goal');
+      }
+
+      const result = await response.json();
       
       toast({
         title: "Goal Created Successfully!",
@@ -66,7 +80,13 @@ export default function GoalCreator() {
       setTarget('');
       setDuration('');
       
+      // Refresh goals list if callback provided
+      if (typeof window !== 'undefined' && window.location.pathname.includes('health-goals')) {
+        window.location.reload();
+      }
+      
     } catch (error) {
+      console.error('Error creating goal:', error);
       toast({
         title: "Error Creating Goal",
         description: "Something went wrong. Please try again.",

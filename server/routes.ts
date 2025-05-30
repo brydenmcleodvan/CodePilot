@@ -228,6 +228,123 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Health goals - with RBAC enforcement
+  app.get('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      
+      // Check if user has permission to read health goals
+      const hasPermission = await checkPermission(user, 'read', ResourceType.HEALTH_GOAL);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access health goals' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      res.json(goals);
+    } catch (error) {
+      console.error('Error fetching health goals:', error);
+      res.status(500).json({ message: 'Failed to fetch health goals' });
+    }
+  });
+
+  app.post('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      
+      // Check if user has permission to create health goals
+      const hasPermission = await checkPermission(user, 'create', ResourceType.HEALTH_GOAL);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create health goals' });
+      }
+
+      const goalData = { 
+        ...req.body, 
+        userId: user.id,
+        createdAt: new Date()
+      };
+      const newGoal = await storage.addHealthGoal(goalData);
+      res.status(201).json(newGoal);
+    } catch (error) {
+      console.error('Error creating health goal:', error);
+      res.status(500).json({ message: 'Failed to create health goal' });
+    }
+  });
+
+  // Goal progress tracking
+  app.get('/api/goal-progress/:goalId', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      const goalId = req.params.goalId;
+      const days = parseInt(req.query.days as string) || 30;
+      
+      const progress = await storage.getGoalProgress(user.id, goalId, days);
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching goal progress:', error);
+      res.status(500).json({ message: 'Failed to fetch goal progress' });
+    }
+  });
+
+  app.post('/api/goal-progress', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      
+      const progressData = { 
+        ...req.body, 
+        userId: user.id,
+        createdAt: new Date()
+      };
+      const newProgress = await storage.addGoalProgress(progressData);
+      res.status(201).json(newProgress);
+    } catch (error) {
+      console.error('Error tracking goal progress:', error);
+      res.status(500).json({ message: 'Failed to track goal progress' });
+    }
+  });
+
+  app.get('/api/goal-progress/:goalId/streak', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      const goalId = req.params.goalId;
+      
+      const streak = await storage.getGoalStreak(user.id, goalId);
+      res.json({ streak });
+    } catch (error) {
+      console.error('Error fetching goal streak:', error);
+      res.status(500).json({ message: 'Failed to fetch goal streak' });
+    }
+  });
+
+  // Connected services management
+  app.get('/api/connected-services', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      
+      const services = await storage.getConnectedServices(user.id);
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching connected services:', error);
+      res.status(500).json({ message: 'Failed to fetch connected services' });
+    }
+  });
+
+  app.post('/api/connected-services', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      
+      const serviceData = { 
+        ...req.body, 
+        userId: user.id,
+        updatedAt: new Date()
+      };
+      const updatedService = await storage.updateConnectedService(serviceData);
+      res.json(updatedService);
+    } catch (error) {
+      console.error('Error updating connected service:', error);
+      res.status(500).json({ message: 'Failed to update connected service' });
+    }
+  });
+
   // Health articles
   app.get('/api/articles', async (req, res) => {
     try {
