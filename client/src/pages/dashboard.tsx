@@ -790,6 +790,281 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Risk Detection & Alerts Tab */}
+        {hasActiveAlerts && (
+          <TabsContent value="alerts" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-6 w-6 text-orange-500" />
+                  Health Risk Monitoring
+                </CardTitle>
+                <CardDescription>
+                  Real-time monitoring of your health metrics with intelligent anomaly detection
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Risk Detection System</h3>
+                  <p className="text-gray-600 mb-4">
+                    Advanced monitoring for early warning signs of health deterioration
+                  </p>
+                  <Button>
+                    <Link href="/risk-detection">View Risk Dashboard</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* DNA Insights Tab */}
+        {hasGeneticData && (
+          <TabsContent value="dna" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Dna className="h-6 w-6 text-purple-500" />
+                  Genetic Analysis
+                </CardTitle>
+                <CardDescription>
+                  Personalized health insights based on your genetic data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Dna className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">DNA Insights</h3>
+                  <p className="text-gray-600 mb-4">
+                    Transform your genetic data into actionable health recommendations
+                  </p>
+                  <Button>
+                    <Link href="/dna-insights">View DNA Analysis</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* Habits & Behavioral Psychology Tab */}
+        <TabsContent value="habits" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-6 w-6 text-green-500" />
+                Habit Formation
+              </CardTitle>
+              <CardDescription>
+                Build sustainable health habits through behavioral psychology
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="text-center p-6 border rounded-lg">
+                  <Clock className="h-8 w-8 text-blue-500 mx-auto mb-3" />
+                  <h4 className="font-semibold mb-2">Current Streaks</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Morning Exercise</span>
+                      <Badge>7 days</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Meditation</span>
+                      <Badge>12 days</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Water Intake</span>
+                      <Badge>3 days</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 border rounded-lg">
+                  <Award className="h-8 w-8 text-yellow-500 mx-auto mb-3" />
+                  <h4 className="font-semibold mb-2">Habit Achievements</h4>
+                  <div className="space-y-2">
+                    <Badge variant="secondary">30-Day Exercise</Badge>
+                    <Badge variant="secondary">Mindful Eating</Badge>
+                    <Badge variant="secondary">Sleep Consistency</Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Health Outcomes & Progress Tab */}
+        <TabsContent value="outcomes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-6 w-6 text-blue-500" />
+                Health Outcomes Report
+              </CardTitle>
+              <CardDescription>
+                Measurable health improvements and progress tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 md:grid-cols-3">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-2">+23%</div>
+                  <div className="text-sm text-gray-600">Sleep Quality Improvement</div>
+                  <div className="text-xs text-gray-500">vs. baseline</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">+15%</div>
+                  <div className="text-sm text-gray-600">Energy Levels</div>
+                  <div className="text-xs text-gray-500">vs. population avg</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">+31%</div>
+                  <div className="text-sm text-gray-600">Stress Management</div>
+                  <div className="text-xs text-gray-500">last 30 days</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Marketplace Tab */}
+        <TabsContent value="marketplace" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-6 w-6 text-green-500" />
+                Health Marketplace
+              </CardTitle>
+              <CardDescription>
+                Outcome-based product recommendations and community reviews
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Recommended for You</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Magnesium Supplement</div>
+                        <div className="text-sm text-gray-600">Based on sleep patterns</div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800">94% effective</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Blue Light Glasses</div>
+                        <div className="text-sm text-gray-600">For screen time</div>
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-800">87% effective</Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="border rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">Your Reviews</h4>
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <div className="font-medium">Omega-3 Supplement</div>
+                      <div className="text-gray-600">+12% joint health improvement</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="font-medium">Meditation App</div>
+                      <div className="text-gray-600">+28% stress reduction</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Privacy & Data Transparency Tab */}
+        <TabsContent value="privacy" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-500" />
+                Privacy & Data Control
+              </CardTitle>
+              <CardDescription>
+                Complete transparency and control over your health data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Data Usage Summary</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Health metrics analyzed</span>
+                      <span>247 times</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>AI recommendations generated</span>
+                      <span>89 times</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Data shared with providers</span>
+                      <span>0 times</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="font-semibold">Privacy Controls</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Analytics participation</span>
+                      <Badge className="bg-green-100 text-green-800">Enabled</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Data sharing</span>
+                      <Badge className="bg-red-100 text-red-800">Disabled</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Research participation</span>
+                      <Badge className="bg-blue-100 text-blue-800">Optional</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Medical Provider Mode Tab */}
+        {isProviderUser && (
+          <TabsContent value="provider" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Stethoscope className="h-6 w-6 text-blue-500" />
+                  Provider Dashboard
+                </CardTitle>
+                <CardDescription>
+                  Clinical view of patient health data and care plan management
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Stethoscope className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Medical Provider Mode</h3>
+                  <p className="text-gray-600 mb-4">
+                    Access patient health trends, generate reports, and manage care plans
+                  </p>
+                  <Button>
+                    <Link href="/provider-dashboard">Open Provider Dashboard</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
       </Tabs>
     </div>
   );
