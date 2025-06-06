@@ -62,23 +62,32 @@ export default function ConnectHealthDataButton() {
   };
 
   function connectHealthData(providerId: string) {
-    // This would be replaced with actual implementation to connect to the health provider's API
+    const oauthMap: Record<string, string> = {
+      apple: 'apple-health',
+      google: 'google-fit',
+      fitbit: 'fitbit',
+    };
+
+    const route = oauthMap[providerId];
+    if (route) {
+      window.location.href = `/api/oauth/${route}`;
+      return;
+    }
+
+    // Fallback for providers without OAuth yet
     alert(`Connecting your health data for personal management from ${providerId}...`);
-    
-    // In a real implementation, this would redirect to the OAuth flow or API connection
     setTimeout(() => {
-      alert('Connection successful! Your health data will begin syncing shortly.');
       setOpen(false);
     }, 1500);
   }
 
   return (
     <>
-      <Button 
+      <Button
         onClick={() => setOpen(true)}
         className="bg-primary hover:bg-primary/90 text-white"
       >
-        <i className="ri-heart-pulse-line mr-2"></i>
+        <i className="ri-heart-pulse-line mr-2" aria-hidden="true"></i>
         Connect Health Data
       </Button>
 
@@ -101,7 +110,10 @@ export default function ConnectHealthDataButton() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{provider.name}</CardTitle>
-                    <i className={`${provider.logo} text-2xl text-primary`}></i>
+                    <i
+                      className={`${provider.logo} text-2xl text-primary`}
+                      aria-hidden="true"
+                    ></i>
                   </div>
                 </CardHeader>
                 <CardContent>

@@ -18,12 +18,34 @@ import {
   mentalHealthAssessments,
   moodEntries,
   healthArticles,
+  messages,
   mealPlans,
   mealPlanEntries,
+  anonymizedProfiles,
+  anonymizedMetrics,
+  partnerAds,
+  addOnModules,
+  userPurchases,
+  dataLicenses,
+  challengeSponsorships,
+  userDevices,
+  connectedDevices,
+  syncedData,
+  userSessions,
+  metrics,
+  logs,
   type User,
   type InsertUser,
+  type UserDevice,
+  type InsertUserDevice,
+  type UserSession,
+  type InsertUserSession,
+  type ConnectedDevice,
+  type InsertConnectedDevice,
   type HealthStat,
   type InsertHealthStat,
+  type SyncedData,
+  type InsertSyncedData,
   type Medication,
   type InsertMedication,
   type MedicationHistory,
@@ -58,12 +80,40 @@ import {
   type InsertMoodEntry,
   type HealthArticle,
   type InsertHealthArticle,
+  type Message,
+  type InsertMessage,
   type MealPlan,
   type InsertMealPlan,
   type MealPlanEntry,
-  type InsertMealPlanEntry
+  type InsertMealPlanEntry,
+  type InsertAnonymizedProfile,
+  type InsertAnonymizedMetric,
+  type AnonymizedProfile,
+  type AnonymizedMetric,
+  type InsertBlockedUser,
+  type BlockedUser,
+  type InsertMessageReport,
+  type MessageReport,
+  type PartnerAd,
+  type InsertPartnerAd,
+  type AddOnModule,
+  type InsertAddOnModule,
+  type UserPurchase,
+  type InsertUserPurchase,
+  type DataLicense,
+  type InsertDataLicense,
+  type ChallengeSponsorship,
+  type InsertChallengeSponsorship,
+  type Metric,
+  type InsertMetric,
+  type Log,
+  type InsertLog,
+  type InsertRefreshToken,
+  type RefreshToken
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { encrypt, decrypt } from "./utils/encryption";
 
 // Modify the interface with any CRUD methods you might need
 export interface IStorage {
@@ -74,9 +124,23 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
 
+  // User Devices
+  getUserDevices(userId: number): Promise<UserDevice[]>;
+  createUserDevice(device: InsertUserDevice): Promise<UserDevice>;
+  updateUserDevice(id: number, deviceData: Partial<UserDevice>): Promise<UserDevice | undefined>;
+
+  // Connected Devices
+  getConnectedDevices(userId: number): Promise<ConnectedDevice[]>;
+  createConnectedDevice(device: InsertConnectedDevice): Promise<ConnectedDevice>;
+  updateConnectedDevice(id: number, deviceData: Partial<ConnectedDevice>): Promise<ConnectedDevice | undefined>;
+
   // Health Stats
   getUserHealthStats(userId: number): Promise<HealthStat[]>;
   addHealthStat(stat: InsertHealthStat): Promise<HealthStat>;
+
+  // Synced Data
+  getDeviceSyncedData(deviceId: number): Promise<SyncedData[]>;
+  addSyncedData(data: InsertSyncedData): Promise<SyncedData>;
   
   // Medications
   getUserMedications(userId: number): Promise<Medication[]>;
@@ -95,6 +159,15 @@ export interface IStorage {
   getUserConnections(userId: number): Promise<{ connection: User, relationship: string, specific: string }[]>;
   addConnection(connection: InsertConnection): Promise<Connection>;
   removeConnection(userId: number, connectionId: number): Promise<boolean>;
+
+  // Messages
+  sendMessage(message: InsertMessage): Promise<Message>;
+  getMessagesBetweenUsers(userA: number, userB: number): Promise<Message[]>;
+  getUnreadMessageCount(userId: number): Promise<number>;
+  markMessagesRead(userId: number, otherId: number): Promise<void>;
+  blockUser(userId: number, blockedId: number): Promise<void>;
+  isBlocked(userId: number, otherId: number): Promise<boolean>;
+  reportMessage(report: InsertMessageReport): Promise<MessageReport>;
 
   // Forum Posts
   getForumPosts(subreddit?: string): Promise<ForumPost[]>;
@@ -184,6 +257,42 @@ export interface IStorage {
   getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
   createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
   updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
+
+  // Anonymized Metrics
+  getOrCreateAnonymizedProfile(userId: number): Promise<AnonymizedProfile>;
+  addAnonymizedMetric(metric: InsertAnonymizedMetric): Promise<AnonymizedMetric>;
+
+  // Partner Ads
+  getPartnerAds(category?: string, tag?: string): Promise<PartnerAd[]>;
+  createPartnerAd(ad: InsertPartnerAd): Promise<PartnerAd>;
+
+  // Add-on Modules & Purchases
+  getAddOnModules(): Promise<AddOnModule[]>;
+  getAddOnModuleById(id: number): Promise<AddOnModule | undefined>;
+  createAddOnModule(module: InsertAddOnModule): Promise<AddOnModule>;
+  getUserPurchases(userId: number): Promise<UserPurchase[]>;
+  createUserPurchase(purchase: InsertUserPurchase): Promise<UserPurchase>;
+
+  // Data Licensing
+  getDataLicenses(userId: number): Promise<DataLicense[]>;
+  createDataLicense(license: InsertDataLicense): Promise<DataLicense>;
+
+  // Refresh Tokens
+  createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken>;
+  getRefreshToken(token: string): Promise<RefreshToken | undefined>;
+  revokeRefreshToken(token: string): Promise<void>;
+
+  // Challenge Sponsorships
+  getChallengeSponsorships(challengeId?: number): Promise<ChallengeSponsorship[]>;
+  createChallengeSponsorship(sponsorship: InsertChallengeSponsorship): Promise<ChallengeSponsorship>;
+
+  // Sessions & Metrics
+  createSession(userId: number): Promise<UserSession>;
+  updateSession(id: number): Promise<void>;
+  getActiveSessionCount(): Promise<number>;
+  addMetric(metric: InsertMetric): Promise<Metric>;
+  addLog(log: InsertLog): Promise<Log>;
+  getActionCounts(): Promise<Record<string, number>>;
 }
 
 export class MemStorage implements IStorage {
@@ -206,8 +315,25 @@ export class MemStorage implements IStorage {
   private mentalHealthAssessments: Map<number, MentalHealthAssessment>;
   private moodEntries: Map<number, MoodEntry>;
   private healthArticles: Map<number, HealthArticle>;
+  private messages: Map<number, Message>;
   private mealPlans: Map<number, MealPlan>;
   private mealPlanEntries: Map<number, MealPlanEntry>;
+  private anonymizedProfiles: Map<number, AnonymizedProfile>;
+  private anonymizedMetrics: Map<number, AnonymizedMetric>;
+  private partnerAds: Map<number, PartnerAd>;
+  private addOnModules: Map<number, AddOnModule>;
+  private userPurchases: Map<number, UserPurchase>;
+  private dataLicenses: Map<number, DataLicense>;
+  private challengeSponsorships: Map<number, ChallengeSponsorship>;
+  private userDevices: Map<number, UserDevice>;
+  private connectedDevices: Map<number, ConnectedDevice>;
+  private syncedData: Map<number, SyncedData>;
+  private refreshTokens: Map<string, RefreshToken>;
+  private blockedUsers: Map<number, Set<number>>;
+  private messageReports: Map<number, MessageReport[]>;
+  private sessions: Map<number, UserSession>;
+  private metrics: Map<number, Metric>;
+  private logs: Map<number, Log>;
 
   private userIdCounter: number;
   private healthStatIdCounter: number;
@@ -228,8 +354,24 @@ export class MemStorage implements IStorage {
   private mentalHealthAssessmentIdCounter: number;
   private moodEntryIdCounter: number;
   private healthArticleIdCounter: number;
+  private messageIdCounter: number;
   private mealPlanIdCounter: number;
   private mealPlanEntryIdCounter: number;
+  private anonymizedProfileIdCounter: number;
+  private anonymizedMetricIdCounter: number;
+  private partnerAdIdCounter: number;
+  private addOnModuleIdCounter: number;
+  private userPurchaseIdCounter: number;
+  private dataLicenseIdCounter: number;
+  private challengeSponsorshipIdCounter: number;
+  private userDeviceIdCounter: number;
+  private connectedDeviceIdCounter: number;
+  private syncedDataIdCounter: number;
+  private refreshTokenIdCounter: number;
+  private messageReportIdCounter: number;
+  private sessionIdCounter: number;
+  private metricIdCounter: number;
+  private logIdCounter: number;
 
   constructor() {
     this.users = new Map();
@@ -251,8 +393,25 @@ export class MemStorage implements IStorage {
     this.mentalHealthAssessments = new Map();
     this.moodEntries = new Map();
     this.healthArticles = new Map();
+    this.messages = new Map();
     this.mealPlans = new Map();
     this.mealPlanEntries = new Map();
+    this.anonymizedProfiles = new Map();
+    this.anonymizedMetrics = new Map();
+    this.partnerAds = new Map();
+    this.addOnModules = new Map();
+    this.userPurchases = new Map();
+    this.dataLicenses = new Map();
+    this.challengeSponsorships = new Map();
+    this.userDevices = new Map();
+    this.connectedDevices = new Map();
+    this.syncedData = new Map();
+    this.refreshTokens = new Map();
+    this.blockedUsers = new Map();
+    this.messageReports = new Map();
+    this.sessions = new Map();
+    this.metrics = new Map();
+    this.logs = new Map();
 
     this.userIdCounter = 1;
     this.healthStatIdCounter = 1;
@@ -273,27 +432,62 @@ export class MemStorage implements IStorage {
     this.mentalHealthAssessmentIdCounter = 1;
     this.moodEntryIdCounter = 1;
     this.healthArticleIdCounter = 1;
+    this.messageIdCounter = 1;
     this.mealPlanIdCounter = 1;
     this.mealPlanEntryIdCounter = 1;
+    this.anonymizedProfileIdCounter = 1;
+    this.anonymizedMetricIdCounter = 1;
+    this.partnerAdIdCounter = 1;
+    this.addOnModuleIdCounter = 1;
+    this.userPurchaseIdCounter = 1;
+    this.dataLicenseIdCounter = 1;
+    this.challengeSponsorshipIdCounter = 1;
+    this.userDeviceIdCounter = 1;
+    this.connectedDeviceIdCounter = 1;
+    this.syncedDataIdCounter = 1;
+    this.refreshTokenIdCounter = 1;
+    this.messageReportIdCounter = 1;
+    this.sessionIdCounter = 1;
+    this.metricIdCounter = 1;
+    this.logIdCounter = 1;
 
     // Add some initial data
     this.initializeData();
   }
 
   private async initializeData() {
-    // Create some initial users
+    // Create an initial user
     const user1 = await this.createUser({
       username: "johndoe",
       password: await bcrypt.hash("password123", 10),
       email: "john.doe@example.com",
       name: "John Doe",
+      age: 35,
+      healthGoals: "Stay fit and eat well",
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      healthData: JSON.stringify({})
+      healthData: JSON.stringify({}),
+      isPremium: true
+    });
+
+    const device1 = await this.createUserDevice({
+      userId: user1.id,
+      deviceUuid: "demo-device",
+      deviceType: "web",
+      deviceName: "Demo Browser",
+      lastSeen: new Date()
+    });
+
+    await this.createConnectedDevice({
+      userId: user1.id,
+      deviceType: "wearable",
+      lastSynced: new Date(),
+      status: "active"
     });
 
     // Add health stats
     await this.addHealthStat({
       userId: 1,
+      deviceId: device1.id,
       statType: "heart_rate",
       value: "72",
       unit: "bpm",
@@ -304,6 +498,7 @@ export class MemStorage implements IStorage {
 
     await this.addHealthStat({
       userId: 1,
+      deviceId: device1.id,
       statType: "sleep_quality",
       value: "7.8",
       unit: "hrs",
@@ -314,6 +509,7 @@ export class MemStorage implements IStorage {
 
     await this.addHealthStat({
       userId: 1,
+      deviceId: device1.id,
       statType: "nutrient_status",
       value: "Zinc Deficient",
       icon: "ri-capsule-line",
@@ -388,6 +584,14 @@ export class MemStorage implements IStorage {
       content: "New research reveals how genetic factors may explain varying results from identical exercise routines.",
       thumbnail: "https://images.unsplash.com/photo-1579126038374-6064e9370f0f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
       category: "Fitness",
+      timestamp: new Date()
+    });
+
+    await this.createNewsUpdate({
+      title: "Scheduled Maintenance Tonight",
+      content: "The system will be undergoing maintenance at 10 PM UTC.",
+      thumbnail: "",
+      category: "System",
       timestamp: new Date()
     });
 
@@ -549,6 +753,7 @@ export class MemStorage implements IStorage {
     // Add health data connection
     await this.createHealthDataConnection({
       userId: 1,
+      deviceId: device1.id,
       provider: "apple_health",
       connected: false,
       lastSynced: null,
@@ -747,6 +952,43 @@ export class MemStorage implements IStorage {
       preparationTime: 20,
       imageUrl: "https://images.unsplash.com/photo-1546793665-c74683f339c1?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
     });
+
+    // Partner ads and monetization samples
+    await this.createPartnerAd({
+      title: "Get 20% off Telemedicine Consultation",
+      description: "Virtual visit with licensed physicians via TeleCare",
+      partner: "TeleCare",
+      url: "https://telecare.example.com/promo",
+      category: "telemedicine",
+      tags: ["consultation", "discount"],
+    });
+
+    const coachingModule = await this.createAddOnModule({
+      name: "Personalized Coaching",
+      description: "One-on-one virtual coaching sessions",
+      price: "$9.99",
+      featureKey: "coaching",
+    });
+
+    await this.createUserPurchase({
+      userId: user1.id,
+      moduleId: coachingModule.id,
+      purchasedAt: new Date(),
+    });
+
+    await this.createDataLicense({
+      userId: user1.id,
+      partner: "Health Research Co",
+      consent: true,
+      createdAt: new Date(),
+    });
+
+    await this.createChallengeSponsorship({
+      challengeId: walkingChallenge.id,
+      sponsor: "FitBrand",
+      url: "https://fitbrand.example.com",
+      description: "Sponsored by FitBrand fitness gear",
+    });
   }
 
   // User Management
@@ -768,7 +1010,14 @@ export class MemStorage implements IStorage {
 
   async createUser(user: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const newUser: User = { ...user, id };
+    const newUser: User = {
+      emailVerified: false,
+      verificationToken: null,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      ...user,
+      id,
+    } as User;
     this.users.set(id, newUser);
     return newUser;
   }
@@ -776,10 +1025,50 @@ export class MemStorage implements IStorage {
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
     const user = await this.getUser(id);
     if (!user) return undefined;
-    
+
     const updatedUser = { ...user, ...userData };
     this.users.set(id, updatedUser);
     return updatedUser;
+  }
+
+  // User Devices
+  async getUserDevices(userId: number): Promise<UserDevice[]> {
+    return Array.from(this.userDevices.values()).filter(d => d.userId === userId);
+  }
+
+  async createUserDevice(device: InsertUserDevice): Promise<UserDevice> {
+    const id = this.userDeviceIdCounter++;
+    const newDevice: UserDevice = { ...device, id };
+    this.userDevices.set(id, newDevice);
+    return newDevice;
+  }
+
+  async updateUserDevice(id: number, deviceData: Partial<UserDevice>): Promise<UserDevice | undefined> {
+    const device = this.userDevices.get(id);
+    if (!device) return undefined;
+    const updated = { ...device, ...deviceData };
+    this.userDevices.set(id, updated);
+    return updated;
+  }
+
+  // Connected Devices
+  async getConnectedDevices(userId: number): Promise<ConnectedDevice[]> {
+    return Array.from(this.connectedDevices.values()).filter(d => d.userId === userId);
+  }
+
+  async createConnectedDevice(device: InsertConnectedDevice): Promise<ConnectedDevice> {
+    const id = this.connectedDeviceIdCounter++;
+    const newDevice: ConnectedDevice = { ...device, id };
+    this.connectedDevices.set(id, newDevice);
+    return newDevice;
+  }
+
+  async updateConnectedDevice(id: number, deviceData: Partial<ConnectedDevice>): Promise<ConnectedDevice | undefined> {
+    const device = this.connectedDevices.get(id);
+    if (!device) return undefined;
+    const updated = { ...device, ...deviceData };
+    this.connectedDevices.set(id, updated);
+    return updated;
   }
 
   // Health Stats
@@ -793,7 +1082,30 @@ export class MemStorage implements IStorage {
     const id = this.healthStatIdCounter++;
     const newStat: HealthStat = { ...stat, id };
     this.healthStats.set(id, newStat);
+
+    // Also store anonymized metric for analytics
+    const profile = await this.getOrCreateAnonymizedProfile(stat.userId);
+    await this.addAnonymizedMetric({
+      profileId: profile.id,
+      metric: stat.statType,
+      value: parseFloat(stat.value) || 0,
+      timestamp: stat.timestamp,
+      sourceType: 'direct',
+    });
+
     return newStat;
+  }
+
+  // Synced Data
+  async getDeviceSyncedData(deviceId: number): Promise<SyncedData[]> {
+    return Array.from(this.syncedData.values()).filter(d => d.deviceId === deviceId);
+  }
+
+  async addSyncedData(data: InsertSyncedData): Promise<SyncedData> {
+    const id = this.syncedDataIdCounter++;
+    const newData: SyncedData = { ...data, id };
+    this.syncedData.set(id, newData);
+    return newData;
   }
   
   // Medications
@@ -945,7 +1257,7 @@ export class MemStorage implements IStorage {
 
   async removeConnection(userId: number, connectionId: number): Promise<boolean> {
     const connectionsToRemove = Array.from(this.connections.entries()).filter(
-      ([_, connection]) => 
+      ([_, connection]) =>
         connection.userId === userId && connection.connectionId === connectionId
     );
     
@@ -954,6 +1266,59 @@ export class MemStorage implements IStorage {
     }
     
     return connectionsToRemove.length > 0;
+  }
+
+  // Messages
+  async sendMessage(message: InsertMessage): Promise<Message> {
+    const id = this.messageIdCounter++;
+    const newMessage: Message = { ...message, id };
+    this.messages.set(id, newMessage);
+    return newMessage;
+  }
+
+  async getMessagesBetweenUsers(userA: number, userB: number): Promise<Message[]> {
+    return Array.from(this.messages.values())
+      .filter(m =>
+        (m.senderId === userA && m.recipientId === userB) ||
+        (m.senderId === userB && m.recipientId === userA)
+      )
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
+
+  async getUnreadMessageCount(userId: number): Promise<number> {
+    return Array.from(this.messages.values()).filter(
+      (m) => m.recipientId === userId && !m.read,
+    ).length;
+  }
+
+  async markMessagesRead(userId: number, otherId: number): Promise<void> {
+    for (const message of this.messages.values()) {
+      if (message.recipientId === userId && message.senderId === otherId) {
+        message.read = true;
+      }
+    }
+  }
+
+  async blockUser(userId: number, blockedId: number): Promise<void> {
+    let set = this.blockedUsers.get(userId);
+    if (!set) {
+      set = new Set();
+      this.blockedUsers.set(userId, set);
+    }
+    set.add(blockedId);
+  }
+
+  async isBlocked(userId: number, otherId: number): Promise<boolean> {
+    return this.blockedUsers.get(userId)?.has(otherId) ?? false;
+  }
+
+  async reportMessage(report: InsertMessageReport): Promise<MessageReport> {
+    const id = this.messageReportIdCounter++;
+    const newReport: MessageReport = { ...report, id };
+    const arr = this.messageReports.get(report.messageId) || [];
+    arr.push(newReport);
+    this.messageReports.set(report.messageId, arr);
+    return newReport;
   }
 
   // Forum Posts
@@ -1127,16 +1492,32 @@ export class MemStorage implements IStorage {
   // Health Data Connection Methods
   async getUserHealthDataConnections(userId: number): Promise<HealthDataConnection[]> {
     return Array.from(this.healthDataConnections.values())
-      .filter(connection => connection.userId === userId);
+      .filter(connection => connection.userId === userId)
+      .map(c => ({
+        ...c,
+        accessToken: c.accessToken ? decrypt(c.accessToken) : null,
+        refreshToken: c.refreshToken ? decrypt(c.refreshToken) : null,
+      }));
   }
-  
+
   async getHealthDataConnectionById(id: number): Promise<HealthDataConnection | undefined> {
-    return this.healthDataConnections.get(id);
+    const conn = this.healthDataConnections.get(id);
+    if (!conn) return undefined;
+    return {
+      ...conn,
+      accessToken: conn.accessToken ? decrypt(conn.accessToken) : null,
+      refreshToken: conn.refreshToken ? decrypt(conn.refreshToken) : null,
+    };
   }
   
   async createHealthDataConnection(connection: InsertHealthDataConnection): Promise<HealthDataConnection> {
     const id = this.healthDataConnectionIdCounter++;
-    const newConnection: HealthDataConnection = { ...connection, id };
+    const newConnection: HealthDataConnection = {
+      ...connection,
+      id,
+      accessToken: connection.accessToken ? encrypt(connection.accessToken) : null,
+      refreshToken: connection.refreshToken ? encrypt(connection.refreshToken) : null,
+    } as HealthDataConnection;
     this.healthDataConnections.set(id, newConnection);
     return newConnection;
   }
@@ -1144,8 +1525,15 @@ export class MemStorage implements IStorage {
   async updateHealthDataConnection(id: number, connectionData: Partial<HealthDataConnection>): Promise<HealthDataConnection | undefined> {
     const connection = this.healthDataConnections.get(id);
     if (!connection) return undefined;
-    
-    const updatedConnection = { ...connection, ...connectionData };
+
+    const updatedConnection: HealthDataConnection = { ...connection };
+    if (connectionData.accessToken !== undefined) {
+      updatedConnection.accessToken = connectionData.accessToken ? encrypt(connectionData.accessToken) : null;
+    }
+    if (connectionData.refreshToken !== undefined) {
+      updatedConnection.refreshToken = connectionData.refreshToken ? encrypt(connectionData.refreshToken) : null;
+    }
+    Object.assign(updatedConnection, connectionData, { accessToken: updatedConnection.accessToken, refreshToken: updatedConnection.refreshToken });
     this.healthDataConnections.set(id, updatedConnection);
     return updatedConnection;
   }
@@ -1414,10 +1802,154 @@ export class MemStorage implements IStorage {
   async updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined> {
     const entry = this.mealPlanEntries.get(id);
     if (!entry) return undefined;
-    
+
     const updatedEntry = { ...entry, ...entryData };
     this.mealPlanEntries.set(id, updatedEntry);
     return updatedEntry;
+  }
+
+  // Anonymized Metrics
+  async getOrCreateAnonymizedProfile(userId: number): Promise<AnonymizedProfile> {
+    const existing = Array.from(this.anonymizedProfiles.values()).find(p => p.userId === userId);
+    if (existing) return existing;
+    const id = this.anonymizedProfileIdCounter++;
+    const anonProfile: AnonymizedProfile = { id, userId, anonId: crypto.randomUUID() };
+    this.anonymizedProfiles.set(id, anonProfile);
+    return anonProfile;
+  }
+
+  async addAnonymizedMetric(metric: InsertAnonymizedMetric): Promise<AnonymizedMetric> {
+    const id = this.anonymizedMetricIdCounter++;
+    const newMetric: AnonymizedMetric = { ...metric, id };
+    this.anonymizedMetrics.set(id, newMetric);
+    return newMetric;
+  }
+
+  // Partner Ads
+  async getPartnerAds(category?: string, tag?: string): Promise<PartnerAd[]> {
+    let ads = Array.from(this.partnerAds.values());
+    if (category) ads = ads.filter(a => a.category === category);
+    if (tag) ads = ads.filter(a => a.tags && a.tags.includes(tag));
+    return ads;
+  }
+
+  async createPartnerAd(ad: InsertPartnerAd): Promise<PartnerAd> {
+    const id = this.partnerAdIdCounter++;
+    const newAd: PartnerAd = { ...ad, id };
+    this.partnerAds.set(id, newAd);
+    return newAd;
+  }
+
+  // Add-on Modules & Purchases
+  async getAddOnModules(): Promise<AddOnModule[]> {
+    return Array.from(this.addOnModules.values());
+  }
+
+  async getAddOnModuleById(id: number): Promise<AddOnModule | undefined> {
+    return this.addOnModules.get(id);
+  }
+
+  async createAddOnModule(module: InsertAddOnModule): Promise<AddOnModule> {
+    const id = this.addOnModuleIdCounter++;
+    const newModule: AddOnModule = { ...module, id };
+    this.addOnModules.set(id, newModule);
+    return newModule;
+  }
+
+  async getUserPurchases(userId: number): Promise<UserPurchase[]> {
+    return Array.from(this.userPurchases.values()).filter(p => p.userId === userId);
+  }
+
+  async createUserPurchase(purchase: InsertUserPurchase): Promise<UserPurchase> {
+    const id = this.userPurchaseIdCounter++;
+    const newPurchase: UserPurchase = { ...purchase, id };
+    this.userPurchases.set(id, newPurchase);
+    return newPurchase;
+  }
+
+  // Data Licensing
+  async getDataLicenses(userId: number): Promise<DataLicense[]> {
+    return Array.from(this.dataLicenses.values()).filter(dl => dl.userId === userId);
+  }
+
+  async createDataLicense(license: InsertDataLicense): Promise<DataLicense> {
+    const id = this.dataLicenseIdCounter++;
+    const newLicense: DataLicense = { ...license, id };
+    this.dataLicenses.set(id, newLicense);
+    return newLicense;
+  }
+
+  // Refresh Tokens
+  async createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken> {
+    const id = this.refreshTokenIdCounter++;
+    const newToken: RefreshToken = { ...token, id };
+    this.refreshTokens.set(token.token, newToken);
+    return newToken;
+  }
+
+  async getRefreshToken(token: string): Promise<RefreshToken | undefined> {
+    return this.refreshTokens.get(token);
+  }
+
+  async revokeRefreshToken(token: string): Promise<void> {
+    const existing = this.refreshTokens.get(token);
+    if (existing) {
+      this.refreshTokens.set(token, { ...existing, revoked: true });
+    }
+  }
+
+  // Challenge Sponsorships
+  async getChallengeSponsorships(challengeId?: number): Promise<ChallengeSponsorship[]> {
+    let list = Array.from(this.challengeSponsorships.values());
+    if (challengeId) list = list.filter(s => s.challengeId === challengeId);
+    return list;
+  }
+
+  async createChallengeSponsorship(sponsorship: InsertChallengeSponsorship): Promise<ChallengeSponsorship> {
+    const id = this.challengeSponsorshipIdCounter++;
+    const newS: ChallengeSponsorship = { ...sponsorship, id };
+    this.challengeSponsorships.set(id, newS);
+    return newS;
+  }
+
+  // Sessions & Metrics
+  async createSession(userId: number): Promise<UserSession> {
+    const id = this.sessionIdCounter++;
+    const now = new Date();
+    const session: UserSession = { id, userId, createdAt: now, lastActive: now };
+    this.sessions.set(id, session);
+    return session;
+  }
+
+  async updateSession(id: number): Promise<void> {
+    const s = this.sessions.get(id);
+    if (s) this.sessions.set(id, { ...s, lastActive: new Date() });
+  }
+
+  async getActiveSessionCount(): Promise<number> {
+    return this.sessions.size;
+  }
+
+  async addMetric(metric: InsertMetric): Promise<Metric> {
+    const id = this.metricIdCounter++;
+    const newMetric: Metric = { ...metric, id };
+    this.metrics.set(id, newMetric);
+    return newMetric;
+  }
+
+  async addLog(log: InsertLog): Promise<Log> {
+    const id = this.logIdCounter++;
+    const newLog: Log = { ...log, id };
+    this.logs.set(id, newLog);
+    return newLog;
+  }
+
+  async getActionCounts(): Promise<Record<string, number>> {
+    const counts: Record<string, number> = {};
+    for (const m of this.metrics.values()) {
+      counts[m.actionType] = (counts[m.actionType] || 0) + 1;
+    }
+    return counts;
   }
 }
 

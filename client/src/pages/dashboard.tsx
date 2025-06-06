@@ -82,7 +82,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="container py-6 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Health Dashboard</h1>
         <p className="text-muted-foreground">
@@ -91,7 +91,7 @@ export default function Dashboard() {
       </div>
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="overflow-x-auto whitespace-nowrap">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="journey">Health Journey</TabsTrigger>
           <TabsTrigger value="challenges">Challenges</TabsTrigger>
@@ -104,7 +104,7 @@ export default function Dashboard() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* Simplified stats section */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="flex flex-row items-center p-4">
               <div className="rounded-full p-2 bg-primary/10 mr-3">
                 <Clock className="h-5 w-5 text-primary" />
@@ -147,7 +147,7 @@ export default function Dashboard() {
           </div>
 
           {/* Main sections */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2">
             {/* Recent journey entries */}
             <Card className="col-span-1">
               <CardHeader className="pb-3">
@@ -229,7 +229,7 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-2">
                 {healthArticles.slice(0, 2).map((article: HealthArticle) => (
                   <div key={article.id} className="flex space-x-4 items-start">
                     {article.imageUrl && (
@@ -319,7 +319,7 @@ export default function Dashboard() {
 
         {/* Challenges Tab */}
         <TabsContent value="challenges" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Your Active Challenges</CardTitle>
@@ -448,7 +448,7 @@ export default function Dashboard() {
                     <Progress value={plan.progress} className="h-2" />
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">Goals</h4>
                       <ul className="space-y-1">

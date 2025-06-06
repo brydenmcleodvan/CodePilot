@@ -9,20 +9,65 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
+  age: integer("age"),
+  healthGoals: text("health_goals"),
   profilePicture: text("profile_picture"),
   healthData: text("health_data"), // Stored as JSON string
+  isPremium: boolean("is_premium").notNull().default(false),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  verificationToken: text("verification_token"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpires: timestamp("password_reset_expires"),
+});
+
+// Registered user devices
+export const userDevices = pgTable("user_devices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  deviceUuid: text("device_uuid").notNull().unique(),
+  deviceType: text("device_type").notNull(),
+  deviceName: text("device_name"),
+  lastSeen: timestamp("last_seen"),
+});
+
+// User sessions
+export const userSessions = pgTable("user_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull(),
+  lastActive: timestamp("last_active").notNull(),
+});
+
+// Connected wearable or external devices
+export const connectedDevices = pgTable("connected_devices", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  deviceType: text("device_type").notNull(),
+  lastSynced: timestamp("last_synced"),
+  status: text("status"),
 });
 
 // Health Stats
 export const healthStats = pgTable("health_stats", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  deviceId: integer("device_id").references(() => userDevices.id),
   statType: text("stat_type").notNull(), // e.g. "heart_rate", "sleep_quality", "zinc"
   value: text("value").notNull(), // Can be numeric or text
   unit: text("unit"), // e.g. "bpm", "hrs", etc.
   icon: text("icon"), // Icon name from Remix Icons
   colorScheme: text("color_scheme"), // CSS class for color
   timestamp: timestamp("timestamp").notNull(),
+});
+
+// Synced device health metrics
+export const syncedData = pgTable("synced_data", {
+  id: serial("id").primaryKey(),
+  deviceId: integer("device_id").notNull().references(() => userDevices.id),
+  metricType: text("metric_type").notNull(),
+  value: text("value").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  source: text("source").notNull(), // e.g. "fitbit", "apple_health"
 });
 
 // Medications
@@ -139,6 +184,7 @@ export const appointments = pgTable("appointments", {
 export const healthDataConnections = pgTable("health_data_connections", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  deviceId: integer("device_id").references(() => userDevices.id),
   provider: text("provider").notNull(), // e.g. "apple_health", "google_fit", "fitbit"
   connected: boolean("connected").notNull().default(false),
   lastSynced: timestamp("last_synced"),
@@ -266,9 +312,136 @@ export const mealPlanEntries = pgTable("meal_plan_entries", {
   imageUrl: text("image_url")
 });
 
+// Direct Messages
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").notNull(),
+  recipientId: integer("recipient_id").notNull(),
+  content: text("content").notNull(),
+  read: boolean("read").notNull().default(false),
+  timestamp: timestamp("timestamp").notNull()
+});
+
+// Blocked Users
+export const blockedUsers = pgTable("blocked_users", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  blockedUserId: integer("blocked_user_id").notNull(),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+// Message Reports
+export const messageReports = pgTable("message_reports", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull(),
+  reporterId: integer("reporter_id").notNull(),
+  reason: text("reason"),
+  reportedAt: timestamp("reported_at").notNull(),
+});
+
+// Refresh tokens for rotating auth
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  revoked: boolean("revoked").notNull().default(false),
+});
+
+// Anonymized User Profiles
+export const anonymizedProfiles = pgTable("anonymized_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  anonId: text("anon_id").notNull().unique()
+});
+
+// Anonymized Health Metrics
+export const anonymizedMetrics = pgTable("anonymized_metrics", {
+  id: serial("id").primaryKey(),
+  profileId: integer("profile_id").notNull(),
+  metric: text("metric").notNull(),
+  value: real("value").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  sourceType: text("source_type").notNull()
+});
+
+// Targeted Partner Ads
+export const partnerAds = pgTable("partner_ads", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  partner: text("partner").notNull(),
+  url: text("url").notNull(),
+  category: text("category"),
+  tags: text("tags").array(),
+});
+
+// Add-on Modules available for purchase
+export const addOnModules = pgTable("add_on_modules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  price: text("price").notNull(),
+  featureKey: text("feature_key"),
+});
+
+// Records of user purchases of modules
+export const userPurchases = pgTable("user_purchases", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  moduleId: integer("module_id").notNull(),
+  purchasedAt: timestamp("purchased_at").notNull(),
+});
+
+// Data licensing consent records
+export const dataLicenses = pgTable("data_licenses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  partner: text("partner").notNull(),
+  consent: boolean("consent").notNull().default(false),
+  createdAt: timestamp("created_at").notNull(),
+});
+
+// Sponsors for wellness challenges
+export const challengeSponsorships = pgTable("challenge_sponsorships", {
+  id: serial("id").primaryKey(),
+  challengeId: integer("challenge_id").notNull(),
+  sponsor: text("sponsor").notNull(),
+  url: text("url"),
+  description: text("description"),
+});
+
+// Metrics for user actions
+export const metrics = pgTable("metrics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  actionType: text("action_type").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+});
+
+// Application logs
+export const logs = pgTable("logs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  level: text("level").notNull(),
+  message: text("message").notNull(),
+  stack: text("stack"),
+  timestamp: timestamp("timestamp").notNull(),
+});
+
 // Insert Schemas
-export const insertUserSchema = createInsertSchema(users).omit({ id: true });
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  emailVerified: true,
+  verificationToken: true,
+  passwordResetToken: true,
+  passwordResetExpires: true,
+});
+export const insertUserDeviceSchema = createInsertSchema(userDevices).omit({ id: true });
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ id: true });
+export const insertConnectedDeviceSchema = createInsertSchema(connectedDevices).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
+export const insertSyncedDataSchema = createInsertSchema(syncedData).omit({ id: true });
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
 export const insertMedicationHistorySchema = createInsertSchema(medicationHistory).omit({ id: true });
 export const insertConnectionSchema = createInsertSchema(connections).omit({ id: true });
@@ -288,6 +461,19 @@ export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({ id: 
 export const insertHealthArticleSchema = createInsertSchema(healthArticles).omit({ id: true });
 export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({ id: true });
 export const insertMealPlanEntrySchema = createInsertSchema(mealPlanEntries).omit({ id: true });
+export const insertMessageSchema = createInsertSchema(messages).omit({ id: true });
+export const insertBlockedUserSchema = createInsertSchema(blockedUsers).omit({ id: true });
+export const insertMessageReportSchema = createInsertSchema(messageReports).omit({ id: true });
+export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({ id: true });
+export const insertAnonymizedProfileSchema = createInsertSchema(anonymizedProfiles).omit({ id: true });
+export const insertAnonymizedMetricSchema = createInsertSchema(anonymizedMetrics).omit({ id: true });
+export const insertPartnerAdSchema = createInsertSchema(partnerAds).omit({ id: true });
+export const insertAddOnModuleSchema = createInsertSchema(addOnModules).omit({ id: true });
+export const insertUserPurchaseSchema = createInsertSchema(userPurchases).omit({ id: true });
+export const insertDataLicenseSchema = createInsertSchema(dataLicenses).omit({ id: true });
+export const insertChallengeSponsorshipSchema = createInsertSchema(challengeSponsorships).omit({ id: true });
+export const insertMetricSchema = createInsertSchema(metrics).omit({ id: true });
+export const insertLogSchema = createInsertSchema(logs).omit({ id: true });
 
 // Auth Schemas
 export const loginSchema = z.object({
@@ -299,8 +485,17 @@ export const loginSchema = z.object({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+export type InsertUserDevice = z.infer<typeof insertUserDeviceSchema>;
+export type UserDevice = typeof userDevices.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertConnectedDevice = z.infer<typeof insertConnectedDeviceSchema>;
+export type ConnectedDevice = typeof connectedDevices.$inferSelect;
+
 export type InsertHealthStat = z.infer<typeof insertHealthStatSchema>;
 export type HealthStat = typeof healthStats.$inferSelect;
+export type InsertSyncedData = z.infer<typeof insertSyncedDataSchema>;
+export type SyncedData = typeof syncedData.$inferSelect;
 
 export type InsertMedication = z.infer<typeof insertMedicationSchema>;
 export type Medication = typeof medications.$inferSelect;
@@ -358,5 +553,41 @@ export type MealPlan = typeof mealPlans.$inferSelect;
 
 export type InsertMealPlanEntry = z.infer<typeof insertMealPlanEntrySchema>;
 export type MealPlanEntry = typeof mealPlanEntries.$inferSelect;
+
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;
+export type InsertBlockedUser = z.infer<typeof insertBlockedUserSchema>;
+export type BlockedUser = typeof blockedUsers.$inferSelect;
+export type InsertMessageReport = z.infer<typeof insertMessageReportSchema>;
+export type MessageReport = typeof messageReports.$inferSelect;
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+
+export type InsertAnonymizedProfile = z.infer<typeof insertAnonymizedProfileSchema>;
+export type AnonymizedProfile = typeof anonymizedProfiles.$inferSelect;
+
+export type InsertAnonymizedMetric = z.infer<typeof insertAnonymizedMetricSchema>;
+export type AnonymizedMetric = typeof anonymizedMetrics.$inferSelect;
+
+export type InsertPartnerAd = z.infer<typeof insertPartnerAdSchema>;
+export type PartnerAd = typeof partnerAds.$inferSelect;
+
+export type InsertAddOnModule = z.infer<typeof insertAddOnModuleSchema>;
+export type AddOnModule = typeof addOnModules.$inferSelect;
+
+export type InsertUserPurchase = z.infer<typeof insertUserPurchaseSchema>;
+export type UserPurchase = typeof userPurchases.$inferSelect;
+
+export type InsertDataLicense = z.infer<typeof insertDataLicenseSchema>;
+export type DataLicense = typeof dataLicenses.$inferSelect;
+
+export type InsertChallengeSponsorship = z.infer<typeof insertChallengeSponsorshipSchema>;
+export type ChallengeSponsorship = typeof challengeSponsorships.$inferSelect;
+
+export type InsertMetric = z.infer<typeof insertMetricSchema>;
+export type Metric = typeof metrics.$inferSelect;
+
+export type InsertLog = z.infer<typeof insertLogSchema>;
+export type Log = typeof logs.$inferSelect;
 
 export type Login = z.infer<typeof loginSchema>;
