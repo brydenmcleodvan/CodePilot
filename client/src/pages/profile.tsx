@@ -53,7 +53,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Profile Sidebar */}
         <div className="md:w-1/3 lg:w-1/4">
@@ -66,9 +66,12 @@ const Profile = () => {
               />
               <h2 className="text-xl font-medium">{user.name}</h2>
               <p className="text-gray-500">{user.email}</p>
-              <button className="mt-4 w-full bg-white text-primary border border-primary font-medium py-2 rounded-md hover:bg-primary/5 transition-colors duration-200">
+              <Link
+                href="/profile/edit"
+                className="mt-4 w-full bg-white text-primary border border-primary font-medium py-2 rounded-md hover:bg-primary/5 transition-colors duration-200 text-center"
+              >
                 Edit Profile
-              </button>
+              </Link>
             </div>
 
             <div className="border-t border-gray-200 pt-4">
@@ -260,6 +263,9 @@ const Profile = () => {
                   Connect and manage your health data from various sources.
                 </p>
                 <HealthStats userId={user.id} detailed={true} />
+                <div className="mt-8">
+                  <HealthVisualization />
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
