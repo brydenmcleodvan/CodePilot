@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useFetchWithFallback } from '@/hooks/use-fetch-with-fallback';
 import { 
   LineChart, 
   Line, 
@@ -19,81 +19,16 @@ import {
   Bar
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import HealthStatCard from './health-stat-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { transformHealthData } from '@/lib/transformHealthData';
+import { useAuth } from '@/lib/auth';
+import { hasFeature } from '@/lib/featureFlags';
+import { downloadCSV } from '@/lib/utils';
+import AdvancedTrendAnalysis from './advanced-trend-analysis';
 
-// For calculating date ranges
-const getLastNDays = (n: number) => {
-  const result = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    result.push(date.toISOString().split('T')[0]);
-  }
-  return result;
-};
-
-// Type definition for our health data
-interface HealthDataPoint {
-  date: string;
-  heartRate?: number;
-  steps?: number;
-  sleepHours?: number;
-  bloodPressureSystolic?: number;
-  bloodPressureDiastolic?: number;
-  weight?: number;
-  calories?: number;
-  stressLevel?: number;
-}
-
-// Transform health stats from API to visualization data format
-const transformHealthData = (healthStats: any[] = []): HealthDataPoint[] => {
-  if (!healthStats.length) return [];
-  
-  // Get all dates in the last 7 days
-  const dates = getLastNDays(7);
-  
-  // Create a map to organize stats by date
-  const statsByDate = new Map<string, HealthDataPoint>();
-  
-  // Initialize with empty data points for all dates
-  dates.forEach(date => {
-    statsByDate.set(date, { date });
-  });
-  
-  // Fill in actual data where available
-  healthStats.forEach(stat => {
-    const date = new Date(stat.timestamp).toISOString().split('T')[0];
-    const existingData = statsByDate.get(date) || { date };
-    
-    // Map the various stat types to our data structure
-    if (stat.statType === 'heart_rate') {
-      existingData.heartRate = parseFloat(stat.value);
-    } else if (stat.statType === 'steps') {
-      existingData.steps = parseFloat(stat.value);
-    } else if (stat.statType === 'sleep') {
-      existingData.sleepHours = parseFloat(stat.value);
-    } else if (stat.statType === 'blood_pressure') {
-      const [systolic, diastolic] = stat.value.split('/').map((v: string) => parseFloat(v.trim()));
-      existingData.bloodPressureSystolic = systolic;
-      existingData.bloodPressureDiastolic = diastolic;
-    } else if (stat.statType === 'weight') {
-      existingData.weight = parseFloat(stat.value);
-    } else if (stat.statType === 'calories') {
-      existingData.calories = parseFloat(stat.value);
-    } else if (stat.statType === 'stress') {
-      existingData.stressLevel = parseFloat(stat.value);
-    }
-    
-    statsByDate.set(date, existingData);
-  });
-  
-  // Convert map back to array and sort by date
-  return Array.from(statsByDate.values()).sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-};
 
 // Create custom tooltip component
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -129,12 +64,18 @@ type VisualizationType = 'line' | 'area' | 'bar' | 'pie';
 export default function HealthVisualization() {
   const [visualizationType, setVisualizationType] = useState<VisualizationType>('line');
   const [timeRange, setTimeRange] = useState<'7days' | '30days' | '90days'>('7days');
+  const { user } = useAuth();
+  const canAdvanced = hasFeature(user, 'advancedTrendAnalysis');
+  const canExportCsv = hasFeature(user, 'exportCsv');
   
   // Fetch health data from API
-  const { data: healthStats, isLoading, isError } = useQuery({
-    queryKey: ['/api/health/stats'],
-    refetchOnWindowFocus: false
-  });
+  const {
+    data: healthStats,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useFetchWithFallback<any[]>('/api/health/stats', []);
   
   // Transform the data for visualization
   const chartData = transformHealthData(healthStats as any[]);
@@ -195,12 +136,28 @@ export default function HealthVisualization() {
         <CardHeader>
           <CardTitle>Health Trends</CardTitle>
           <CardDescription className="text-red-500">
-            Failed to load health data. Please try again later.
+            {`Failed to load health data${error ? `: ${error.message}` : ''}.`}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center">
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={() => refetch()}>
             Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!chartData.length) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Health Trends</CardTitle>
+          <CardDescription>No health data available yet.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
+          <Button variant="outline" onClick={() => refetch()}>
+            Refresh
           </Button>
         </CardContent>
       </Card>
@@ -257,18 +214,33 @@ export default function HealthVisualization() {
           >
             <i className="ri-bar-chart-horizontal-line mr-1"></i> Bar
           </Button>
-          <Button 
-            variant={visualizationType === 'pie' ? 'default' : 'outline'} 
-            size="sm" 
+          <Button
+            variant={visualizationType === 'pie' ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setVisualizationType('pie')}
             className="text-xs"
           >
             <i className="ri-pie-chart-line mr-1"></i> Pie
           </Button>
+          {canExportCsv ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => downloadCSV(chartData, 'health-stats.csv')}
+              className="text-xs"
+            >
+              <i className="ri-download-line mr-1"></i> Export CSV
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" disabled className="text-xs opacity-60 cursor-not-allowed">
+              Export CSV
+            </Button>
+          )}
         </div>
         
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+<<<<<<< HEAD
           <Card className="bg-primary/5 dark:bg-primary/20">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="text-sm text-gray-600 dark:text-gray-300">Avg. Heart Rate</span>
@@ -309,6 +281,38 @@ export default function HealthVisualization() {
               </div>
             </CardContent>
           </Card>
+=======
+          <HealthStatCard
+            title="Avg. Heart Rate"
+            value={summary.avgHeartRate ?? 'N/A'}
+            unit="BPM"
+            icon="ri-heart-pulse-line"
+            className="bg-primary/5"
+          />
+
+          <HealthStatCard
+            title="Total Steps"
+            value={summary.totalSteps ? summary.totalSteps.toLocaleString() : 'N/A'}
+            icon="ri-walk-line"
+            className="bg-blue-50"
+          />
+
+          <HealthStatCard
+            title="Avg. Sleep"
+            value={summary.avgSleep ?? 'N/A'}
+            unit="hrs"
+            icon="ri-zzz-line"
+            className="bg-indigo-50"
+          />
+
+          <HealthStatCard
+            title="Avg. Stress"
+            value={summary.avgStressLevel ?? 'N/A'}
+            unit="/10"
+            icon="ri-emotion-line"
+            className="bg-orange-50"
+          />
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
         </div>
         
         {/* Visualization Chart */}
@@ -465,6 +469,7 @@ export default function HealthVisualization() {
             </ResponsiveContainer>
           ) : null}
         </div>
+        {canAdvanced && <AdvancedTrendAnalysis data={chartData} />}
       </CardContent>
     </Card>
   );

@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO, isToday, isTomorrow, addDays } from "date-fns";
+import { getAuthToken } from "../lib/utils";
 
 interface Medication {
   id: number;
@@ -53,7 +54,7 @@ const MedicationTracker = () => {
 
   const handleMedicationTaken = async (id: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       await fetch(`/api/medications/${id}/take`, {
         method: 'POST',
         headers: { 
@@ -70,7 +71,7 @@ const MedicationTracker = () => {
 
   const handleAddMedication = async (values: MedicationFormValues) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       await fetch('/api/medications', {
         method: 'POST',
         headers: { 

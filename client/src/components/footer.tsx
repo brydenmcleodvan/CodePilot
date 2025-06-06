@@ -3,6 +3,7 @@ import { TipJar } from "@/components/tip-jar";
 
 const Footer = () => {
   return (
+<<<<<<< HEAD
     <footer className="bg-gray-800 text-white py-12 mt-auto">
       <div className="clean-container">
         {/* Simplified footer structure with more whitespace */}
@@ -10,6 +11,13 @@ const Footer = () => {
           {/* Brand column - cleaner layout */}
           <div className="md:col-span-4">
             <div className="flex items-center gap-3 mb-5">
+=======
+    <footer className="bg-gray-800 text-white py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
               <i className="ri-heart-pulse-line text-primary text-2xl"></i>
               <span className="text-xl font-heading font-bold">Healthmap</span>
             </div>
@@ -17,6 +25,7 @@ const Footer = () => {
               Streamlining genetics, genealogy, and health data into a unified
               platform for better health outcomes.
             </p>
+<<<<<<< HEAD
             <div className="flex gap-5">
               <a href="#" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <i className="ri-facebook-fill text-xl"></i>
@@ -29,6 +38,24 @@ const Footer = () => {
               </a>
               <a href="#" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <i className="ri-linkedin-fill text-xl"></i>
+=======
+            <div className="flex space-x-4">
+              <a href="#" className="text-gray-400 hover:text-primary">
+                <i className="ri-facebook-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Facebook</span>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary">
+                <i className="ri-twitter-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Twitter</span>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary">
+                <i className="ri-instagram-line text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Instagram</span>
+              </a>
+              <a href="#" className="text-gray-400 hover:text-primary">
+                <i className="ri-linkedin-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">LinkedIn</span>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
               </a>
             </div>
           </div>

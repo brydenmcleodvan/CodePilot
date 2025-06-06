@@ -6,8 +6,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth";
 import { NotificationProvider } from "@/lib/notifications";
 import SystemAlerts from "@/components/system-alerts";
+<<<<<<< HEAD
 import ThemeProvider from "@/components/theme-provider";
 import { Loader2 } from "lucide-react";
+=======
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
 
 
 // Core pages with immediate loading
@@ -80,11 +83,35 @@ function Router() {
   const isLandingPage = location === "/landing";
   const hideNavAndFooter = isAuthPage || isLandingPage;
 
+<<<<<<< HEAD
   // Apply cleaner layout with improved spacing
   // Loading component for lazy-loaded routes
   const LoadingComponent = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
+=======
+  return (
+    <div className="flex flex-col min-h-screen">
+      {!isAuthPage && <Navbar />}
+      {!isAuthPage && <SystemAlerts />}
+      
+      <main className="flex-grow">
+        <Switch>
+          <Route path="/" component={Home} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/profile/edit" component={ProfileEdit} />
+          <Route path="/forum" component={Forum} />
+          <Route path="/forum/:subreddit" component={Forum} />
+          <Route path="/messages" component={MessagesPage} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/auth/:type" component={Auth} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+      
+      {!isAuthPage && <Footer />}
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
     </div>
   );
 
@@ -162,6 +189,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+<<<<<<< HEAD
 <ThemeProvider defaultTheme="light">
   <NotificationProvider>
     <Router />
@@ -169,6 +197,12 @@ function App() {
   </NotificationProvider>
 </ThemeProvider>
 
+=======
+        <NotificationProvider>
+          <Router />
+          <Toaster />
+        </NotificationProvider>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
       </AuthProvider>
     </QueryClientProvider>
   );

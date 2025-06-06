@@ -8,12 +8,17 @@ import React, {
 import { User, InsertUser } from "@shared/schema";
 import { apiRequest } from "./queryClient";
 import { queryClient } from "./queryClient";
+import { getAuthToken } from "./utils";
 
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<User>;
   register: (userData: InsertUser) => Promise<User>;
+<<<<<<< HEAD
   updateUser: (userData: Partial<User>) => Promise<User>;
+=======
+  updateProfile: (data: Partial<User>) => Promise<User>;
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -34,7 +39,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("auth_token");
+        const token = getAuthToken();
         if (!token) {
           setIsLoading(false);
           return;
@@ -112,6 +117,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+<<<<<<< HEAD
   const updateUser = async (userData: Partial<User>): Promise<User> => {
     setIsLoading(true);
     setError(null);
@@ -129,6 +135,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return updatedUser;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update user";
+=======
+  const updateProfile = async (data: Partial<User>): Promise<User> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiRequest("PATCH", "/api/user/profile", data);
+      const updated = await response.json();
+      setUser(updated);
+      return updated;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Update failed";
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -147,7 +165,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     login,
     register,
+<<<<<<< HEAD
     updateUser,
+=======
+    updateProfile,
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
     logout,
     isLoading,
     error,

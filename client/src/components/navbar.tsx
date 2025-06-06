@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+<<<<<<< HEAD
 import { ChevronDown, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -49,13 +53,21 @@ const MobileNavLink = ({ href, active, children }: NavLinkProps) => {
     </Link>
   );
 };
+=======
+import { ChevronDown, Menu, Moon, Sun } from "lucide-react";
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
 
 const Navbar = () => {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+<<<<<<< HEAD
   const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+=======
+  const { isDark, toggle } = useDarkMode();
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
 
   const handleLogout = () => {
     logout();
@@ -82,6 +94,7 @@ const Navbar = () => {
   }, [location]);
 
   return (
+<<<<<<< HEAD
     <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-border-light dark:border-gray-700">
       <div className="clean-container">
         <div className="flex justify-between items-center h-16">
@@ -89,6 +102,106 @@ const Navbar = () => {
             <Link href="/" className="flex items-center gap-2">
               <div className="flex items-center justify-center p-1.5 bg-primary/10 dark:bg-primary/20 rounded-full">
                 <i className="ri-heart-pulse-line text-primary text-xl"></i>
+=======
+    <header className="bg-white shadow-md sticky top-0 z-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          <div className="flex items-center space-x-2">
+            <i className="ri-heart-pulse-line text-primary text-2xl" aria-hidden="true"></i>
+            <Link href="/" className="text-xl font-heading font-bold text-gray-800">
+              Healthmap
+            </Link>
+          </div>
+
+          <nav
+            role="navigation"
+            aria-label="main"
+            className="hidden md:flex items-center space-x-6"
+          >
+            <Link
+              href="/"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/" ? "text-primary" : ""
+              }`}
+            >
+              Home
+            </Link>
+            <Link
+              href="/dashboard"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/dashboard" ? "text-primary" : ""
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/profile"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/profile" ? "text-primary" : ""
+              }`}
+            >
+              Profile
+            </Link>
+            <Link
+              href="/messages"
+              className={`relative text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location.startsWith("/messages") ? "text-primary" : ""
+              }`}
+            >
+              Messages
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-2 -right-3" variant="destructive">
+                  {unreadCount}
+                </Badge>
+              )}
+            </Link>
+            <Link
+              href="/admin"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/admin" ? "text-primary" : ""
+              }`}
+            >
+              Admin
+            </Link>
+            <Link
+              href="/forum"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location.startsWith("/forum") ? "text-primary" : ""
+              }`}
+            >
+              Forum
+            </Link>
+          </nav>
+
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <img
+                  src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                  alt="User profile"
+                  className="w-8 h-8 rounded-full border-2 border-primary"
+                />
+                <span className="hidden md:inline font-medium">
+                  {user.name ? user.name.split(" ")[0] : user.username}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-gray-700 hover:text-primary transition-colors duration-200">
+                    <ChevronDown className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="cursor-pointer">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile#settings" className="cursor-pointer">Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
               </div>
               <span className="text-xl font-heading font-bold text-dark-text dark:text-white transition-colors duration-200">
                 Healthmap
@@ -247,24 +360,60 @@ const Navbar = () => {
             )}
 
             <button
+<<<<<<< HEAD
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary focus:outline-none"
               aria-label="Toggle mobile menu"
+=======
+              onClick={toggle}
+              aria-label="Toggle dark mode"
+              className="text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
             >
-              <Menu className="h-6 w-6" />
+              {isDark ? (
+                <Sun className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Moon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+              className="md:hidden text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            >
+              <Menu className="h-6 w-6" aria-hidden="true" />
+              <span className="sr-only">Toggle navigation menu</span>
             </button>
           </div>
         </div>
 
         {/* Mobile menu - cleaner organization */}
         {isMobileMenuOpen && (
+<<<<<<< HEAD
           <div className="md:hidden py-3 px-2 border-t border-light-blue-border dark:border-gray-700">
             <nav className="flex flex-col space-y-0.5">
               <MobileNavLink href="/" active={location === "/"}>
+=======
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <nav
+              role="navigation"
+              aria-label="mobile"
+              className="flex flex-col space-y-4"
+            >
+              <Link
+                href="/"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/" ? "text-primary" : ""
+                }`}
+              >
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
                 Home
               </MobileNavLink>
               <MobileNavLink href="/profile" active={location === "/profile"}>
                 Profile
+<<<<<<< HEAD
               </MobileNavLink>
               <MobileNavLink href="/dashboard" active={location === "/dashboard"}>
                 Dashboard
@@ -279,6 +428,36 @@ const Navbar = () => {
                 Family Health
               </MobileNavLink>
               <MobileNavLink href="/forum" active={location.startsWith("/forum")}>
+=======
+              </Link>
+              <Link
+                href="/messages"
+                className={`relative text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location.startsWith("/messages") ? "text-primary" : ""
+                }`}
+              >
+                Messages
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-2 -right-3" variant="destructive">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Link>
+              <Link
+                href="/admin"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/admin" ? "text-primary" : ""
+                }`}
+              >
+                Admin
+              </Link>
+              <Link
+                href="/forum"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location.startsWith("/forum") ? "text-primary" : ""
+                }`}
+              >
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
                 Forum
               </MobileNavLink>
               <MobileNavLink href="/messenger" active={location === "/messenger"}>

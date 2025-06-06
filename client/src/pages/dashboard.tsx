@@ -149,6 +149,7 @@ export default function Dashboard() {
   };
 
   return (
+<<<<<<< HEAD
     <div className="clean-container py-10">
       <div className="clean-header mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
@@ -215,6 +216,40 @@ export default function Dashboard() {
           >
             Wellness Dashboard
           </motion.h1>
+=======
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">Health Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, {user?.name || user?.username}. Here's your health overview.
+        </p>
+      </div>
+
+      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="overflow-x-auto whitespace-nowrap">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="journey">Health Journey</TabsTrigger>
+          <TabsTrigger value="challenges">Challenges</TabsTrigger>
+          <TabsTrigger value="coaching">Health Coaching</TabsTrigger>
+          <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
+          <TabsTrigger value="mental">Mental Health</TabsTrigger>
+          <TabsTrigger value="library">Health Library</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Simplified stats section */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="flex flex-row items-center p-4">
+              <div className="rounded-full p-2 bg-primary/10 mr-3">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Health Journey</p>
+                <div className="text-xl font-bold">{journeyEntries.length}</div>
+              </div>
+            </Card>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
 
           {/* Risk Alert Card - Prominent placement at top */}
           <RiskAlertCard 
@@ -247,6 +282,7 @@ export default function Dashboard() {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Habit Tracker Dashboard - Always show for habit formation */}
           <HabitTrackerDashboard 
             userId={user?.id} 
@@ -344,6 +380,21 @@ export default function Dashboard() {
                   <Sun className="h-6 w-6 text-primary" />
                   Daily Wellness Tips
                 </CardTitle>
+=======
+          {/* Main sections */}
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* Recent journey entries */}
+            <Card className="col-span-1">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle>Recent Health Journey</CardTitle>
+                  <Button variant="ghost" size="sm" asChild className="h-8">
+                    <Link to="#" onClick={() => setActiveTab("journey")}>
+                      View all <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
               </CardHeader>
               <CardContent>
                 <motion.ul className="space-y-4">
@@ -400,7 +451,52 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
+<<<<<<< HEAD
           </motion.div>
+=======
+          </div>
+
+          {/* Articles preview */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-center">
+                <CardTitle>Health Articles</CardTitle>
+                <Button variant="ghost" size="sm" asChild className="h-8">
+                  <Link to="#" onClick={() => setActiveTab("library")}>
+                    View all <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-6 sm:grid-cols-2">
+                {healthArticles.slice(0, 2).map((article: HealthArticle) => (
+                  <div key={article.id} className="flex space-x-4 items-start">
+                    {article.imageUrl && (
+                      <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                        <img 
+                          src={article.imageUrl} 
+                          alt={article.title}
+                          className="object-cover w-full h-full" 
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-medium text-sm mb-1">{article.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                        {article.summary}
+                      </p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" />
+                        <span>{article.readTime} min read</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
         </TabsContent>
 
         {/* Health Journey Tab */}
@@ -467,7 +563,7 @@ export default function Dashboard() {
 
         {/* Challenges Tab */}
         <TabsContent value="challenges" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Your Active Challenges</CardTitle>
@@ -596,7 +692,7 @@ export default function Dashboard() {
                     <Progress value={plan.progress} className="h-2" />
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium">Goals</h4>
                       <ul className="space-y-1">

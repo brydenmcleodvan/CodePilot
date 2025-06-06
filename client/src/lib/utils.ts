@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+<<<<<<< HEAD
 interface ChatMessage {
   role: string;
   content: string;
@@ -70,3 +71,23 @@ export const healthResponses = [
   "Signs of vitamin D deficiency may include fatigue, bone pain, muscle weakness, mood changes, and increased susceptibility to infections. A blood test can confirm if your levels are low.",
   "To improve sleep quality, consider maintaining a consistent sleep schedule, creating a restful environment, limiting screen time before bed, avoiding caffeine in the afternoon/evening, and developing a calming pre-sleep routine."
 ];
+=======
+export function getAuthToken(): string | null {
+  if (typeof localStorage === "undefined") return null;
+  return localStorage.getItem("auth_token");
+}
+
+export function downloadCSV(data: Record<string, any>[], filename = 'data.csv') {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]).join(',');
+  const rows = data.map((row) => Object.values(row).join(',')).join('\n');
+  const csv = headers + '\n' + rows;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+>>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
