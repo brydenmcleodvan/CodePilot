@@ -3,7 +3,7 @@ import { Link } from "wouter";
 const Footer = () => {
   return (
     <footer className="bg-gray-800 text-white py-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-4">
@@ -16,16 +16,20 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-primary">
-                <i className="ri-facebook-fill text-xl"></i>
+                <i className="ri-facebook-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Facebook</span>
               </a>
               <a href="#" className="text-gray-400 hover:text-primary">
-                <i className="ri-twitter-fill text-xl"></i>
+                <i className="ri-twitter-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Twitter</span>
               </a>
               <a href="#" className="text-gray-400 hover:text-primary">
-                <i className="ri-instagram-line text-xl"></i>
+                <i className="ri-instagram-line text-xl" aria-hidden="true"></i>
+                <span className="sr-only">Instagram</span>
               </a>
               <a href="#" className="text-gray-400 hover:text-primary">
-                <i className="ri-linkedin-fill text-xl"></i>
+                <i className="ri-linkedin-fill text-xl" aria-hidden="true"></i>
+                <span className="sr-only">LinkedIn</span>
               </a>
             </div>
           </div>

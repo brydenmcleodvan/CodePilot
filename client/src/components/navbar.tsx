@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useNotifications } from "@/lib/notifications";
+import { useDarkMode } from "@/hooks/useDarkMode";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,12 +11,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Menu } from "lucide-react";
+import { ChevronDown, Menu, Moon, Sun } from "lucide-react";
 
 const Navbar = () => {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isDark, toggle } = useDarkMode();
 
   const handleLogout = () => {
     logout();
@@ -26,16 +31,20 @@ const Navbar = () => {
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-2">
-            <i className="ri-heart-pulse-line text-primary text-2xl"></i>
+            <i className="ri-heart-pulse-line text-primary text-2xl" aria-hidden="true"></i>
             <Link href="/" className="text-xl font-heading font-bold text-gray-800">
               Healthmap
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center space-x-6">
+          <nav
+            role="navigation"
+            aria-label="main"
+            className="hidden md:flex items-center space-x-6"
+          >
             <Link
               href="/"
               className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
@@ -61,6 +70,27 @@ const Navbar = () => {
               Profile
             </Link>
             <Link
+              href="/messages"
+              className={`relative text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location.startsWith("/messages") ? "text-primary" : ""
+              }`}
+            >
+              Messages
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-2 -right-3" variant="destructive">
+                  {unreadCount}
+                </Badge>
+              )}
+            </Link>
+            <Link
+              href="/admin"
+              className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                location === "/admin" ? "text-primary" : ""
+              }`}
+            >
+              Admin
+            </Link>
+            <Link
               href="/forum"
               className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
                 location.startsWith("/forum") ? "text-primary" : ""
@@ -68,7 +98,7 @@ const Navbar = () => {
             >
               Forum
             </Link>
-          </div>
+          </nav>
 
           <div className="flex items-center space-x-4">
             {user ? (
@@ -117,10 +147,25 @@ const Navbar = () => {
             )}
 
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-700 focus:outline-none"
+              onClick={toggle}
+              aria-label="Toggle dark mode"
+              className="text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
             >
-              <Menu className="h-6 w-6" />
+              {isDark ? (
+                <Sun className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Moon className="h-5 w-5" aria-hidden="true" />
+              )}
+            </button>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+              className="md:hidden text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+            >
+              <Menu className="h-6 w-6" aria-hidden="true" />
+              <span className="sr-only">Toggle navigation menu</span>
             </button>
           </div>
         </div>
@@ -128,7 +173,11 @@ const Navbar = () => {
         {/* Mobile menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-4">
+            <nav
+              role="navigation"
+              aria-label="mobile"
+              className="flex flex-col space-y-4"
+            >
               <Link
                 href="/"
                 className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
@@ -152,6 +201,27 @@ const Navbar = () => {
                 }`}
               >
                 Profile
+              </Link>
+              <Link
+                href="/messages"
+                className={`relative text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location.startsWith("/messages") ? "text-primary" : ""
+                }`}
+              >
+                Messages
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-2 -right-3" variant="destructive">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Link>
+              <Link
+                href="/admin"
+                className={`text-gray-700 hover:text-primary transition-colors duration-200 font-medium ${
+                  location === "/admin" ? "text-primary" : ""
+                }`}
+              >
+                Admin
               </Link>
               <Link
                 href="/forum"
