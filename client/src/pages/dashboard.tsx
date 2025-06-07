@@ -20,6 +20,7 @@ import ProviderDashboardView from "@/components/ProviderDashboardView";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
 import NotificationCenter from "@/components/NotificationCenter";
 import AchievementCard from "@/components/AchievementCard";
+import HealthTimeline from "@/components/HealthTimeline";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -457,6 +458,9 @@ export default function Dashboard() {
                   )}
                 </div>
               ))}
+
+              {/* Combined timeline */}
+              <HealthTimeline />
             </CardContent>
           </Card>
         </TabsContent>

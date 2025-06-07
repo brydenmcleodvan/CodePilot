@@ -348,6 +348,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // User timeline events
+  app.get('/api/user/timeline', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const events = await storage.getUserTimeline(user.id);
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const risk = await riskDetectionEngine.performRiskAssessment(user.id);
+
+      events.push({
+        type: 'genetic_risk',
+        title: 'Risk Score',
+        value: risk.overallRiskLevel,
+        date: risk.generatedAt
+      });
+
+      events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching user timeline:', error);
+      res.status(500).json({ message: 'Failed to fetch user timeline' });
+    }
+  });
+
   // Health articles
   app.get('/api/articles', async (req, res) => {
     try {

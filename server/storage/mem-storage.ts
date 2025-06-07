@@ -636,4 +636,35 @@ export class MemStorage implements IStorage {
       return newService;
     }
   }
+
+  async getUserTimeline(userId: number): Promise<any[]> {
+    const metrics = this.healthMetrics.filter(m => m.userId === userId);
+    const goalEvents = this.goalProgress
+      .filter(p => p.userId === userId && p.achieved)
+      .map(p => {
+        const goal = this.healthGoals.find(g => g.id === parseInt(p.goalId));
+        return {
+          type: 'goal',
+          title: goal?.title || 'Goal',
+          date: p.date || p.createdAt,
+          value: p.value || null
+        };
+      });
+    const events = this.userEvents.filter(e => e.userId === userId).map(e => ({
+      type: 'event',
+      title: e.eventType,
+      date: e.timestamp,
+      value: e.eventData
+    }));
+
+    const metricEvents = metrics.map(m => ({
+      type: 'metric',
+      title: m.metricType,
+      date: m.timestamp,
+      value: m.value
+    }));
+
+    const timeline = [...metricEvents, ...goalEvents, ...events];
+    return timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
 }

@@ -129,4 +129,7 @@ export interface IStorage {
   // Connected Services
   getConnectedServices(userId: number): Promise<any[]>;
   updateConnectedService(serviceData: any): Promise<any>;
+
+  // Combined timeline
+  getUserTimeline(userId: number): Promise<any[]>;
 }
