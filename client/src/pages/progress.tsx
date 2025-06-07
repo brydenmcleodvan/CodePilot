@@ -1,6 +1,11 @@
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { useAuth } from "@/lib/auth";
-import { ProgressDashboard } from "@/components/ProgressDashboard";
+
+const ProgressDashboard = lazy(() =>
+  import("@/components/ProgressDashboard").then((m) => ({
+    default: m.ProgressDashboard || m.default,
+  }))
+);
 import { Loader2 } from "lucide-react";
 
 function LoadingSpinner() {

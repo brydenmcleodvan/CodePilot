@@ -70,6 +70,10 @@ export interface IStorage {
   addGoalProgress(progressData: InsertGoalProgress): Promise<GoalProgress>;
   getGoalProgress(goalId: number): Promise<GoalProgress[]>;
   getGoalProgressForPeriod(goalId: number, startDate: Date, endDate: Date): Promise<GoalProgress[]>;
+
+  // Daily insight storage
+  addDailyInsight(insight: { userId: number; date: Date; summary: string }): Promise<void>;
+  getDailyInsights(userId: number): Promise<{ id: number; userId: number; date: Date; summary: string; createdAt: Date }[]>;
   
   // Security and permissions
   
@@ -122,6 +126,7 @@ class MemStorage implements IStorage {
   private resourceAssignments: { resourceId: number; resourceType: string; userId: number }[] = [];
   private familyMembers: any[] = [];
   private familyTimelineEvents: any[] = [];
+  private dailyInsights: { id: number; userId: number; date: Date; summary: string; createdAt: Date }[] = [];
   
   // User methods
   async getUser(id: number): Promise<User | undefined> {
@@ -706,6 +711,16 @@ class MemStorage implements IStorage {
     }
 
     return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  // Daily insight methods
+  async addDailyInsight(insight: { userId: number; date: Date; summary: string }): Promise<void> {
+    const id = this.dailyInsights.length > 0 ? Math.max(...this.dailyInsights.map(i => i.id)) + 1 : 1;
+    this.dailyInsights.push({ id, userId: insight.userId, date: insight.date, summary: insight.summary, createdAt: new Date() });
+  }
+
+  async getDailyInsights(userId: number): Promise<{ id: number; userId: number; date: Date; summary: string; createdAt: Date }[]> {
+    return this.dailyInsights.filter(i => i.userId === userId);
   }
 }
 

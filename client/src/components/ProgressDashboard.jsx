@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -27,7 +27,17 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
-import { Line, Bar } from 'react-chartjs-2';
+import { Loader2 } from 'lucide-react';
+const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
+const Bar = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Bar })));
+
+function ChartFallback() {
+  return (
+    <div className="flex justify-center items-center h-48">
+      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+    </div>
+  );
+}
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -315,11 +325,13 @@ function TrendAnalysisView({ trends, timeRange }) {
           </CardHeader>
           <CardContent>
             {trends.steps ? (
-              <Line 
-                data={createChartData(trends.steps, 'Steps', '#3B82F6')} 
-                options={{...chartOptions, maintainAspectRatio: false}} 
-                height={200}
-              />
+              <Suspense fallback={<ChartFallback />}>
+                <Line
+                  data={createChartData(trends.steps, 'Steps', '#3B82F6')}
+                  options={{ ...chartOptions, maintainAspectRatio: false }}
+                  height={200}
+                />
+              </Suspense>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No steps data available for this period
@@ -338,11 +350,13 @@ function TrendAnalysisView({ trends, timeRange }) {
           </CardHeader>
           <CardContent>
             {trends.sleep ? (
-              <Line 
-                data={createChartData(trends.sleep, 'Hours', '#8B5CF6')} 
-                options={{...chartOptions, maintainAspectRatio: false}} 
-                height={200}
-              />
+              <Suspense fallback={<ChartFallback />}>
+                <Line
+                  data={createChartData(trends.sleep, 'Hours', '#8B5CF6')}
+                  options={{ ...chartOptions, maintainAspectRatio: false }}
+                  height={200}
+                />
+              </Suspense>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No sleep data available for this period
@@ -361,11 +375,13 @@ function TrendAnalysisView({ trends, timeRange }) {
           </CardHeader>
           <CardContent>
             {trends.hrv ? (
-              <Line 
-                data={createChartData(trends.hrv, 'HRV (ms)', '#EF4444')} 
-                options={{...chartOptions, maintainAspectRatio: false}} 
-                height={200}
-              />
+              <Suspense fallback={<ChartFallback />}>
+                <Line
+                  data={createChartData(trends.hrv, 'HRV (ms)', '#EF4444')}
+                  options={{ ...chartOptions, maintainAspectRatio: false }}
+                  height={200}
+                />
+              </Suspense>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No HRV data available for this period
@@ -384,11 +400,13 @@ function TrendAnalysisView({ trends, timeRange }) {
           </CardHeader>
           <CardContent>
             {trends.activity ? (
-              <Line 
-                data={createChartData(trends.activity, 'Score', '#10B981')} 
-                options={{...chartOptions, maintainAspectRatio: false}} 
-                height={200}
-              />
+              <Suspense fallback={<ChartFallback />}>
+                <Line
+                  data={createChartData(trends.activity, 'Score', '#10B981')}
+                  options={{ ...chartOptions, maintainAspectRatio: false }}
+                  height={200}
+                />
+              </Suspense>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 No activity data available for this period

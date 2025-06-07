@@ -7,6 +7,7 @@ import { promisify } from 'util';
 import { storage } from './storage';
 import { User } from '@shared/schema';
 import { generateTokens } from './security/auth/auth-middleware';
+import { loginRateLimiter, registrationRateLimiter } from './security/utils/rate-limiter';
 import connectPg from 'connect-pg-simple';
 import { pool } from './db';
 
@@ -127,7 +128,7 @@ export function setupAuth(app: Express) {
   });
 
   // Auth routes
-  app.post('/api/register', async (req, res, next) => {
+  app.post('/api/register', registrationRateLimiter, async (req, res, next) => {
     try {
       const { username, email, password, name } = req.body;
 
@@ -184,7 +185,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post('/api/login', async (req, res) => {
+  app.post('/api/login', loginRateLimiter, async (req, res) => {
     try {
       const { username, password } = req.body;
       
