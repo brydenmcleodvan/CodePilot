@@ -11,6 +11,7 @@ import { recommendationEngine } from './recommendation-engine';
 import { aiHealthCoach } from './ai-health-coach';
 import { streakCounter } from './streak-counter';
 import { weeklySummaryScheduler } from './weekly-summary-scheduler';
+import { healthAlertsSystem } from './health-alerts-system';
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes

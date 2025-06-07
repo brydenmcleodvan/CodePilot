@@ -16,8 +16,10 @@ import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import { RiskAlertCard } from "@/components/RiskAlertCard";
 import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
 import { HabitTrackerDashboard } from "@/components/HabitTrackerDashboard";
-import { ProviderDashboardView } from "@/components/ProviderDashboardView";
+import ProviderDashboardView from "@/components/ProviderDashboardView";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
+import NotificationCenter from "@/components/NotificationCenter";
+import AchievementCard from "@/components/AchievementCard";
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -97,6 +99,13 @@ export default function Dashboard() {
 
   const { data: mealPlans = [] } = useQuery({
     queryKey: ["/api/meal-plans"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user,
+  });
+
+  // Progress tracking and achievements data
+  const { data: progressData } = useQuery({
+    queryKey: ["/api/progress-tracking"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
@@ -219,6 +228,23 @@ export default function Dashboard() {
               className="mb-6"
             />
           )}
+
+          {/* Notification Center and Achievements Section */}
+          <div className="grid lg:grid-cols-3 gap-6 mb-6">
+            <div className="lg:col-span-2">
+              <NotificationCenter />
+            </div>
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Recent Achievements</h3>
+              {progressData?.achievements?.slice(0, 3).map((achievement: any) => (
+                <AchievementCard 
+                  key={achievement.id} 
+                  achievement={achievement} 
+                  compact={true}
+                />
+              ))}
+            </div>
+          </div>
 
           {/* Habit Tracker Dashboard - Always show for habit formation */}
           <HabitTrackerDashboard 
