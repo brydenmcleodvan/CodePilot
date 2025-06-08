@@ -1,14 +1,17 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import { pgTable, serial, text, timestamp, integer, boolean, json, pgEnum } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
 
-// User Table
+// Role enum for permission management
+export const roleEnum = pgEnum('role', ['admin', 'provider', 'patient', 'researcher', 'content_manager']);
+
+// User Table (merged fields)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
   email: text("email").notNull().unique(),
-  name: text("name").notNull(),
+  password: text("password").notNull(),
+  name: text("name"),
   age: integer("age"),
   healthGoals: text("health_goals"),
   profilePicture: text("profile_picture"),
@@ -18,166 +21,125 @@ export const users = pgTable("users", {
   verificationToken: text("verification_token"),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpires: timestamp("password_reset_expires"),
+  roles: text("roles").array(), // from main
+  preferences: json("preferences"), // from main
+  profileImage: text("profile_image"), // from main
+  bio: text("bio"), // from main
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
-// Registered user devices
-export const userDevices = pgTable("user_devices", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  deviceUuid: text("device_uuid").notNull().unique(),
-  deviceType: text("device_type").notNull(),
-  deviceName: text("device_name"),
-  lastSeen: timestamp("last_seen"),
+// Retain remaining tables from srl6kn-codex branch...
+
 });
 
-// User sessions
-export const userSessions = pgTable("user_sessions", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").notNull(),
-  lastActive: timestamp("last_active").notNull(),
+// Health metrics table
+export const healthMetrics = pgTable(
+  'health_metrics',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id),
+    metricType: text('metric_type').notNull(),
+    value: text('value').notNull(),
+    timestamp: timestamp('timestamp').defaultNow().notNull(),
+    unit: text('unit'),
+    source: text('source'),
+    notes: text('notes')
+  },
+  (table) => ({
+    userTimestampIdx: index('health_metrics_user_timestamp_idx').on(
+      table.userId,
+      table.timestamp
+    ),
+    userMetricTimestampIdx: index('health_metrics_user_metric_ts_idx').on(
+      table.userId,
+      table.metricType,
+      table.timestamp
+    )
+  })
+);
+
+// Medications table
+export const medications = pgTable('medications', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  name: text('name').notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  dosage: text('dosage'),
+  frequency: text('frequency'),
+  prescribedBy: text('prescribed_by'),
+  notes: text('notes'),
+  active: boolean('active')
 });
 
-// Connected wearable or external devices
-export const connectedDevices = pgTable("connected_devices", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  deviceType: text("device_type").notNull(),
-  lastSynced: timestamp("last_synced"),
-  status: text("status"),
+// Symptoms table
+export const symptoms = pgTable('symptoms', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  name: text('name').notNull(),
+  severity: integer('severity').notNull(),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  relatedCondition: text('related_condition'),
+  bodyLocation: text('body_location'),
+  notes: text('notes')
 });
 
-// Health Stats
-export const healthStats = pgTable("health_stats", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  deviceId: integer("device_id").references(() => userDevices.id),
-  statType: text("stat_type").notNull(), // e.g. "heart_rate", "sleep_quality", "zinc"
-  value: text("value").notNull(), // Can be numeric or text
-  unit: text("unit"), // e.g. "bpm", "hrs", etc.
-  icon: text("icon"), // Icon name from Remix Icons
-  colorScheme: text("color_scheme"), // CSS class for color
-  timestamp: timestamp("timestamp").notNull(),
+// Appointments table
+export const appointments = pgTable('appointments', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  provider: text('provider').notNull(),
+  datetime: timestamp('datetime').notNull(),
+  type: text('type'),
+  status: text('status'),
+  location: text('location'),
+  duration: integer('duration'),
+  reminderTime: timestamp('reminder_time'),
+  notes: text('notes')
 });
 
-// Synced device health metrics
-export const syncedData = pgTable("synced_data", {
-  id: serial("id").primaryKey(),
-  deviceId: integer("device_id").notNull().references(() => userDevices.id),
-  metricType: text("metric_type").notNull(),
-  value: text("value").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-  source: text("source").notNull(), // e.g. "fitbit", "apple_health"
+// Health data connections (wearables, third-party health platforms, etc.)
+export const healthDataConnections = pgTable('health_data_connections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  provider: text('provider').notNull(),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  active: boolean('active'),
+  expiresAt: timestamp('expires_at'),
+  scope: text('scope'),
+  lastSynced: timestamp('last_synced'),
+  settings: json('settings')
 });
 
-// Medications
-export const medications = pgTable("medications", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  name: text("name").notNull(),
-  dosage: text("dosage").notNull(),
-  schedule: text("schedule").notNull(), // e.g. "Every morning", "Twice daily"
-  nextDose: timestamp("next_dose"), // Next scheduled dose
-  lastTaken: timestamp("last_taken"), // Last time medication was taken
-  instructions: text("instructions"),
-  active: boolean("active").notNull().default(true),
-  interactionCategory: text("interaction_category"), // Category for interaction checking
-  sideEffects: text("side_effects"), // Possible side effects
-  totalTaken: integer("total_taken").default(0), // Count of how many doses have been taken
-  sharedWith: text("shared_with").array(), // Array of userIds this medication is shared with
+// Forum posts
+export const forumPosts = pgTable('forum_posts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  tags: text('tags').array(),
+  isPinned: boolean('is_pinned'),
+  isLocked: boolean('is_locked'),
+  viewCount: integer('view_count')
 });
 
-// Medication History
-export const medicationHistory = pgTable("medication_history", {
-  id: serial("id").primaryKey(),
-  medicationId: integer("medication_id").notNull(),
-  userId: integer("user_id").notNull(),
-  takenAt: timestamp("taken_at").notNull(),
-  scheduled: timestamp("scheduled"), // When it was scheduled to be taken
-  skipped: boolean("skipped").notNull().default(false), // Whether it was skipped
-  note: text("note"), // Any notes about this dose
-});
-
-// Connections (Family & Friends)
-export const connections = pgTable("connections", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  connectionId: integer("connection_id").notNull(), // The user they're connected with
-  relationshipType: text("relationship_type"), // e.g. "family", "friend"
-  relationshipSpecific: text("relationship_specific"), // e.g. "sister", "brother", "father"
-});
-
-// Forum Posts
-export const forumPosts = pgTable("forum_posts", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  subreddit: text("subreddit").notNull(), // e.g. "Nutrition", "Fitness"
-  upvotes: integer("upvotes").default(0),
-  downvotes: integer("downvotes").default(0),
-  tags: text("tags").array(),
-  timestamp: timestamp("timestamp").notNull(),
-});
-
-// News & Updates
-export const newsUpdates = pgTable("news_updates", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  thumbnail: text("thumbnail"),
-  category: text("category").notNull(), // e.g. "Nutrition", "Mental Health", "Fitness"
-  timestamp: timestamp("timestamp").notNull(),
-});
-
-// Product Recommendations
-export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  price: text("price").notNull(),
-  image: text("image"),
-  category: text("category").notNull(),
-  tags: text("tags").array(),
-  recommendedFor: text("recommended_for").array(), // e.g. ["zinc_deficiency"]
-});
-
-// Symptom Checker
-export const symptoms = pgTable("symptoms", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  bodyArea: text("body_area").notNull(),  // e.g. "head", "chest", "abdomen"
-  severity: text("severity").notNull(),   // e.g. "mild", "moderate", "severe"
-  commonCauses: text("common_causes").array(),
-  recommendedActions: text("recommended_actions").array(),
-});
-
-// Symptom Check Records
-export const symptomChecks = pgTable("symptom_checks", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-  reportedSymptoms: text("reported_symptoms").array(),
-  preliminaryAssessment: text("preliminary_assessment"),
-  recommendedActions: text("recommended_actions").array(),
-  severity: text("severity"), // e.g. "routine", "urgent", "emergency"
-  notes: text("notes"),
-});
-
-// Appointments
-export const appointments = pgTable("appointments", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
-  description: text("description"),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time").notNull(),
-  location: text("location"),
-  provider: text("provider"),
-  status: text("status").notNull(), // e.g. "scheduled", "completed", "cancelled"
-  type: text("type").notNull(), // e.g. "checkup", "follow-up", "specialist"
-  reminderSent: boolean("reminder_sent").default(false),
+// Health articles
+export const healthArticles = pgTable('health_articles', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  publishDate: timestamp('publish_date').notNull(),
+  author: text('author'),
+  source: text('source'),
+  url: text('url'),
+  imageUrl: text('image_url'),
+  tags: text('tags').array()
 });
 
 // Health Data Connections
@@ -194,239 +156,61 @@ export const healthDataConnections = pgTable("health_data_connections", {
   expiresAt: timestamp("expires_at"),
 });
 
-// Health Journey Tracking
-export const healthJourneyEntries = pgTable("health_journey_entries", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-  category: text("category").notNull(), // e.g. "weight", "exercise", "nutrition"
-  title: text("title").notNull(),
-  description: text("description"),
-  metrics: text("metrics"), // JSON string with tracked metrics
-  mediaUrl: text("media_url"),
-  sentiment: text("sentiment"), // e.g. "positive", "neutral", "negative"
+// Token metadata for authentication
+export const tokenMetadata = pgTable('token_metadata', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  tokenId: text('token_id').notNull().unique(),
+  expiresAt: timestamp('expires_at').notNull(),
+  issuedAt: timestamp('issued_at').notNull(),
+  isRevoked: boolean('is_revoked'),
+  clientInfo: json('client_info')
 });
 
-// Virtual Health Coaching
-export const healthCoachingPlans = pgTable("health_coaching_plans", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  title: text("title").notNull(),
-  description: text("description"),
-  goals: text("goals").array(),
-  recommendations: text("recommendations").array(),
-  progress: integer("progress").notNull().default(0), // 0-100 completion percentage
-  active: boolean("active").notNull().default(true)
 });
 
-// Wellness Challenges & Gamification
-export const wellnessChallenges = pgTable("wellness_challenges", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  category: text("category").notNull(), // e.g. "fitness", "nutrition", "mental-health"
-  pointsReward: integer("points_reward").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date"),
-  requirementType: text("requirement_type").notNull(), // e.g. "steps", "meditation", "nutrition"
-  requirementTarget: integer("requirement_target").notNull(),
-  image: text("image")
+// Healthcare relationships (provider-patient)
+export const healthcareRelationships = pgTable('healthcare_relationships', {
+  id: serial('id').primaryKey(),
+  providerId: integer('provider_id').notNull().references(() => users.id),
+  patientId: integer('patient_id').notNull().references(() => users.id),
+  relationshipType: text('relationship_type').notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  status: text('status'),
+  accessLevel: text('access_level'),
+  notes: text('notes'),
+  metadata: json('metadata')
 });
 
-export const userChallengeProgress = pgTable("user_challenge_progress", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  challengeId: integer("challenge_id").notNull(),
-  joined: timestamp("joined").notNull(),
-  currentProgress: integer("current_progress").notNull().default(0),
-  completed: boolean("completed").notNull().default(false),
-  completedAt: timestamp("completed_at")
+// Resource ownership tracking
+export const resourceOwnership = pgTable('resource_ownership', {
+  id: serial('id').primaryKey(),
+  resourceId: integer('resource_id').notNull(),
+  resourceType: text('resource_type').notNull(),
+  ownerId: integer('owner_id').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
-// Mental Health Integration
-export const mentalHealthAssessments = pgTable("mental_health_assessments", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-  assessmentType: text("assessment_type").notNull(), // e.g. "mood", "stress", "anxiety", "sleep"
-  score: integer("score"),
-  notes: text("notes"),
-  recommendations: text("recommendations").array()
+// Resource assignments (for shared resources)
+export const resourceAssignments = pgTable('resource_assignments', {
+  id: serial('id').primaryKey(),
+  resourceId: integer('resource_id').notNull(),
+  resourceType: text('resource_type').notNull(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  assignedBy: integer('assigned_by').notNull().references(() => users.id),
+  permissions: text('permissions').array(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at')
 });
 
-// Mood Tracker
-export const moodEntries = pgTable("mood_entries", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  date: timestamp("date").notNull(),
-  mood: real("mood").notNull(), // 1-10 scale
-  energy: real("energy").notNull(), // 1-10 scale
-  sleep: real("sleep").notNull(), // hours
-  categories: text("categories").array(),
-  notes: text("notes"),
-  factors: text("factors").array()
-});
-
-// Health Library
-export const healthArticles = pgTable("health_articles", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  summary: text("summary").notNull(),
-  authorName: text("author_name"),
-  publishedAt: timestamp("published_at").notNull(),
-  category: text("category").notNull(),
-  tags: text("tags").array(),
-  imageUrl: text("image_url"),
-  sourceName: text("source_name"),
-  sourceUrl: text("source_url"),
-  readTime: integer("read_time") // in minutes
-});
-
-// Meal Planning
-export const mealPlans = pgTable("meal_plans", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  title: text("title").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-  startDate: timestamp("start_date").notNull(),
-  endDate: timestamp("end_date"),
-  dietaryPreferences: text("dietary_preferences").array(),
-  healthGoals: text("health_goals").array(),
-  allergies: text("allergies").array(),
-  active: boolean("active").notNull().default(true)
-});
-
-export const mealPlanEntries = pgTable("meal_plan_entries", {
-  id: serial("id").primaryKey(),
-  mealPlanId: integer("meal_plan_id").notNull(),
-  dayOfWeek: integer("day_of_week").notNull(), // 0-6 for Sunday-Saturday
-  mealType: text("meal_type").notNull(), // e.g. "breakfast", "lunch", "dinner", "snack"
-  name: text("name").notNull(),
-  recipe: text("recipe"),
-  ingredients: text("ingredients").array(),
-  nutritionalInfo: text("nutritional_info"), // JSON string
-  preparationTime: integer("preparation_time"), // in minutes
-  imageUrl: text("image_url")
-});
-
-// Direct Messages
-export const messages = pgTable("messages", {
-  id: serial("id").primaryKey(),
-  senderId: integer("sender_id").notNull(),
-  recipientId: integer("recipient_id").notNull(),
-  content: text("content").notNull(),
-  read: boolean("read").notNull().default(false),
-  timestamp: timestamp("timestamp").notNull()
-});
-
-// Blocked Users
-export const blockedUsers = pgTable("blocked_users", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  blockedUserId: integer("blocked_user_id").notNull(),
-  createdAt: timestamp("created_at").notNull(),
-});
-
-// Message Reports
-export const messageReports = pgTable("message_reports", {
-  id: serial("id").primaryKey(),
-  messageId: integer("message_id").notNull(),
-  reporterId: integer("reporter_id").notNull(),
-  reason: text("reason"),
-  reportedAt: timestamp("reported_at").notNull(),
-});
-
-// Refresh tokens for rotating auth
-export const refreshTokens = pgTable("refresh_tokens", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at").notNull(),
-  revoked: boolean("revoked").notNull().default(false),
-});
-
-// Anonymized User Profiles
-export const anonymizedProfiles = pgTable("anonymized_profiles", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  anonId: text("anon_id").notNull().unique()
-});
-
-// Anonymized Health Metrics
-export const anonymizedMetrics = pgTable("anonymized_metrics", {
-  id: serial("id").primaryKey(),
-  profileId: integer("profile_id").notNull(),
-  metric: text("metric").notNull(),
-  value: real("value").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-  sourceType: text("source_type").notNull()
-});
-
-// Targeted Partner Ads
-export const partnerAds = pgTable("partner_ads", {
-  id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
-  partner: text("partner").notNull(),
-  url: text("url").notNull(),
-  category: text("category"),
-  tags: text("tags").array(),
-});
-
-// Add-on Modules available for purchase
-export const addOnModules = pgTable("add_on_modules", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  price: text("price").notNull(),
-  featureKey: text("feature_key"),
-});
-
-// Records of user purchases of modules
-export const userPurchases = pgTable("user_purchases", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  moduleId: integer("module_id").notNull(),
-  purchasedAt: timestamp("purchased_at").notNull(),
-});
-
-// Data licensing consent records
-export const dataLicenses = pgTable("data_licenses", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  partner: text("partner").notNull(),
-  consent: boolean("consent").notNull().default(false),
-  createdAt: timestamp("created_at").notNull(),
-});
-
-// Sponsors for wellness challenges
-export const challengeSponsorships = pgTable("challenge_sponsorships", {
-  id: serial("id").primaryKey(),
-  challengeId: integer("challenge_id").notNull(),
-  sponsor: text("sponsor").notNull(),
-  url: text("url"),
-  description: text("description"),
-});
-
-// Metrics for user actions
-export const metrics = pgTable("metrics", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  actionType: text("action_type").notNull(),
-  timestamp: timestamp("timestamp").notNull(),
-});
-
-// Application logs
-export const logs = pgTable("logs", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id"),
-  level: text("level").notNull(),
-  message: text("message").notNull(),
-  stack: text("stack"),
-  timestamp: timestamp("timestamp").notNull(),
+// Daily health insights generated by nightly engine
+export const dailyInsights = pgTable('daily_insights', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  date: timestamp('date').notNull(),
+  summary: text('summary').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
 // Insert Schemas
@@ -442,23 +226,17 @@ export const insertUserSessionSchema = createInsertSchema(userSessions).omit({ i
 export const insertConnectedDeviceSchema = createInsertSchema(connectedDevices).omit({ id: true });
 export const insertHealthStatSchema = createInsertSchema(healthStats).omit({ id: true });
 export const insertSyncedDataSchema = createInsertSchema(syncedData).omit({ id: true });
+
+// Include from main branch
+export const insertHealthMetricSchema = createInsertSchema(healthMetrics).omit({ id: true });
+
 export const insertMedicationSchema = createInsertSchema(medications).omit({ id: true });
-export const insertMedicationHistorySchema = createInsertSchema(medicationHistory).omit({ id: true });
-export const insertConnectionSchema = createInsertSchema(connections).omit({ id: true });
-export const insertForumPostSchema = createInsertSchema(forumPosts).omit({ id: true });
-export const insertNewsUpdateSchema = createInsertSchema(newsUpdates).omit({ id: true });
-export const insertProductSchema = createInsertSchema(products).omit({ id: true });
 export const insertSymptomSchema = createInsertSchema(symptoms).omit({ id: true });
-export const insertSymptomCheckSchema = createInsertSchema(symptomChecks).omit({ id: true });
 export const insertAppointmentSchema = createInsertSchema(appointments).omit({ id: true });
 export const insertHealthDataConnectionSchema = createInsertSchema(healthDataConnections).omit({ id: true });
-export const insertHealthJourneyEntrySchema = createInsertSchema(healthJourneyEntries).omit({ id: true });
-export const insertHealthCoachingPlanSchema = createInsertSchema(healthCoachingPlans).omit({ id: true });
-export const insertWellnessChallengeSchema = createInsertSchema(wellnessChallenges).omit({ id: true });
-export const insertUserChallengeProgressSchema = createInsertSchema(userChallengeProgress).omit({ id: true });
-export const insertMentalHealthAssessmentSchema = createInsertSchema(mentalHealthAssessments).omit({ id: true });
-export const insertMoodEntrySchema = createInsertSchema(moodEntries).omit({ id: true });
+export const insertForumPostSchema = createInsertSchema(forumPosts).omit({ id: true });
 export const insertHealthArticleSchema = createInsertSchema(healthArticles).omit({ id: true });
+// Insert Schemas
 export const insertMealPlanSchema = createInsertSchema(mealPlans).omit({ id: true });
 export const insertMealPlanEntrySchema = createInsertSchema(mealPlanEntries).omit({ id: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true });
@@ -475,77 +253,87 @@ export const insertChallengeSponsorshipSchema = createInsertSchema(challengeSpon
 export const insertMetricSchema = createInsertSchema(metrics).omit({ id: true });
 export const insertLogSchema = createInsertSchema(logs).omit({ id: true });
 
+export const insertTokenMetadataSchema = createInsertSchema(tokenMetadata).omit({ id: true });
+export const insertHealthcareRelationshipSchema = createInsertSchema(healthcareRelationships).omit({ id: true });
+export const insertDailyInsightSchema = createInsertSchema(dailyInsights).omit({ id: true });
+
 // Auth Schemas
 export const loginSchema = z.object({
   username: z.string().min(3),
   password: z.string().min(6),
 });
 
-// Types
+// Export types
+export type User = InferSelectModel<typeof users>;
+export type HealthMetric = InferSelectModel<typeof healthMetrics>;
+export type Medication = InferSelectModel<typeof medications>;
+export type Symptom = InferSelectModel<typeof symptoms>;
+export type Appointment = InferSelectModel<typeof appointments>;
+export type HealthDataConnection = InferSelectModel<typeof healthDataConnections>;
+export type ForumPost = InferSelectModel<typeof forumPosts>;
+export type HealthArticle = InferSelectModel<typeof healthArticles>;
+export type TokenMetadata = InferSelectModel<typeof tokenMetadata>;
+export type HealthcareRelationship = InferSelectModel<typeof healthcareRelationships>;
+export type ResourceOwnership = InferSelectModel<typeof resourceOwnership>;
+export type ResourceAssignment = InferSelectModel<typeof resourceAssignments>;
+export type DailyInsight = InferSelectModel<typeof dailyInsights>;
+
+// Health Goals Table
+export const healthGoals = pgTable('health_goals', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  metricType: text('metric_type').notNull(),
+  goalType: text('goal_type').notNull(), // 'target', 'minimum', 'maximum', 'range'
+  goalValue: json('goal_value').notNull(), // number or {min, max} object
+  unit: text('unit').notNull(),
+  timeframe: text('timeframe').notNull(), // 'daily', 'weekly', 'monthly'
+  status: text('status').notNull(), // 'active', 'completed', 'paused', 'archived'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  notes: text('notes'),
+});
+
+});
+
+// Goal progress tracking table
+export const goalProgress = pgTable('goal_progress', {
+  id: serial('id').primaryKey(),
+  goalId: integer('goal_id').notNull().references(() => healthGoals.id),
+  date: timestamp('date').notNull(),
+  value: text('value').notNull(),
+  achieved: boolean('achieved').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type InsertUserDevice = z.infer<typeof insertUserDeviceSchema>;
 export type UserDevice = typeof userDevices.$inferSelect;
+
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type UserSession = typeof userSessions.$inferSelect;
+
 export type InsertConnectedDevice = z.infer<typeof insertConnectedDeviceSchema>;
 export type ConnectedDevice = typeof connectedDevices.$inferSelect;
 
 export type InsertHealthStat = z.infer<typeof insertHealthStatSchema>;
 export type HealthStat = typeof healthStats.$inferSelect;
+
 export type InsertSyncedData = z.infer<typeof insertSyncedDataSchema>;
 export type SyncedData = typeof syncedData.$inferSelect;
 
+export type InsertHealthMetric = z.infer<typeof insertHealthMetricSchema>;
+
 export type InsertMedication = z.infer<typeof insertMedicationSchema>;
-export type Medication = typeof medications.$inferSelect;
-
-export type InsertMedicationHistory = z.infer<typeof insertMedicationHistorySchema>;
-export type MedicationHistory = typeof medicationHistory.$inferSelect;
-
-export type InsertConnection = z.infer<typeof insertConnectionSchema>;
-export type Connection = typeof connections.$inferSelect;
-
-export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
-export type ForumPost = typeof forumPosts.$inferSelect;
-
-export type InsertNewsUpdate = z.infer<typeof insertNewsUpdateSchema>;
-export type NewsUpdate = typeof newsUpdates.$inferSelect;
-
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
-
 export type InsertSymptom = z.infer<typeof insertSymptomSchema>;
-export type Symptom = typeof symptoms.$inferSelect;
-
-export type InsertSymptomCheck = z.infer<typeof insertSymptomCheckSchema>;
-export type SymptomCheck = typeof symptomChecks.$inferSelect;
-
 export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
-export type Appointment = typeof appointments.$inferSelect;
-
 export type InsertHealthDataConnection = z.infer<typeof insertHealthDataConnectionSchema>;
-export type HealthDataConnection = typeof healthDataConnections.$inferSelect;
-
-export type InsertHealthJourneyEntry = z.infer<typeof insertHealthJourneyEntrySchema>;
-export type HealthJourneyEntry = typeof healthJourneyEntries.$inferSelect;
-
-export type InsertHealthCoachingPlan = z.infer<typeof insertHealthCoachingPlanSchema>;
-export type HealthCoachingPlan = typeof healthCoachingPlans.$inferSelect;
-
-export type InsertWellnessChallenge = z.infer<typeof insertWellnessChallengeSchema>;
-export type WellnessChallenge = typeof wellnessChallenges.$inferSelect;
-
-export type InsertUserChallengeProgress = z.infer<typeof insertUserChallengeProgressSchema>;
-export type UserChallengeProgress = typeof userChallengeProgress.$inferSelect;
-
-export type InsertMentalHealthAssessment = z.infer<typeof insertMentalHealthAssessmentSchema>;
-export type MentalHealthAssessment = typeof mentalHealthAssessments.$inferSelect;
-
-export type InsertMoodEntry = z.infer<typeof insertMoodEntrySchema>;
-export type MoodEntry = typeof moodEntries.$inferSelect;
-
+export type InsertForumPost = z.infer<typeof insertForumPostSchema>;
 export type InsertHealthArticle = z.infer<typeof insertHealthArticleSchema>;
+// Existing types from srl6kn-codex
 export type HealthArticle = typeof healthArticles.$inferSelect;
 
 export type InsertMealPlan = z.infer<typeof insertMealPlanSchema>;
@@ -556,10 +344,13 @@ export type MealPlanEntry = typeof mealPlanEntries.$inferSelect;
 
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
 export type InsertBlockedUser = z.infer<typeof insertBlockedUserSchema>;
 export type BlockedUser = typeof blockedUsers.$inferSelect;
+
 export type InsertMessageReport = z.infer<typeof insertMessageReportSchema>;
 export type MessageReport = typeof messageReports.$inferSelect;
+
 export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 
@@ -591,3 +382,17 @@ export type InsertLog = z.infer<typeof insertLogSchema>;
 export type Log = typeof logs.$inferSelect;
 
 export type Login = z.infer<typeof loginSchema>;
+
+// Types and schemas from main
+export type InsertTokenMetadata = z.infer<typeof insertTokenMetadataSchema>;
+export type InsertHealthcareRelationship = z.infer<typeof insertHealthcareRelationshipSchema>;
+export type InsertDailyInsight = z.infer<typeof insertDailyInsightSchema>;
+
+export const insertHealthGoalSchema = createInsertSchema(healthGoals).omit({ id: true });
+export const insertGoalProgressSchema = createInsertSchema(goalProgress).omit({ id: true });
+
+export type HealthGoal = InferSelectModel<typeof healthGoals>;
+export type GoalProgress = InferSelectModel<typeof goalProgress>;
+export type InsertHealthGoal = z.infer<typeof insertHealthGoalSchema>;
+export type InsertGoalProgress = z.infer<typeof insertGoalProgressSchema>;
+

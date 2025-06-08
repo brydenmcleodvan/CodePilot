@@ -1,0 +1,81 @@
+// ===============================
+// adminAuthGuard.js
+// ===============================
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export function useAdminAuthGuard(user) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user?.isAdmin) {
+      navigate('/unauthorized');
+    }
+  }, [user, navigate]);
+}
+
+// ===============================
+// useSmartOnboarding.js
+// ===============================
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getNextOnboardingStep } from './SmartOnboardingResume';
+
+export function useSmartOnboarding(userProgress) {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const step = getNextOnboardingStep(userProgress);
+    if (step === 'goals') navigate('/onboarding/goals');
+    else if (step === 'suggestion') navigate('/onboarding/suggestion');
+    else if (step === 'complete') navigate('/dashboard');
+  }, [userProgress, navigate]);
+}
+
+// ===============================
+// firebaseConfig.js
+// ===============================
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
+const firebaseConfig = {
+  apiKey: 'your-api-key',
+  authDomain: 'your-auth-domain',
+  projectId: 'your-project-id',
+  storageBucket: 'your-storage-bucket',
+  messagingSenderId: 'your-sender-id',
+  appId: 'your-app-id'
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+// ===============================
+// featureAnalyticsService.js
+// ===============================
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
+
+export async function logFeatureUsage(userId, feature) {
+  await addDoc(collection(db, 'feature_logs'), {
+    userId,
+    feature,
+    timestamp: new Date().toISOString()
+  });
+}
+
+// ===============================
+// supportTicketService.js
+// ===============================
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
+
+export async function submitSupportTicket(message, userId) {
+  await addDoc(collection(db, 'support_tickets'), {
+    userId,
+    message,
+    timestamp: new Date().toISOString()
+  });
+}

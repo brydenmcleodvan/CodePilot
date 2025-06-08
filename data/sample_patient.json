@@ -1,0 +1,76 @@
+{
+  "patient_id": "PT12345",
+  "name": "John Doe",
+  "age": 45,
+  "gender": "Male",
+  "medical_history": {
+    "conditions": ["Epilepsy", "Hypertension"],
+    "allergies": ["Penicillin"],
+    "neurological_history": {
+      "seizure_history": [
+        {"date": "2023-01-15", "type": "Focal", "duration_seconds": 120, "triggers": ["Stress", "Sleep deprivation"]},
+        {"date": "2023-03-22", "type": "Generalized", "duration_seconds": 180, "triggers": ["Missed medication"]},
+        {"date": "2023-06-10", "type": "Focal", "duration_seconds": 90, "triggers": ["Flashing lights"]}
+      ],
+      "eeg_results": [
+        {"date": "2023-02-01", "findings": "Abnormal electrical activity in the temporal lobe", "severity": "Moderate"},
+        {"date": "2023-07-15", "findings": "Improved electrical patterns, some abnormalities persist", "severity": "Mild"}
+      ],
+      "imaging_studies": [
+        {"date": "2023-01-20", "type": "MRI", "findings": "Small lesion in right temporal lobe", "recommendation": "Follow-up in 6 months"},
+        {"date": "2023-07-20", "type": "MRI", "findings": "No change in lesion size", "recommendation": "Continue current treatment"}
+      ],
+      "cognitive_assessment": {
+        "date": "2023-05-10",
+        "memory_score": 85,
+        "attention_score": 78,
+        "processing_speed": 82,
+        "overall_cognitive_status": "Mild impairment"
+      }
+    }
+  },
+  "medications": [
+    {"name": "Levetiracetam", "dosage": "500mg", "frequency": "Twice daily", "purpose": "Seizure control"},
+    {"name": "Lisinopril", "dosage": "10mg", "frequency": "Once daily", "purpose": "Blood pressure control"}
+  ],
+  "treatment_plan": {
+    "goals": ["Reduce seizure frequency", "Maintain blood pressure control", "Improve sleep quality"],
+    "interventions": [
+      {"type": "Medication", "details": "Continue current antiepileptic regimen"},
+      {"type": "Lifestyle", "details": "Stress reduction techniques, sleep hygiene"},
+      {"type": "Follow-up", "details": "Neurology appointment in 3 months"}
+    ],
+    "progress_notes": [
+      {"date": "2023-04-15", "note": "Patient reports 30% reduction in seizure frequency"},
+      {"date": "2023-07-20", "note": "Blood pressure well-controlled, seizure frequency stable"}
+    ]
+  },
+  "diagnostic_tests": [
+    {"date": "2023-01-05", "test": "Complete Blood Count", "result": "Normal", "reference_range": "N/A", "flag": false},
+    {"date": "2023-01-05", "test": "Comprehensive Metabolic Panel", "result": "Normal", "reference_range": "N/A", "flag": false},
+    {"date": "2023-01-05", "test": "Antiepileptic Drug Level", "result": "8.5 μg/mL", "reference_range": "4.0-12.0 μg/mL", "flag": false},
+    {"date": "2023-03-10", "test": "Antiepileptic Drug Level", "result": "14.2 μg/mL", "reference_range": "4.0-12.0 μg/mL", "flag": true},
+    {"date": "2023-07-01", "test": "Antiepileptic Drug Level", "result": "10.1 μg/mL", "reference_range": "4.0-12.0 μg/mL", "flag": false}
+  ],
+  "neural_profile": {
+    "brain_regions_affected": ["Temporal lobe", "Hippocampus"],
+    "neural_network_analysis": {
+      "connectivity_strength": 72,
+      "abnormal_patterns": ["Spike-wave discharges", "Theta rhythm abnormalities"],
+      "network_stability": "Moderate"
+    },
+    "neurotransmitter_levels": [
+      {"name": "GABA", "status": "Low", "clinical_significance": "May contribute to seizure susceptibility"},
+      {"name": "Glutamate", "status": "Elevated", "clinical_significance": "Potential excitotoxicity"}
+    ],
+    "neural_biomarkers": [
+      {"name": "Inflammatory markers", "value": "Slightly elevated", "interpretation": "Low-grade neuroinflammation"},
+      {"name": "Oxidative stress markers", "value": "Elevated", "interpretation": "Increased neuronal vulnerability"}
+    ],
+    "neural_treatment_response": {
+      "current_medication_efficacy": 65,
+      "neural_adaptation": "Positive response to therapy",
+      "side_effect_profile": "Minimal cognitive impact"
+    }
+  }
+}

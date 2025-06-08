@@ -1,0 +1,190 @@
+import streamlit as st
+import pandas as pd
+import json
+from sqlalchemy import create_engine, text
+import os
+
+def display_database_admin():
+    """Display database administration tools"""
+    st.header("Database Administration")
+    
+    # Get database connection
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        st.error("DATABASE_URL environment variable not set")
+        return
+    
+    try:
+        engine = create_engine(db_url)
+    except Exception as e:
+        st.error(f"Error connecting to database: {e}")
+        return
+    
+    # Create tabs for different administrative functions
+    tabs = st.tabs(["Database Stats", "Export Data", "Import Data", "Run SQL Query"])
+    
+    # Database Statistics
+    with tabs[0]:
+        st.subheader("Database Statistics")
+        
+        try:
+            with engine.connect() as conn:
+                # Get table counts
+                tables = ["patients", "medical_history", "diagnostic_tests", 
+                          "treatment_plans", "medications", "referrals", "social_health"]
+                
+                stats_data = []
+                for table in tables:
+                    query = text(f"SELECT COUNT(*) FROM {table}")
+                    result = conn.execute(query)
+                    count = result.scalar()
+                    stats_data.append({"Table": table, "Record Count": count})
+                
+                # Display as a dataframe
+                st.dataframe(pd.DataFrame(stats_data))
+                
+                # Show last updated timestamp
+                st.subheader("Last Updated Records")
+                last_updated_query = text("""
+                    SELECT 'patients' as table_name, display_name, created_at
+                    FROM patients
+                    ORDER BY created_at DESC
+                    LIMIT 5
+                """)
+                
+                last_updated_result = conn.execute(last_updated_query)
+                last_updated_data = [dict(row) for row in last_updated_result]
+                
+                if last_updated_data:
+                    st.dataframe(pd.DataFrame(last_updated_data))
+                else:
+                    st.info("No patient records found")
+                
+        except Exception as e:
+            st.error(f"Error retrieving database statistics: {e}")
+    
+    # Export Data
+    with tabs[1]:
+        st.subheader("Export Patient Data")
+        
+        try:
+            with engine.connect() as conn:
+                # Get list of patients
+                patients_query = text("SELECT id, display_name FROM patients ORDER BY display_name")
+                patients_result = conn.execute(patients_query)
+                patients = [dict(row) for row in patients_result]
+                
+                if patients:
+                    patient_options = {f"{p['display_name']} (ID: {p['id']})": p['id'] for p in patients}
+                    selected_patient = st.selectbox(
+                        "Select Patient to Export",
+                        options=list(patient_options.keys())
+                    )
+                    
+                    patient_id = patient_options[selected_patient]
+                    
+                    if st.button("Export Patient Data"):
+                        # Get all patient data
+                        from utils.db import fetch_patient_data
+                        patient_data = fetch_patient_data(patient_id)
+                        
+                        # Convert to JSON
+                        patient_json = json.dumps(patient_data, indent=2, default=str)
+                        
+                        # Display the JSON
+                        st.subheader("Patient Data (JSON)")
+                        st.text_area("Copy this data", patient_json, height=300)
+                        
+                        # Provide download link
+                        st.download_button(
+                            "Download JSON File",
+                            patient_json,
+                            f"patient_{patient_id}.json",
+                            "application/json"
+                        )
+                else:
+                    st.info("No patients available for export")
+                    
+        except Exception as e:
+            st.error(f"Error exporting data: {e}")
+    
+    # Import Data
+    with tabs[2]:
+        st.subheader("Import Patient Data")
+        
+        st.write("Upload a JSON file with patient data to import into the database.")
+        st.warning("Note: This will create a new patient record, not update existing ones.")
+        
+        uploaded_file = st.file_uploader("Upload Patient JSON", type=["json"])
+        
+        if uploaded_file is not None:
+            try:
+                # Read and parse the JSON file
+                json_data = json.load(uploaded_file)
+                
+                # Display a preview
+                st.subheader("Data Preview")
+                if "personal_info" in json_data:
+                    st.write(f"Patient Name: {json_data.get('personal_info', {}).get('display_name', 'Unknown')}")
+                    st.write(f"Age: {json_data.get('personal_info', {}).get('age_at_record', 'Unknown')}")
+                else:
+                    st.error("Invalid patient data format. The JSON must contain a 'personal_info' field.")
+                    json_data = None
+                
+                # Import button
+                if json_data and st.button("Import Data"):
+                    from utils.db import add_new_patient
+                    try:
+                        patient_id = add_new_patient(json_data)
+                        st.success(f"Successfully imported patient data with ID: {patient_id}")
+                    except Exception as e:
+                        st.error(f"Error importing data: {e}")
+            
+            except json.JSONDecodeError:
+                st.error("Invalid JSON file. Please check the format and try again.")
+            except Exception as e:
+                st.error(f"Error processing file: {e}")
+        
+        # Import directly from existing neural_profile.json
+        st.markdown("---")
+        st.subheader("Import from Neural Profile JSON")
+        
+        if st.button("Import Neural Profile Data"):
+            from utils.db import import_json_to_database
+            json_path = "data/neural_profile.json"
+            
+            try:
+                patient_id, message = import_json_to_database(json_path)
+                if patient_id:
+                    st.success(f"Successfully imported neural profile with ID: {patient_id}")
+                else:
+                    st.error(message)
+            except Exception as e:
+                st.error(f"Error importing neural profile: {e}")
+    
+    # Run SQL Query
+    with tabs[3]:
+        st.subheader("Run SQL Query")
+        st.warning("Warning: This is for administrative purposes only. Exercise caution when running SQL commands.")
+        
+        query = st.text_area("SQL Query", height=150, placeholder="SELECT * FROM patients LIMIT 10")
+        
+        if st.button("Run Query"):
+            if query:
+                try:
+                    with engine.connect() as conn:
+                        result = conn.execute(text(query))
+                        
+                        # Convert to pandas dataframe
+                        df = pd.DataFrame([dict(row) for row in result])
+                        
+                        if not df.empty:
+                            st.dataframe(df)
+                            st.success(f"Query returned {len(df)} rows")
+                        else:
+                            st.info("Query executed successfully but returned no results")
+                
+                except Exception as e:
+                    st.error(f"Error executing query: {e}")
+            else:
+                st.error("Please enter a query to run")

@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<User>;
   register: (userData: InsertUser) => Promise<User>;
-  updateProfile: (data: Partial<User>) => Promise<User>;
+  updateUser: (userData: Partial<User>) => Promise<User>;
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On mount, check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -41,8 +40,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
 
-        // Fetch user data
-        const response = await fetch("/api/user/profile", {
+        const response = await fetch("/api/user", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -53,7 +51,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const userData = await response.json();
           setUser(userData);
         } else {
-          // If token is invalid, clear it
           localStorage.removeItem("auth_token");
         }
       } catch (err) {
@@ -72,19 +69,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
-      console.log("Attempting login with username:", username);
-      const response = await apiRequest("POST", "/api/auth/login", {
+      const response = await apiRequest("POST", "/api/login", {
         username,
         password,
       });
 
       const data = await response.json();
-      console.log("Login successful:", data);
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
-      console.error("Login error:", err);
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -98,14 +92,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
-      const response = await apiRequest("POST", "/api/auth/register", userData);
+      const response = await apiRequest("POST", "/api/register", userData);
       const data = await response.json();
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Registration failed";
+      const errorMessage = err instanceof Error ? err.message : "Registration failed";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -113,16 +106,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const updateProfile = async (data: Partial<User>): Promise<User> => {
+  const updateUser = async (userData: Partial<User>): Promise<User> => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await apiRequest("PATCH", "/api/user/profile", data);
-      const updated = await response.json();
-      setUser(updated);
-      return updated;
+      const response = await apiRequest("PATCH", "/api/user/profile", userData);
+      const updatedUser = await response.json();
+
+      setUser(prev => (prev ? { ...prev, ...updatedUser } : updatedUser));
+
+      queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
+
+      return updatedUser;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Update failed";
+      const errorMessage = err instanceof Error ? err.message : "Failed to update user";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -133,7 +131,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     localStorage.removeItem("auth_token");
     setUser(null);
-    // Clear relevant queries
     queryClient.invalidateQueries();
   };
 
@@ -141,7 +138,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     login,
     register,
-    updateProfile,
+    updateUser,
     logout,
     isLoading,
     error,

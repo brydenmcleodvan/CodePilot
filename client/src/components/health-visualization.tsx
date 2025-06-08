@@ -34,8 +34,8 @@ import AdvancedTrendAnalysis from './advanced-trend-analysis';
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 border rounded-md shadow-md">
-        <p className="font-bold text-xs mb-1">{label}</p>
+      <div className="bg-white dark:bg-gray-800 p-3 border rounded-md shadow-md dark:border-gray-700">
+        <p className="font-bold text-xs mb-1 dark:text-white">{label}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-xs" style={{ color: entry.color }}>
             {`${entry.name}: ${entry.value}${entry.unit || ''}`}
@@ -240,36 +240,39 @@ export default function HealthVisualization() {
         
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <HealthStatCard
-            title="Avg. Heart Rate"
-            value={summary.avgHeartRate ?? 'N/A'}
-            unit="BPM"
-            icon="ri-heart-pulse-line"
-            className="bg-primary/5"
-          />
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <HealthStatCard
+    title="Avg. Heart Rate"
+    value={summary.avgHeartRate ?? 'N/A'}
+    unit="BPM"
+    icon="ri-heart-pulse-line"
+    className="bg-primary/5"
+  />
 
-          <HealthStatCard
-            title="Total Steps"
-            value={summary.totalSteps ? summary.totalSteps.toLocaleString() : 'N/A'}
-            icon="ri-walk-line"
-            className="bg-blue-50"
-          />
+  <HealthStatCard
+    title="Total Steps"
+    value={summary.totalSteps ? summary.totalSteps.toLocaleString() : 'N/A'}
+    icon="ri-walk-line"
+    className="bg-blue-50"
+  />
 
-          <HealthStatCard
-            title="Avg. Sleep"
-            value={summary.avgSleep ?? 'N/A'}
-            unit="hrs"
-            icon="ri-zzz-line"
-            className="bg-indigo-50"
-          />
+  <HealthStatCard
+    title="Avg. Sleep"
+    value={summary.avgSleep ?? 'N/A'}
+    unit="hrs"
+    icon="ri-zzz-line"
+    className="bg-indigo-50"
+  />
 
-          <HealthStatCard
-            title="Avg. Stress"
-            value={summary.avgStressLevel ?? 'N/A'}
-            unit="/10"
-            icon="ri-emotion-line"
-            className="bg-orange-50"
-          />
+  <HealthStatCard
+    title="Avg. Stress"
+    value={summary.avgStressLevel ?? 'N/A'}
+    unit="/10"
+    icon="ri-emotion-line"
+    className="bg-orange-50"
+  />
+</div>
+
         </div>
         
         {/* Visualization Chart */}

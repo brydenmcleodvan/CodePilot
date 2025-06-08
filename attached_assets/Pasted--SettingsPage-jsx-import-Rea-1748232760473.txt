@@ -1,0 +1,66 @@
+// ===============================
+// SettingsPage.jsx
+// ===============================
+import React from 'react';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { SubscriptionPaywall } from './SubscriptionPaywall';
+
+export default function SettingsPage({ user }) {
+  return (
+    <div className="max-w-3xl mx-auto p-6 space-y-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-md">
+      <h1 className="text-2xl font-bold">Settings</h1>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Language</h2>
+        <LanguageSwitcher />
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Subscription</h2>
+        {user?.subscription ? (
+          <p className="text-sm text-zinc-500">You are on the <strong>{user.subscription}</strong> plan.</p>
+        ) : (
+          <SubscriptionPaywall />
+        )}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold mb-2">Data Export</h2>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700">
+          Download My Health Report
+        </button>
+      </section>
+    </div>
+  );
+}
+
+// ===============================
+// useSubscriptionGuard.js
+// ===============================
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export function useSubscriptionGuard(user, requiredPlan = 'premium') {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user?.subscription || (requiredPlan === 'pro' && user.subscription !== 'pro')) {
+      navigate('/settings');
+    }
+  }, [user, requiredPlan, navigate]);
+}
+
+// ===============================
+// TierSmartSuggestor.js
+// ===============================
+export function suggestPlan(userGoals) {
+  const highTouch = ['telehealth', 'coaching', 'export'];
+  const advanced = ['long-term tracking', 'goal plans'];
+
+  const matches = userGoals.filter(goal => highTouch.includes(goal));
+
+  if (matches.length >= 2) return 'pro';
+  if (userGoals.some(goal => advanced.includes(goal))) return 'premium';
+
+  return 'free';
+}

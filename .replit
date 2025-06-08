@@ -1,9 +1,10 @@
-modules = ["nodejs-20", "bash", "web"]
+modules = ["nodejs-20", "bash", "web", "python-3.11", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["glibcLocales"]
 
 [deployment]
 deploymentTarget = "cloudrun"
@@ -12,6 +13,14 @@ run = ["sh", "-c", "npm run dev"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
+
+[[ports]]
+localPort = 8501
+externalPort = 3001
 
 [workflows]
 runButton = "Project"

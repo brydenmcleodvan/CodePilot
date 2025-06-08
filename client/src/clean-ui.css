@@ -1,0 +1,305 @@
+/* Clean UI Styles for Healthfolio */
+
+/* Improve whitespace and readability */
+:root {
+  /* Existing brand colors */
+  --primary-blue: #4A90E2;
+  --light-blue-bg: #EAF3FF;
+  --light-blue-border: #D9E8FF;
+  --dark-text: #333333;
+  --body-text: #666666;
+  --light-body-text: #777777;
+  --background: #FFFFFF;
+  
+  /* New spacing variables */
+  --container-padding: 2rem;
+  --content-spacing: 1.5rem;
+  --card-padding: 1.5rem;
+  --section-spacing: 3rem;
+  --grid-gap: 1.5rem;
+}
+
+/* Enhanced Typography */
+body {
+  line-height: 1.6;
+  font-size: 16px;
+  letter-spacing: -0.011em;
+}
+
+/* Clean Container with more appropriate padding */
+.clean-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--container-padding);
+  width: 100%;
+}
+
+/* Enhanced Cards with better spacing */
+.clean-card {
+  background-color: var(--background);
+  border-radius: 12px;
+  border: 1px solid var(--light-blue-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: var(--card-padding);
+  transition: box-shadow 0.2s ease;
+}
+
+.clean-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Consistent section spacing */
+.clean-section {
+  margin-bottom: var(--section-spacing);
+}
+
+/* Cleaner header with adequate whitespace */
+.clean-header {
+  margin-bottom: 2rem;
+}
+
+.clean-header h1, 
+.clean-header h2 {
+  margin-bottom: 0.5rem;
+}
+
+.clean-header p {
+  color: var(--body-text);
+  max-width: 650px;
+}
+
+/* Clean grids with consistent spacing */
+.clean-grid {
+  display: grid;
+  gap: var(--grid-gap);
+}
+
+.clean-grid-2 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.clean-grid-3 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.clean-grid-4 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .clean-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .clean-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .clean-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .clean-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .clean-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Enhanced Navigation */
+.clean-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--light-blue-border);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.clean-tab {
+  color: var(--body-text);
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.clean-tab.active {
+  color: var(--primary-blue);
+  border-bottom-color: var(--primary-blue);
+}
+
+/* Enhanced labels with better spacing */
+.clean-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--dark-text);
+}
+
+/* Better spacing between form elements */
+.clean-form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Enhanced buttons */
+.clean-button {
+  background-color: var(--primary-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.clean-button:hover {
+  background-color: #3a80d2;
+}
+
+.clean-button:active {
+  transform: translateY(1px);
+}
+
+.clean-button-ghost {
+  background-color: transparent;
+  color: var(--primary-blue);
+  border: 1px solid var(--light-blue-border);
+}
+
+.clean-button-ghost:hover {
+  background-color: var(--light-blue-bg);
+}
+
+/* Uniform whitespace for list items */
+.clean-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clean-list-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--light-blue-border);
+}
+
+.clean-list-item:last-child {
+  border-bottom: none;
+}
+
+/* Utility classes for spacing */
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-8 { margin-bottom: 2rem; }
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-8 { margin-top: 2rem; }
+
+.p-0 { padding: 0; }
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+.p-6 { padding: 1.5rem; }
+
+/* Better text hierarchy */
+.text-title { 
+  font-size: 1.75rem; 
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--dark-text);
+}
+
+.text-subtitle { 
+  font-size: 1.25rem; 
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--dark-text);
+}
+
+.text-body { 
+  font-size: 1rem; 
+  color: var(--body-text);
+}
+
+.text-small { 
+  font-size: 0.875rem; 
+  color: var(--light-body-text);
+}
+
+/* Better card layout */
+.card-title {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--dark-text);
+}
+
+.card-description {
+  color: var(--body-text);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.card-content {
+  margin-top: 1rem;
+}
+
+.card-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--light-blue-border);
+}
+
+/* Badge styling */
+.clean-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--light-blue-bg);
+  color: var(--primary-blue);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Icon with label layout */
+.icon-with-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--light-blue-bg);
+}
+
+.icon-container svg {
+  color: var(--primary-blue);
+  width: 1.25rem;
+  height: 1.25rem;
+}

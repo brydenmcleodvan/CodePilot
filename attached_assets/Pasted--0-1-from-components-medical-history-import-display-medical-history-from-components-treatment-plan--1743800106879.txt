@@ -1,0 +1,67 @@
+-0
++1
+from components.medical_history import display_medical_history
+from components.treatment_plan import display_treatment_plan
+from components.diagnostics import display_diagnostic_tests
+from components.database_admin import display_database_admin
+from utils.db import fetch_patient_data, fetch_all_patients, add_new_patient
+# Set page configuration
+-8
++19
+                st.success(f"Patient added with ID: {patient_id}")
+                st.session_state.selected_patient_id = patient_id
+                st.session_state.show_add_patient = False
+                # Force refresh of cache
+                load_patient_from_db.clear()
+                load_all_patients.clear()
+                st.rerun()  # Refresh to show the new patient
+            except Exception as e:
+                st.error(f"Error adding patient: {e}")
+# Load the selected patient data
+patient_data = load_patient_from_db(st.session_state.selected_patient_id)
+processed_data = load_patient_data(patient_data) if patient_data else {}
+# Load the selected patient data if patients exist
+if patients:
+    patient_data = load_patient_from_db(st.session_state.selected_patient_id)
+    processed_data = load_patient_data(patient_data) if patient_data else {}
+else:
+    processed_data = {}
+# Sidebar for navigation
+st.sidebar.title("Navigation")
+selected_view = st.sidebar.radio(
+    "Select View",
+    ["Patient Profile", "Medical History", "Treatment Plan", "Diagnostic Tests", "Analysis Dashboard"]
+)
+view_options = [
+    "Patient Profile", 
+    "Medical History", 
+    "Treatment Plan", 
+    "Diagnostic Tests", 
+    "Analysis Dashboard",
+    "Database Admin"
+]
+selected_view = st.sidebar.radio("Select View", view_options)
+# Main content based on selected view
+if processed_data:
+if processed_data or selected_view == "Database Admin":
+    if selected_view == "Patient Profile":
+        display_patient_profile(processed_data)
+        
+-1
++9
+        
+        # Connect to trends over time
+        st.info("Patient record initialized. Future visits will enable trend analysis.")
+    
+    elif selected_view == "Database Admin":
+        display_database_admin()
+        
+else:
+    st.warning("No patient data available. Please add a new patient using the sidebar.")
+# Footer information
+st.sidebar.markdown("---")
+st.sidebar.info("Note: This dashboard is connected to a PostgreSQL database. All patient records are now stored securely.")
+if selected_view == "Database Admin":
+    st.sidebar.info("Database Administration tools for managing patient records")
+else:
+    st.sidebar.info("Medical records are stored securely in the PostgreSQL database. Use the Database Admin section to manage records.")

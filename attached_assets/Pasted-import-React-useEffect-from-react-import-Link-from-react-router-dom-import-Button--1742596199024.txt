@@ -1,0 +1,298 @@
+import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
+
+const Index = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-grow">
+        {/* Hero Section */}
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 items-center">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-6">
+                  Personal health tracking <span className="text-[#46ab93]">super app</span>
+                </h1>
+                <p className="text-xl text-muted-foreground mb-8">
+                  Transform your daily performance, healthspan, and longevity with personalized insights 
+                  powered by data from all your wearables, apps, and IoT devices.
+                </p>
+                <Button className="bg-[#46ab93] hover:bg-[#3d9983] text-white px-8 py-6 h-auto text-lg">
+                  Get Started
+                </Button>
+              </div>
+              <div className="relative">
+                <img 
+                  src="https://ext.same-assets.com/1497739549/2158220560.webp" 
+                  alt="Sonar App Screenshots" 
+                  className="object-contain w-full"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-12 md:py-20 bg-muted/30">
+          <div className="container">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 items-center">
+              <div className="order-2 md:order-1">
+                <img 
+                  src="https://ext.same-assets.com/1497739549/598512518.webp" 
+                  alt="Sonar App Screenshots" 
+                  className="object-contain mx-auto w-full max-w-[500px]"
+                />
+              </div>
+              <div className="order-1 md:order-2">
+                <h2 className="text-3xl font-semibold mb-6">
+                  Recovery, Strain, Sleep & Nutrition
+                </h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                  Discover what your body needs to perform at its best with daily scores and 
+                  coaching that adapt to your unique biometric patterns
+                </p>
+                <div className="flex gap-4">
+                  <a href="https://apps.apple.com/us/app/sonar-modern-health-platform/id1595073849" target="_blank" rel="noreferrer">
+                    <img 
+                      src="https://ext.same-assets.com/1497739549/1068253911.webp" 
+                      alt="Download on the App Store" 
+                      className="w-[120px]"
+                    />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+              <div className="text-center">
+                <h3 className="text-4xl font-bold mb-2">70+</h3>
+                <p className="text-muted-foreground">wearables, IoT, & apps supported</p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-4xl font-bold mb-2">160+</h3>
+                <p className="text-muted-foreground">countries with users around the world</p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-4xl font-bold mb-2">1,000+</h3>
+                <p className="text-muted-foreground">unique data points analyzed daily, on avg.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* All-in-one wellness app */}
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <h2 className="text-3xl font-semibold text-center mb-12">All-in-one wellness app</h2>
+            <p className="text-lg text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Take control of your health with scientifically backed guidance for living your best life.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="p-6 bg-black text-white">
+                <h3 className="text-xl font-semibold mb-4">Train smarter, not harder</h3>
+                <p className="text-gray-300">
+                  Custom workout analytics & heart rate zones update continuously based on how your body is performing
+                </p>
+              </Card>
+              <Card className="p-6 bg-black text-white">
+                <h3 className="text-xl font-semibold mb-4">The best sleep of your life</h3>
+                <p className="text-gray-300">
+                  Enjoy deeper and more restorative sleep by tapping into your body's natural rhythm
+                </p>
+              </Card>
+              <Card className="p-6 bg-black text-white">
+                <h3 className="text-xl font-semibold mb-4">Real-time health monitoring</h3>
+                <p className="text-gray-300">
+                  Cut through the noise, and uncover potential issues before they arise
+                </p>
+              </Card>
+              <Card className="p-6 bg-black text-white">
+                <h3 className="text-xl font-semibold mb-4">See how you compare to similar users</h3>
+                <p className="text-gray-300">
+                  Find your edge and draw inspiration with personalized comparisons across 60+ metrics.
+                </p>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Everything in sync */}
+        <section className="py-12 md:py-20 bg-muted/30">
+          <div className="container">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 items-center">
+              <div>
+                <h2 className="text-3xl font-semibold mb-6">Everything in sync</h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                  Effortlessly unify all of your favorite wearables, apps, and IoT devices in one place, 
+                  to get the full picture
+                </p>
+              </div>
+              <div>
+                <img 
+                  src="https://ext.same-assets.com/1497739549/3464003701.webp" 
+                  alt="Sync Wearables Health Apps IoT Devices" 
+                  className="object-contain mx-auto w-full max-w-[500px]"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Widgets */}
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <h2 className="text-3xl font-semibold mb-6">Widgets</h2>
+            <p className="text-lg text-muted-foreground mb-12">
+              Elevate your home and lock screens with beautifully crafted widgets to fuel your daily routine.
+            </p>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 items-center">
+              <img 
+                src="https://ext.same-assets.com/1497739549/1982714491.webp" 
+                alt="Sonar Widgets" 
+                className="object-contain w-full col-span-full"
+              />
+            </div>
+          </div>
+        </section>
+        
+        {/* Transform Your Nights */}
+        <section className="py-12 md:py-20 bg-black text-white">
+          <div className="container">
+            <h2 className="text-3xl font-semibold text-center mb-12">Transform Your Nights, Energize Your Days</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <h3 className="text-xl font-semibold mb-4">Sleep Performance</h3>
+                <p className="text-gray-300">
+                  Dive into advanced insights that break down how well you're truly sleeping.
+                </p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold mb-4">Balance Rest and Recovery</h3>
+                <p className="text-gray-300">
+                  Achieve the ideal balance of quality and duration to fuel peak performance every day.
+                </p>
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold mb-4">Actionable guidance</h3>
+                <p className="text-gray-300">
+                  Receive tailored, science-backed recommendations to turn every night into a step toward better health.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <img 
+                src="https://ext.same-assets.com/1497739549/4126501680.webp" 
+                alt="Sleep Screen" 
+                className="object-contain mx-auto max-w-[300px]"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Push to new limits */}
+        <section className="py-12 md:py-20 relative overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <img 
+              src="https://ext.same-assets.com/1497739549/2982407519.webp" 
+              alt="Push to new limits" 
+              className="object-cover w-full h-full"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+          </div>
+          <div className="container relative z-10">
+            <h2 className="text-3xl font-semibold text-white mb-12">Push to new limits.</h2>
+          </div>
+        </section>
+
+        {/* Privacy */}
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <h2 className="text-3xl font-semibold text-center mb-12">Putting privacy first</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <img 
+                  src="https://ext.same-assets.com/1497739549/1696820167.webp" 
+                  alt="Privacy" 
+                  className="mx-auto mb-4 w-[60px] h-[60px]"
+                />
+                <h3 className="text-xl font-semibold mb-4">Privacy informs design</h3>
+                <p className="text-muted-foreground">
+                  All product and architecture decisions are driven by our mission to maximize user privacy.
+                </p>
+              </div>
+              <div className="text-center">
+                <img 
+                  src="https://ext.same-assets.com/1497739549/1696820167.webp" 
+                  alt="Privacy" 
+                  className="mx-auto mb-4 w-[60px] h-[60px]"
+                />
+                <h3 className="text-xl font-semibold mb-4">Best-in-class protection</h3>
+                <p className="text-muted-foreground">
+                  The latest generation of encryption, storage, and security technologies protect all data.
+                </p>
+              </div>
+              <div className="text-center">
+                <img 
+                  src="https://ext.same-assets.com/1497739549/1696820167.webp" 
+                  alt="Privacy" 
+                  className="mx-auto mb-4 w-[60px] h-[60px]"
+                />
+                <h3 className="text-xl font-semibold mb-4">We don't sell personal data</h3>
+                <p className="text-muted-foreground">
+                  Our goal is to build an experience our users love. Selling your personal data will never be a part of that.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="py-12 md:py-20 bg-muted/30">
+          <div className="container">
+            <h2 className="text-3xl font-semibold text-center mb-12">Ready to unlock your full potential?</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="p-6">
+                <p className="mb-4">Synced my Fitbit and Oura, and saw everything in seconds. Pure magic. Truly is the best health dashboard out there.</p>
+                <p className="font-medium">Dario O.</p>
+              </Card>
+              <Card className="p-6">
+                <p className="mb-4">Everything I wish Apple Health was. Beautiful, modern, and made my Apple Watch actually useful.</p>
+                <p className="font-medium">Anne M.</p>
+              </Card>
+              <Card className="p-6">
+                <p className="mb-4">The first health app that actually made me smile, and I've tried most. These guys are really on to something. Bravo!</p>
+                <p className="font-medium">Michael S.</p>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-12 md:py-20 text-center">
+          <div className="container">
+            <h2 className="text-3xl font-semibold mb-6">Step into the future of personal health</h2>
+            <Button className="bg-[#46ab93] hover:bg-[#3d9983] text-white px-8 py-6 h-auto text-lg">
+              Get Started
+            </Button>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+};

@@ -1,0 +1,305 @@
+import os
+import json
+import pandas as pd
+from sqlalchemy import create_engine, text
+from datetime import datetime
+
+# Create a database engine
+def get_db_engine():
+    """Create and return a SQLAlchemy database engine using environment variables"""
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+    
+    return create_engine(db_url)
+
+def fetch_all_patients():
+    """Fetch all patients from the database"""
+    engine = get_db_engine()
+    
+    query = """
+    SELECT id, display_name, age_at_record, record_date
+    FROM patients
+    ORDER BY display_name
+    """
+    
+    with engine.connect() as conn:
+        result = conn.execute(text(query))
+        patients = [dict(r) for r in result]
+    
+    return patients
+
+def fetch_patient_data(patient_id):
+    """Fetch complete patient record from database with all related data"""
+    engine = get_db_engine()
+    
+    # Transform the SQL data into the same structure as our original JSON
+    # so existing components continue to work
+    
+    # Get patient personal info
+    patient_query = """
+    SELECT id, display_name, age_at_record, physical_description, record_date
+    FROM patients
+    WHERE id = :patient_id
+    """
+    
+    # Get medical history
+    medical_history_query = """
+    SELECT neonatal_brain_injury, seizure_type, seizure_frequency, migraines, headaches
+    FROM medical_history
+    WHERE patient_id = :patient_id
+    """
+    
+    # Get diagnostic tests
+    diagnostic_tests_query = """
+    SELECT test_type, test_results
+    FROM diagnostic_tests
+    WHERE patient_id = :patient_id
+    """
+    
+    # Get treatment plan with medications and referrals
+    treatment_plan_query = """
+    SELECT tp.id as treatment_plan_id
+    FROM treatment_plans tp
+    WHERE tp.patient_id = :patient_id
+    """
+    
+    medications_query = """
+    SELECT m.name, m.purpose
+    FROM medications m
+    JOIN treatment_plans tp ON m.treatment_plan_id = tp.id
+    WHERE tp.patient_id = :patient_id
+    """
+    
+    referrals_query = """
+    SELECT r.referral_type
+    FROM referrals r
+    JOIN treatment_plans tp ON r.treatment_plan_id = tp.id
+    WHERE tp.patient_id = :patient_id
+    """
+    
+    # Get social health
+    social_health_query = """
+    SELECT impact_on_daily_life, support_network, self_management
+    FROM social_health
+    WHERE patient_id = :patient_id
+    """
+    
+    with engine.connect() as conn:
+        # Execute all queries
+        patient_result = conn.execute(text(patient_query), {"patient_id": patient_id})
+        personal_info = dict(patient_result.fetchone()) if patient_result.rowcount > 0 else {}
+        
+        medical_history_result = conn.execute(text(medical_history_query), {"patient_id": patient_id})
+        medical_history_row = medical_history_result.fetchone() if medical_history_result.rowcount > 0 else None
+        
+        diagnostic_tests_result = conn.execute(text(diagnostic_tests_query), {"patient_id": patient_id})
+        diagnostic_tests_rows = [dict(r) for r in diagnostic_tests_result]
+        
+        treatment_plan_result = conn.execute(text(treatment_plan_query), {"patient_id": patient_id})
+        treatment_plan_row = treatment_plan_result.fetchone() if treatment_plan_result.rowcount > 0 else None
+        
+        medications_result = conn.execute(text(medications_query), {"patient_id": patient_id})
+        medications_rows = [dict(r) for r in medications_result]
+        
+        referrals_result = conn.execute(text(referrals_query), {"patient_id": patient_id})
+        referrals_rows = [dict(r) for r in referrals_result]
+        
+        social_health_result = conn.execute(text(social_health_query), {"patient_id": patient_id})
+        social_health_row = social_health_result.fetchone() if social_health_result.rowcount > 0 else None
+    
+    # Convert date objects to string for compatibility
+    if 'record_date' in personal_info and personal_info['record_date']:
+        personal_info['record_date'] = personal_info['record_date'].strftime('%Y-%m-%d')
+    
+    # Build the patient data structure in the same format as the original JSON
+    patient_data = {
+        "personal_info": personal_info
+    }
+    
+    # Add medical history
+    if medical_history_row:
+        medical_history_dict = dict(medical_history_row)
+        
+        # Format neurological history
+        neurological_history = {
+            "neonatal_brain_injury": medical_history_dict.get("neonatal_brain_injury", False),
+            "migraines": medical_history_dict.get("migraines", False),
+            "headaches": medical_history_dict.get("headaches", "")
+        }
+        
+        # Add seizure history if available
+        if medical_history_dict.get("seizure_type"):
+            neurological_history["seizure_history"] = {
+                "type": medical_history_dict.get("seizure_type", ""),
+                "frequency": medical_history_dict.get("seizure_frequency", "")
+            }
+        
+        patient_data["medical_history"] = {
+            "neurological_history": neurological_history
+        }
+        
+        # Process diagnostic tests
+        if diagnostic_tests_rows:
+            diagnostic_tests = {}
+            for test in diagnostic_tests_rows:
+                diagnostic_tests[test["test_type"]] = test["test_results"]
+            
+            patient_data["medical_history"]["diagnostic_tests"] = diagnostic_tests
+    
+    # Add treatment plan
+    if treatment_plan_row:
+        treatment_plan = {}
+        
+        # Add medications
+        if medications_rows:
+            treatment_plan["medications"] = medications_rows
+        
+        # Add referrals
+        if referrals_rows:
+            treatment_plan["referrals"] = [r["referral_type"] for r in referrals_rows]
+        
+        patient_data["treatment_plan"] = treatment_plan
+    
+    # Add social health
+    if social_health_row:
+        patient_data["social_health"] = dict(social_health_row)
+    
+    return patient_data
+
+def add_new_patient(patient_data):
+    """Add a new patient record to the database"""
+    engine = get_db_engine()
+    
+    # Extract data from patient_data
+    personal_info = patient_data.get('personal_info', {})
+    medical_history = patient_data.get('medical_history', {})
+    treatment_plan = patient_data.get('treatment_plan', {})
+    social_health = patient_data.get('social_health', {})
+    
+    with engine.begin() as conn:
+        # Insert patient
+        patient_query = """
+        INSERT INTO patients (display_name, age_at_record, physical_description, record_date)
+        VALUES (:display_name, :age_at_record, :physical_description, :record_date)
+        RETURNING id
+        """
+        
+        patient_params = {
+            "display_name": personal_info.get('display_name', 'Unknown'),
+            "age_at_record": personal_info.get('age_at_record'),
+            "physical_description": personal_info.get('physical_description', ''),
+            "record_date": personal_info.get('record_date')
+        }
+        
+        patient_result = conn.execute(text(patient_query), patient_params)
+        patient_id = patient_result.fetchone()[0]
+        
+        # Insert medical history if available
+        neuro_history = medical_history.get('neurological_history', {})
+        seizure_history = neuro_history.get('seizure_history', {})
+        
+        if neuro_history:
+            medical_query = """
+            INSERT INTO medical_history (
+                patient_id, neonatal_brain_injury, seizure_type, 
+                seizure_frequency, migraines, headaches
+            ) VALUES (
+                :patient_id, :neonatal_brain_injury, :seizure_type,
+                :seizure_frequency, :migraines, :headaches
+            )
+            """
+            
+            medical_params = {
+                "patient_id": patient_id,
+                "neonatal_brain_injury": neuro_history.get('neonatal_brain_injury', False),
+                "seizure_type": seizure_history.get('type') if seizure_history else None,
+                "seizure_frequency": seizure_history.get('frequency') if seizure_history else None,
+                "migraines": neuro_history.get('migraines', False),
+                "headaches": neuro_history.get('headaches', '')
+            }
+            
+            conn.execute(text(medical_query), medical_params)
+        
+        # Insert diagnostic tests if available
+        diagnostic_tests = medical_history.get('diagnostic_tests', {})
+        
+        if diagnostic_tests:
+            for test_type, test_results in diagnostic_tests.items():
+                test_query = """
+                INSERT INTO diagnostic_tests (patient_id, test_type, test_results, test_date)
+                VALUES (:patient_id, :test_type, :test_results, CURRENT_DATE)
+                """
+                
+                test_params = {
+                    "patient_id": patient_id,
+                    "test_type": test_type,
+                    "test_results": test_results
+                }
+                
+                conn.execute(text(test_query), test_params)
+        
+        # Insert treatment plan if available
+        medications = treatment_plan.get('medications', [])
+        referrals = treatment_plan.get('referrals', [])
+        
+        if medications or referrals:
+            # Create treatment plan
+            treatment_query = """
+            INSERT INTO treatment_plans (patient_id)
+            VALUES (:patient_id)
+            RETURNING id
+            """
+            
+            treatment_result = conn.execute(text(treatment_query), {"patient_id": patient_id})
+            treatment_plan_id = treatment_result.fetchone()[0]
+            
+            # Insert medications
+            for med in medications:
+                med_query = """
+                INSERT INTO medications (treatment_plan_id, name, purpose)
+                VALUES (:treatment_plan_id, :name, :purpose)
+                """
+                
+                med_params = {
+                    "treatment_plan_id": treatment_plan_id,
+                    "name": med.get('name', 'Unknown'),
+                    "purpose": med.get('purpose', '')
+                }
+                
+                conn.execute(text(med_query), med_params)
+            
+            # Insert referrals
+            for ref in referrals:
+                ref_query = """
+                INSERT INTO referrals (treatment_plan_id, referral_type)
+                VALUES (:treatment_plan_id, :referral_type)
+                """
+                
+                ref_params = {
+                    "treatment_plan_id": treatment_plan_id,
+                    "referral_type": ref
+                }
+                
+                conn.execute(text(ref_query), ref_params)
+        
+        # Insert social health if available
+        if social_health:
+            social_query = """
+            INSERT INTO social_health (
+                patient_id, impact_on_daily_life, support_network, self_management
+            ) VALUES (
+                :patient_id, :impact_on_daily_life, :support_network, :self_management
+            )
+            """
+            
+            social_params = {
+                "patient_id": patient_id,
+                "impact_on_daily_life": social_health.get('impact_on_daily_life', ''),
+                "support_network": social_health.get('support_network', ''),
+                "self_management": social_health.get('self_management', '')
+            }
+            
+            conn.execute(text(social_query), social_params)
+    
+    return patient_id

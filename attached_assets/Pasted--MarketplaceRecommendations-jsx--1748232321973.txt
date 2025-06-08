@@ -1,0 +1,99 @@
+// ===============================
+// MarketplaceRecommendations.jsx
+// ===============================
+import React from 'react';
+import { getProductRecommendations } from './recommendationAffiliate';
+
+export function MarketplaceRecommendations({ metrics }) {
+  const products = getProductRecommendations(metrics);
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">Recommended for You</h2>
+      {products.map((p, i) => (
+        <a
+          key={i}
+          href={p.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-4 border rounded-xl shadow-md hover:bg-blue-50 dark:hover:bg-zinc-800"
+        >
+          <div className="font-semibold text-blue-800 dark:text-blue-300">{p.name}</div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">{p.reason}</div>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ===============================
+// LanguageSwitcher.jsx
+// ===============================
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+export function LanguageSwitcher() {
+  const { i18n } = useTranslation();
+  const changeLanguage = (lng) => i18n.changeLanguage(lng);
+
+  return (
+    <div className="flex gap-2">
+      {['en', 'fr', 'es'].map((lng) => (
+        <button
+          key={lng}
+          onClick={() => changeLanguage(lng)}
+          className="px-2 py-1 text-sm border rounded hover:bg-blue-100 dark:hover:bg-zinc-700"
+        >
+          {lng.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ===============================
+// SubscriptionPaywall.jsx
+// ===============================
+import React from 'react';
+import { initiateSubscriptionPlan } from './subscriptionManager';
+
+export function SubscriptionPaywall() {
+  return (
+    <div className="max-w-2xl mx-auto p-6 space-y-6 bg-white dark:bg-zinc-900 rounded-2xl shadow-lg">
+      <h1 className="text-2xl font-bold">Upgrade to Premium</h1>
+
+      <div className="space-y-4">
+        <div className="p-4 border rounded-xl">
+          <h2 className="text-lg font-semibold">Premium – $7.99/mo</h2>
+          <ul className="text-sm list-disc list-inside text-zinc-600 dark:text-zinc-400">
+            <li>All metric tracking</li>
+            <li>Weekly health reports</li>
+            <li>Smart goals + coach dashboard</li>
+          </ul>
+          <button
+            onClick={() => initiateSubscriptionPlan('premium')}
+            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+          >
+            Subscribe
+          </button>
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          <h2 className="text-lg font-semibold">Pro – $19.99/mo</h2>
+          <ul className="text-sm list-disc list-inside text-zinc-600 dark:text-zinc-400">
+            <li>Everything in Premium</li>
+            <li>Telehealth consult access</li>
+            <li>AI-generated 30-day health plans</li>
+            <li>Doctor-ready export + priority support</li>
+          </ul>
+          <button
+            onClick={() => initiateSubscriptionPlan('pro')}
+            className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+          >
+            Go Pro
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

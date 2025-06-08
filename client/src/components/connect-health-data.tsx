@@ -1,152 +1,98 @@
-import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-
-type HealthProvider = {
-  id: string;
-  name: string;
-  logo: string;
-  description: string;
-};
-
-const providers: HealthProvider[] = [
-  {
-    id: 'apple',
-    name: 'Apple Health',
-    logo: 'ri-apple-fill',
-    description: 'Connect with Apple Health to sync your health and fitness data'
-  },
-  {
-    id: 'google',
-    name: 'Google Fit',
-    logo: 'ri-google-fill',
-    description: 'Sync your activity, heart data, and sleep information from Google Fit'
-  },
-  {
-    id: 'fitbit',
-    name: 'Fitbit',
-    logo: 'ri-fitness-fill',
-    description: 'Import your steps, exercise, sleep, and heart rate data from Fitbit'
-  },
-  {
-    id: 'garmin',
-    name: 'Garmin Connect',
-    logo: 'ri-run-line',
-    description: 'Sync your running, cycling, and other fitness data from Garmin devices'
-  }
-];
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ConnectHealthDataButton() {
-  const [open, setOpen] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<HealthProvider | null>(null);
-
-  const handleConnect = (provider: HealthProvider) => {
-    setSelectedProvider(provider);
-    // This function would be implemented to handle the actual connection with the provider
-    connectHealthData(provider.id);
-  };
-
-  function connectHealthData(providerId: string) {
-    const oauthMap: Record<string, string> = {
-      apple: 'apple-health',
-      google: 'google-fit',
-      fitbit: 'fitbit',
-    };
-
-    const route = oauthMap[providerId];
-    if (route) {
-      window.location.href = `/api/oauth/${route}`;
-      return;
-    }
-
-    // Fallback for providers without OAuth yet
-    alert(`Connecting your health data for personal management from ${providerId}...`);
-    setTimeout(() => {
-      setOpen(false);
-    }, 1500);
-  }
-
-  return (
-    <>
-      <Button
-        onClick={() => setOpen(true)}
-        className="bg-primary hover:bg-primary/90 text-white"
-      >
-        <i className="ri-heart-pulse-line mr-2" aria-hidden="true"></i>
-        Connect Health Data
-      </Button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold">Connect Your Health Data</DialogTitle>
-            <DialogDescription>
-              Link your health devices and apps to get personalized insights. Your data is secure and private.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            {providers.map((provider) => (
-              <Card 
-                key={provider.id} 
-                className="cursor-pointer hover:border-primary transition-colors duration-200"
-                onClick={() => handleConnect(provider)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{provider.name}</CardTitle>
-                    <i
-                      className={`${provider.logo} text-2xl text-primary`}
-                      aria-hidden="true"
-                    ></i>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{provider.description}</CardDescription>
-                </CardContent>
-                <CardFooter className="pt-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleConnect(provider);
-                    }}
-                  >
-                    Connect
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="ghost" className="flex items-center gap-1">
-              <i className="ri-question-line"></i>
-              Learn more about data privacy
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
+6  export default function ConnectHealthDataButton() {
+7    const [open, setOpen] = useState(false);
+8    const [selectedProvider, setSelectedProvider] = useState<HealthProvider | null>(null);
+9
+10   function handleConnect(provider: HealthProvider) {
+11     setSelectedProvider(provider);
+12     connectHealthData(provider.id);
+13   }
+14
+15   function connectHealthData(providerId: string) {
+16     const oauthMap: Record<string, string> = {
+17       apple: 'apple-health',
+18       google: 'google-fit',
+19       fitbit: 'fitbit',
+20     };
+21
+22     const route = oauthMap[providerId];
+23     if (route) {
+24       window.location.href = `/api/oauth/${route}`;
+25       return;
+26     }
+27
+28     // Fallback for providers without OAuth yet
+29     alert(`Connecting your health data for personal management from ${providerId}...`);
+30     setTimeout(() => setOpen(false), 1500);
+31   }
+32
+33   return (
+34     <>
+35       <Button
+36         onClick={() => setOpen(true)}
+37         className="bg-primary hover:bg-primary/90 text-white"
+38       >
+39         <i className="ri-heart-pulse-line mr-2" aria-hidden="true" />
+40         Connect Health Data
+41       </Button>
+42
+43       <Dialog open={open} onOpenChange={setOpen}>
+44         <DialogContent className="sm:max-w-[600px]">
+45           <DialogHeader>
+46             <DialogTitle className="text-2xl font-semibold">Connect Your Health Data</DialogTitle>
+47             <DialogDescription>
+48               Link your health devices and apps to get personalized insights. Your data is secure and private.
+49             </DialogDescription>
+50           </DialogHeader>
+51
+52           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+53             {providers.map((provider) => (
+54               <Card
+55                 key={provider.id}
+56                 className="cursor-pointer hover:border-primary transition-colors duration-200"
+57                 onClick={() => handleConnect(provider)}
+58               >
+59                 <CardHeader className="pb-2">
+60                   <div className="flex items-center justify-between">
+61                     <CardTitle className="text-lg">{provider.name}</CardTitle>
+62                     <i className={`${provider.logo} text-2xl text-primary`} aria-hidden="true" />
+63                   </div>
+64                 </CardHeader>
+65                 <CardContent>
+66                   <CardDescription>{provider.description}</CardDescription>
+67                 </CardContent>
+68                 <CardFooter className="pt-1">
+69                   <Button
+70                     variant="outline"
+71                     size="sm"
+72                     className="w-full mt-2"
+73                     onClick={(e) => {
+74                       e.stopPropagation();
+75                       handleConnect(provider);
+76                     }}
+77                   >
+78                     Connect
+79                   </Button>
+80                 </CardFooter>
+81               </Card>
+82             ))}
+83           </div>
+84
+85           <DialogFooter className="flex flex-col sm:flex-row gap-2">
+86             <Button variant="outline" onClick={() => setOpen(false)}>
+87               Cancel
+88             </Button>
+89             <Button variant="ghost" className="flex items-center gap-1">
+90               <i className="ri-question-line" />
+91               Learn more about data privacy
+92             </Button>
+93           </DialogFooter>
+94         </DialogContent>
+95       </Dialog>
+96     </>
+97   );
+98 }

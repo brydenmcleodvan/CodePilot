@@ -1,0 +1,13 @@
+[server]
+port = 8501
+address = "0.0.0.0"
+enableCORS = true
+enableXsrfProtection = false
+enableWebsocketCompression = false
+
+[browser]
+serverAddress = "localhost"
+gatherUsageStats = false
+
+[global]
+showWarningOnDirectExecution = false

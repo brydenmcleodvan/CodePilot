@@ -1,0 +1,263 @@
+-2
++0
+import streamlit as st
+import json
+import os
+import pandas as pd
+from utils.data_processor import load_patient_data, analyze_seizure_frequency
+from utils.visualization import create_timeline
+-0
++1
+from components.medical_history import display_medical_history
+from components.treatment_plan import display_treatment_plan
+from components.diagnostics import display_diagnostic_tests
+from utils.db import fetch_patient_data, fetch_all_patients, add_new_patient
+# Set page configuration
+st.set_page_config(
+-55
++100
+st.title("Medical Record Dashboard")
+st.markdown("---")
+# Load patient data
+def get_data_path():
+    # In a real application, this would be a database or API endpoint
+    return "data/sample_patient.json"
+# Initialize session state for selected patient
+if 'selected_patient_id' not in st.session_state:
+    st.session_state.selected_patient_id = 1  # Default to first patient
+# Initialize or load patient data
+@st.cache_data
+def load_data():
+    data_path = get_data_path()
+@st.cache_data(ttl=60)  # Cache for 60 seconds
+def load_patient_from_db(patient_id):
+    """Load patient data from database"""
+    try:
+        return fetch_patient_data(patient_id)
+    except Exception as e:
+        st.error(f"Error fetching patient data: {e}")
+        return {}
+@st.cache_data(ttl=60)  # Cache for 60 seconds
+def load_all_patients():
+    """Load all patients from database"""
+    try:
+        return fetch_all_patients()
+    except Exception as e:
+        st.error(f"Error fetching patients list: {e}")
+        return []
+# Sidebar for patient selection
+st.sidebar.title("Patient Selection")
+patients = load_all_patients()
+if patients:
+    patient_options = {f"{p['display_name']} (ID: {p['id']})": p['id'] for p in patients}
+    selected_patient_name = st.sidebar.selectbox(
+        "Select Patient",
+        options=list(patient_options.keys()),
+        index=0
+    )
+    
+    if os.path.exists(data_path):
+        with open(data_path, 'r') as file:
+            patient_data = json.load(file)
+    else:
+        # Use the data provided in the assignment
+        patient_data = {
+            "profile": {
+    # Update the selected patient ID in session state
+    st.session_state.selected_patient_id = patient_options[selected_patient_name]
+    
+    # Add a button to add a new patient
+    if st.sidebar.button("Add New Patient"):
+        st.session_state.show_add_patient = True
+else:
+    st.sidebar.warning("No patients found in database")
+    # Add a button to add a new patient
+    if st.sidebar.button("Add First Patient"):
+        st.session_state.show_add_patient = True
+# Initialize show_add_patient in session state if it doesn't exist
+if 'show_add_patient' not in st.session_state:
+    st.session_state.show_add_patient = False
+# Add New Patient Form
+if st.session_state.show_add_patient:
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Add New Patient")
+    
+    with st.sidebar.form("add_patient_form"):
+        name = st.text_input("Patient Name")
+        age = st.number_input("Age", min_value=0, max_value=120, value=30)
+        description = st.text_input("Physical Description")
+        record_date = st.date_input("Record Date")
+        
+        # Basic medical history
+        st.subheader("Medical History")
+        has_brain_injury = st.checkbox("Neonatal Brain Injury")
+        has_seizures = st.checkbox("Has Seizure History")
+        seizure_type = st.text_input("Seizure Type", disabled=not has_seizures)
+        seizure_frequency = st.text_input("Seizure Frequency", disabled=not has_seizures)
+        has_migraines = st.checkbox("Has Migraines")
+        headaches = st.text_input("Headache Description")
+        
+        submitted = st.form_submit_button("Add Patient")
+        
+        if submitted and name:
+            # Create patient data structure
+            new_patient = {
+                "personal_info": {
+                    "display_name": "Patient X",
+                    "age_at_record": 17,
+                    "physical_description": "Tall and slim",
+                    "record_date": "2002-11-28"
+                    "display_name": name,
+                    "age_at_record": age,
+                    "physical_description": description,
+                    "record_date": record_date.strftime("%Y-%m-%d") if record_date else None
+                },
+                "medical_history": {
+                    "neurological_history": {
+                        "neonatal_brain_injury": True,
+                        "seizure_history": {
+                            "type": "Partial complex epilepsy",
+                            "frequency": "Frequent partial seizures, some progressing to generalized"
+                        },
+                        "migraines": True,
+                        "headaches": "Fluctuating, occasional"
+                    },
+                    "diagnostic_tests": {
+                        "EEG": "No consistent epileptiform activity; noted slowing in frontotemporal region",
+                        "MRI": "Images provided (axial and sagittal views show brain structure and ventricles)"
+                        "neonatal_brain_injury": has_brain_injury,
+                        "migraines": has_migraines,
+                        "headaches": headaches
+                    }
+                },
+                "treatment_plan": {
+                    "medications": [
+                        {
+                            "name": "Naprosyn",
+                            "purpose": "Migraine treatment"
+                        },
+                        {
+                            "name": "Tylenol with codeine",
+                            "purpose": "Pain management"
+                        }
+                    ],
+                    "referrals": [
+                        "Headache clinic",
+                        "Counseling services"
+                    ]
+                },
+                "social_health": {
+                    "impact_on_daily_life": "Seizure and migraine activity may affect social interactions and routines",
+                    "support_network": "Family, friends, and healthcare providers",
+                    "self_management": "Regular follow-ups and supportive counseling recommended"
+                }
+            }
+        }
+    
+    return patient_data
+            
+            # Add seizure history if applicable
+            if has_seizures and seizure_type:
+                new_patient["medical_history"]["neurological_history"]["seizure_history"] = {
+                    "type": seizure_type,
+                    "frequency": seizure_frequency
+                }
+            
+            # Add to database
+            try:
+                patient_id = add_new_patient(new_patient)
+                st.success(f"Patient added with ID: {patient_id}")
+                st.session_state.selected_patient_id = patient_id
+                st.session_state.show_add_patient = False
+                st.rerun()  # Refresh to show the new patient
+            except Exception as e:
+                st.error(f"Error adding patient: {e}")
+patient_data = load_data()
+processed_data = load_patient_data(patient_data)
+# Load the selected patient data
+patient_data = load_patient_from_db(st.session_state.selected_patient_id)
+processed_data = load_patient_data(patient_data) if patient_data else {}
+# Sidebar for navigation
+st.sidebar.title("Navigation")
+-36
++41
+)
+# Main content based on selected view
+if selected_view == "Patient Profile":
+    display_patient_profile(processed_data)
+    
+elif selected_view == "Medical History":
+    display_medical_history(processed_data)
+    
+elif selected_view == "Treatment Plan":
+    display_treatment_plan(processed_data)
+    
+elif selected_view == "Diagnostic Tests":
+    display_diagnostic_tests(processed_data)
+    
+elif selected_view == "Analysis Dashboard":
+    st.header("Analysis Dashboard")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Neurological Summary")
+        timeline_chart = create_timeline(processed_data)
+        st.plotly_chart(timeline_chart, use_container_width=True)
+    
+    with col2:
+        st.subheader("Symptom Impact Analysis")
+        # Analysis of seizure frequency
+        if 'seizure_history' in processed_data.get('medical_history', {}).get('neurological_history', {}):
+            seizure_analysis = analyze_seizure_frequency(processed_data)
+            st.write(seizure_analysis)
+        else:
+            st.info("No seizure history data available for analysis.")
+    
+    # Additional analysis section
+    st.subheader("Medical Treatment Impact")
+    st.write("This section provides analysis on the impact of current treatments on the patient's condition.")
+    st.info("Historical data required for trend analysis is not available in the current record.")
+if processed_data:
+    if selected_view == "Patient Profile":
+        display_patient_profile(processed_data)
+        
+    elif selected_view == "Medical History":
+        display_medical_history(processed_data)
+        
+    elif selected_view == "Treatment Plan":
+        display_treatment_plan(processed_data)
+        
+    elif selected_view == "Diagnostic Tests":
+        display_diagnostic_tests(processed_data)
+        
+    elif selected_view == "Analysis Dashboard":
+        st.header("Analysis Dashboard")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Neurological Summary")
+            timeline_chart = create_timeline(processed_data)
+            st.plotly_chart(timeline_chart, use_container_width=True)
+        
+        with col2:
+            st.subheader("Symptom Impact Analysis")
+            # Analysis of seizure frequency
+            if 'seizure_history' in processed_data.get('medical_history', {}).get('neurological_history', {}):
+                seizure_analysis = analyze_seizure_frequency(processed_data)
+                st.write(seizure_analysis)
+            else:
+                st.info("No seizure history data available for analysis.")
+        
+        # Additional analysis section
+        st.subheader("Medical Treatment Impact")
+        st.write("This section provides analysis on the impact of current treatments on the patient's condition.")
+        
+        # Connect to trends over time
+        st.info("Patient record initialized. Future visits will enable trend analysis.")
+else:
+    st.warning("No patient data available. Please add a new patient using the sidebar.")
+st.sidebar.markdown("---")
+st.sidebar.info("Note: This dashboard presents real patient data. All information is confidential and should be handled according to medical privacy guidelines.")
+st.sidebar.info("Note: This dashboard is connected to a PostgreSQL database. All patient records are now stored securely.")
