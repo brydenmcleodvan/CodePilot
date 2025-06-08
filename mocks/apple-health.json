@@ -1,0 +1,14 @@
+[
+  {
+    "statType": "steps",
+    "value": "1200",
+    "unit": "count",
+    "timestamp": "2024-05-10T08:00:00Z"
+  },
+  {
+    "statType": "heart_rate",
+    "value": "72",
+    "unit": "bpm",
+    "timestamp": "2024-05-10T08:05:00Z"
+  }
+]

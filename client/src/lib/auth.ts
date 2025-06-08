@@ -8,6 +8,7 @@ import React, {
 import { User, InsertUser } from "@shared/schema";
 import { apiRequest } from "./queryClient";
 import { queryClient } from "./queryClient";
+import { getAuthToken } from "./utils";
 
 interface AuthContextType {
   user: User | null;
@@ -30,17 +31,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On mount, check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("auth_token");
+        const token = getAuthToken();
         if (!token) {
           setIsLoading(false);
           return;
         }
 
-        // Fetch user data
         const response = await fetch("/api/user", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,7 +51,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const userData = await response.json();
           setUser(userData);
         } else {
-          // If token is invalid, clear it
           localStorage.removeItem("auth_token");
         }
       } catch (err) {
@@ -71,19 +69,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
-      console.log("Attempting login with username:", username);
       const response = await apiRequest("POST", "/api/login", {
         username,
         password,
       });
 
       const data = await response.json();
-      console.log("Login successful:", data);
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
-      console.error("Login error:", err);
       const errorMessage = err instanceof Error ? err.message : "Login failed";
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -103,8 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(data.user);
       return data.user;
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Registration failed";
+      const errorMessage = err instanceof Error ? err.message : "Registration failed";
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -119,13 +113,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const response = await apiRequest("PATCH", "/api/user/profile", userData);
       const updatedUser = await response.json();
-      
-      // Update the user state with the new information
-      setUser(prev => prev ? { ...prev, ...updatedUser } : updatedUser);
-      
-      // Invalidate user profile query to ensure fresh data
+
+      setUser(prev => (prev ? { ...prev, ...updatedUser } : updatedUser));
+
       queryClient.invalidateQueries({ queryKey: ["/api/user/profile"] });
-      
+
       return updatedUser;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update user";
@@ -139,7 +131,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     localStorage.removeItem("auth_token");
     setUser(null);
-    // Clear relevant queries
     queryClient.invalidateQueries();
   };
 

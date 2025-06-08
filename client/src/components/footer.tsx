@@ -3,13 +3,14 @@ import { TipJar } from "@/components/tip-jar";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-12 mt-auto">
+
       <div className="clean-container">
         {/* Simplified footer structure with more whitespace */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* Brand column - cleaner layout */}
           <div className="md:col-span-4">
             <div className="flex items-center gap-3 mb-5">
+
               <i className="ri-heart-pulse-line text-primary text-2xl"></i>
               <span className="text-xl font-heading font-bold">Healthmap</span>
             </div>
@@ -17,6 +18,7 @@ const Footer = () => {
               Streamlining genetics, genealogy, and health data into a unified
               platform for better health outcomes.
             </p>
+
             <div className="flex gap-5">
               <a href="#" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <i className="ri-facebook-fill text-xl"></i>
@@ -29,6 +31,7 @@ const Footer = () => {
               </a>
               <a href="#" className="text-gray-400 hover:text-primary transition-colors duration-200">
                 <i className="ri-linkedin-fill text-xl"></i>
+
               </a>
             </div>
           </div>
