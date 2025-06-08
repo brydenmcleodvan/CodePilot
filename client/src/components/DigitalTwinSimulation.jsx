@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Line } from 'react-chartjs-2';
+const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
+import { Loader2 } from 'lucide-react';
+
+function ChartFallback() {
+  return (
+    <div className="flex justify-center items-center h-48">
+      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+    </div>
+  );
+}
 import { 
   Brain,
   Play,
@@ -621,7 +630,9 @@ function SimulationResults({ results, onClose }) {
         <CardContent className="space-y-6">
           {/* Chart */}
           <div className="h-64">
-            <Line data={chartData} options={chartOptions} />
+            <Suspense fallback={<ChartFallback />}>
+              <Line data={chartData} options={chartOptions} />
+            </Suspense>
           </div>
           
           {/* Insights */}

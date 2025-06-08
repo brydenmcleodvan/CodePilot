@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -9,17 +9,28 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope, Target, BarChart3 } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, Shield, Dna, AlertTriangle, TrendingUp, Users, Stethoscope, Target, BarChart3, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { LongevityScoreCard } from "@/components/longevity/longevity-score-card";
 import { GlucoseWidget } from "@/components/metabolic/glucose-widget";
 import { RiskAlertCard } from "@/components/RiskAlertCard";
 import { GeneticRiskPanel } from "@/components/GeneticRiskPanel";
 import { HabitTrackerDashboard } from "@/components/HabitTrackerDashboard";
-import ProviderDashboardView from "@/components/ProviderDashboardView";
-import { ProgressDashboard } from "@/components/ProgressDashboard";
+const ProviderDashboardView = lazy(() =>
+  import("@/components/ProviderDashboardView").then((m) => ({
+    default: m.ProviderDashboardView || m.default,
+  }))
+);
+
+const ProgressDashboard = lazy(() =>
+  import("@/components/ProgressDashboard").then((m) => ({
+    default: m.ProgressDashboard || m.default,
+  }))
+);
+
 import NotificationCenter from "@/components/NotificationCenter";
 import AchievementCard from "@/components/AchievementCard";
+
 
 // Import advanced health modules (will be dynamically loaded)
 // import { BehavioralPsychologyLayer } from "@/components/BehavioralPsychologyLayer";
@@ -1077,10 +1088,15 @@ export default function Dashboard() {
             </div>
 
             {/* Comprehensive Progress Dashboard */}
-            <ProgressDashboard 
-              userId={user?.id}
-              className="mb-6"
-            />
+            <Suspense
+              fallback={
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              }
+            >
+              <ProgressDashboard userId={user?.id} className="mb-6" />
+            </Suspense>
           </motion.div>
         </TabsContent>
 
@@ -1207,11 +1223,19 @@ export default function Dashboard() {
               </div>
 
               {/* Enhanced Provider Dashboard with Role-Based Access */}
-              <ProviderDashboardView 
-                userId={user?.id}
-                userRole={user?.role}
-                className="mb-6"
-              />
+              <Suspense
+                fallback={
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                }
+              >
+                <ProviderDashboardView
+                  userId={user?.id}
+                  userRole={user?.role}
+                  className="mb-6"
+                />
+              </Suspense>
             </motion.div>
           </TabsContent>
         )}

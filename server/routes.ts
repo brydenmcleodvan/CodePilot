@@ -5,17 +5,28 @@ import { setupAuth } from './auth';
 import { authenticateJwt } from './security/auth/auth-middleware';
 import { checkPermission } from './security/permissions/permission-checker';
 import { ResourceType } from './security/permissions/permission-types';
+import { sanitizeInputs } from './security/utils/input-sanitization';
+import { apiRateLimiter, userRateLimiter } from './security/utils/rate-limiter';
+import { setCsrfToken, verifyCsrfToken } from './security/utils/csrf-protection';
 import { deviceManager } from './integrations/device-manager';
 import { streakEngine } from './streak-engine';
 import { recommendationEngine } from './recommendation-engine';
 import { aiHealthCoach } from './ai-health-coach';
 import { streakCounter } from './streak-counter';
 import { weeklySummaryScheduler } from './weekly-summary-scheduler';
+import { dailyInsightEngine } from './daily-insight-engine';
+import { ruleBasedNudgeEngine } from './nudge-engine';
+import { contextRecommendationEngine } from './contextual-recommendation-engine';
 import { healthAlertsSystem } from './health-alerts-system';
+
 
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
   setupAuth(app);
+
+  // Apply input sanitization and IP-based rate limiting to all API routes
+  app.use('/api', sanitizeInputs);
+  app.use('/api', apiRateLimiter);
 
   // Public routes
   app.get('/api/news', async (req, res) => {
@@ -27,6 +38,9 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: 'Failed to fetch news' });
     }
   });
+
+  // Apply authentication, user-specific rate limiting, and CSRF protection
+  app.use('/api', authenticateJwt, userRateLimiter, setCsrfToken, verifyCsrfToken);
 
   // Protected routes - require authentication and proper permissions
   app.get('/api/health-metrics', authenticateJwt, async (req, res) => {
@@ -2008,6 +2022,30 @@ USER QUESTION: ${message}
     } catch (error) {
       console.error('Error generating contextual recommendations:', error);
       res.status(500).json({ message: 'Failed to generate contextual recommendations' });
+    }
+  });
+
+  // Rule-based context-aware nudges
+  app.get('/api/nudges', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user!;
+      const nudges = await ruleBasedNudgeEngine.generateNudges(user.id);
+      res.json(nudges);
+    } catch (error) {
+      console.error('Error generating nudges:', error);
+      res.status(500).json({ message: 'Failed to generate nudges' });
+    }
+  });
+
+  // Personalized context-aware recommendations
+  app.get('/api/personalized-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user!;
+      const recs = await contextRecommendationEngine.generateRecommendations(user.id);
+      res.json(recs);
+    } catch (error) {
+      console.error('Error generating personalized recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
     }
   });
 

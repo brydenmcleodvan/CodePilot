@@ -33,7 +33,17 @@ import {
   Legend,
   TooltipItem,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { lazy, Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
+
+function ChartFallback() {
+  return (
+    <div className="flex justify-center items-center h-48">
+      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+    </div>
+  );
+}
 import {
   TrendingUp,
   TrendingDown,
@@ -349,7 +359,9 @@ export default function MetricDetailModal({ isOpen, onClose, metric, availableMe
             </div>
             
             <div className="h-80 bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-              <Line ref={chartRef} data={chartData} options={chartOptions} />
+              <Suspense fallback={<ChartFallback />}>
+                <Line ref={chartRef} data={chartData} options={chartOptions} />
+              </Suspense>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
