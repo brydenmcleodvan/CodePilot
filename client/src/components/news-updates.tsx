@@ -1,12 +1,44 @@
 import { useState, useEffect } from "react";
-import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  timestamp: string;
+  thumbnail?: string;
+}
+
 interface NewsUpdatesProps {
-  newsItems: NewsUpdate[];
+  newsItems: NewsItem[];
   isLoading: boolean;
 }
+
+// Helper function to format news date with fallback
+const formatNewsDate = (timestamp: string | Date | undefined): string => {
+  if (!timestamp) {
+    return 'Recently'; // Fallback for missing dates
+  }
+
+  try {
+    const date = new Date(timestamp);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Recently'; // Fallback for invalid dates
+    }
+
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  } catch (error) {
+    return 'Recently'; // Fallback for parsing errors
+  }
+};
 
 const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (isLoading) {
@@ -32,7 +64,7 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">No news articles available at this time.</p>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">No news articles available at this time.</p>
             </div>
           </CardContent>
         </Card>
@@ -54,10 +86,10 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
         {newsItems.map((news, index) => (
           <article 
             key={news.id} 
-            className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
           >
             <img
-              src={news.thumbnail}
+              src={news.thumbnail || ''}
               alt={news.title}
               className="w-full h-48 object-cover"
             />
@@ -65,15 +97,11 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
               <span className={`text-xs font-medium ${getCategoryStyles(news.category)}`}>
                 {news.category}
               </span>
-              <h3 className="mt-3 text-lg font-medium">{news.title}</h3>
-              <p className="mt-2 text-gray-600 line-clamp-2">{news.content}</p>
+              <h3 className="mt-3 text-lg font-medium dark:text-white">{news.title}</h3>
+              <p className="mt-2 text-gray-600 dark:text-gray-300 line-clamp-2">{news.content}</p>
               <div className="mt-4 flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  {new Date(news.timestamp).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                  })}
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {formatNewsDate(news.timestamp)}
                 </span>
                 <button className="text-primary hover:text-secondary">Read More</button>
               </div>

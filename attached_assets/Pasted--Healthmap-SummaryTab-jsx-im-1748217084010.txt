@@ -1,0 +1,83 @@
+// ===============================
+// Healthmap SummaryTab.jsx
+// ===============================
+import React from 'react';
+import { HealthScoreCard } from './HealthScoreCard';
+import { HealthAlertBanner } from './HealthAlertBanner';
+import { generateDoctorReport } from './doctorReportGenerator';
+import { useHealthAlerts } from './hooks/useHealthAlerts';
+
+export default function SummaryTab({ user, metrics }) {
+  const alerts = useHealthAlerts(metrics);
+  const score = calculateHealthScore(metrics);
+
+  return (
+    <div className="space-y-6 p-4">
+      <HealthScoreCard score={score} />
+      <HealthAlertBanner alerts={alerts} />
+
+      <button
+        onClick={() => generateDoctorReport(user, metrics)}
+        className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+      >
+        Download Doctor Report
+      </button>
+    </div>
+  );
+}
+
+// ===============================
+// HealthScoreCard.jsx
+// ===============================
+import React from 'react';
+
+export function HealthScoreCard({ score }) {
+  const getColor = () => {
+    if (score >= 80) return 'text-green-500';
+    if (score >= 60) return 'text-yellow-500';
+    return 'text-red-500';
+  };
+
+  return (
+    <div className="p-6 rounded-2xl shadow-lg bg-white dark:bg-zinc-900">
+      <div className="text-lg font-semibold mb-1">Health Score</div>
+      <div className={`text-4xl font-bold ${getColor()}`}>{score}</div>
+      <div className="text-xs text-zinc-400">Based on sleep, HRV, glucose, activity, mood</div>
+    </div>
+  );
+}
+
+// ===============================
+// HealthAlertBanner.jsx
+// ===============================
+import React from 'react';
+
+export function HealthAlertBanner({ alerts }) {
+  if (!alerts.length) return null;
+  return (
+    <div className="space-y-2">
+      {alerts.map((a, i) => (
+        <div
+          key={i}
+          className={`p-4 rounded-lg shadow-sm ${
+            a.type === 'critical' ? 'bg-red-100 text-red-800' :
+            a.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-orange-100 text-orange-800'
+          }`}
+        >
+          ⚠️ {a.message}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ===============================
+// useHealthAlerts.js
+// ===============================
+import { detectAnomalies } from './riskDetection';
+
+export function useHealthAlerts(metrics) {
+  const alerts = detectAnomalies(metrics);
+  return alerts;
+}

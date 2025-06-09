@@ -82,24 +82,24 @@ const ForumPost = ({ post }: ForumPostProps) => {
   };
 
   return (
-    <Card className="bg-white rounded-xl shadow-md overflow-hidden">
+    <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-start space-x-3">
           <div className="flex flex-col items-center space-y-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-gray-400 hover:text-primary"
+              className="text-gray-400 hover:text-primary dark:text-gray-500 dark:hover:text-primary"
               disabled={isVoting}
               onClick={() => handleVote(true)}
             >
               <ArrowBigUp className="h-6 w-6" />
             </Button>
-            <span className="font-medium">{post.upvotes - post.downvotes}</span>
+            <span className="font-medium dark:text-white">{post.upvotes - post.downvotes}</span>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-gray-400 hover:text-red-500"
+              className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-500"
               disabled={isVoting}
               onClick={() => handleVote(false)}
             >
@@ -113,7 +113,7 @@ const ForumPost = ({ post }: ForumPostProps) => {
                 alt="User"
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Posted by{" "}
                 <a href="#" className="text-primary hover:underline">
                   {postUser?.username || "healthuser"}
@@ -121,16 +121,16 @@ const ForumPost = ({ post }: ForumPostProps) => {
                 · {formatTimestamp(post.timestamp)}
               </span>
             </div>
-            <h3 className="text-xl font-medium mb-2">{post.title}</h3>
-            <p className="text-gray-600 mb-4">{post.content}</p>
+            <h3 className="text-xl font-medium mb-2 dark:text-white">{post.title}</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">{post.content}</p>
             <div className="flex flex-wrap gap-2 mb-4">
               {post.tags.map((tag, index) => (
-                <span key={index} className="text-xs bg-primary/10 text-primary rounded-full px-3 py-1">
+                <span key={index} className="text-xs bg-primary/10 text-primary dark:bg-primary/20 rounded-full px-3 py-1">
                   {tag}
                 </span>
               ))}
             </div>
-            <div className="flex items-center space-x-4 text-gray-500">
+            <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
               <button className="flex items-center space-x-1 hover:text-primary">
                 <MessageCircle className="h-4 w-4" />
                 <span>Comments</span>

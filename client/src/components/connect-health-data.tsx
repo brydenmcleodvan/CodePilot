@@ -1,65 +1,16 @@
-import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
-type HealthProvider = {
-  id: string;
-  name: string;
-  logo: string;
-  description: string;
-};
-
-const providers: HealthProvider[] = [
-  {
-    id: 'apple',
-    name: 'Apple Health',
-    logo: 'ri-apple-fill',
-    description: 'Connect with Apple Health to sync your health and fitness data'
-  },
-  {
-    id: 'google',
-    name: 'Google Fit',
-    logo: 'ri-google-fill',
-    description: 'Sync your activity, heart data, and sleep information from Google Fit'
-  },
-  {
-    id: 'fitbit',
-    name: 'Fitbit',
-    logo: 'ri-fitness-fill',
-    description: 'Import your steps, exercise, sleep, and heart rate data from Fitbit'
-  },
-  {
-    id: 'garmin',
-    name: 'Garmin Connect',
-    logo: 'ri-run-line',
-    description: 'Sync your running, cycling, and other fitness data from Garmin devices'
-  }
-];
-
+export default function ConnectHealthDataButton() {
 export default function ConnectHealthDataButton() {
   const [open, setOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<HealthProvider | null>(null);
 
-  const handleConnect = (provider: HealthProvider) => {
+  function handleConnect(provider: HealthProvider) {
     setSelectedProvider(provider);
-    // This function would be implemented to handle the actual connection with the provider
     connectHealthData(provider.id);
-  };
+  }
 
   function connectHealthData(providerId: string) {
     const oauthMap: Record<string, string> = {
@@ -76,9 +27,7 @@ export default function ConnectHealthDataButton() {
 
     // Fallback for providers without OAuth yet
     alert(`Connecting your health data for personal management from ${providerId}...`);
-    setTimeout(() => {
-      setOpen(false);
-    }, 1500);
+    setTimeout(() => setOpen(false), 1500);
   }
 
   return (
@@ -87,7 +36,7 @@ export default function ConnectHealthDataButton() {
         onClick={() => setOpen(true)}
         className="bg-primary hover:bg-primary/90 text-white"
       >
-        <i className="ri-heart-pulse-line mr-2" aria-hidden="true"></i>
+        <i className="ri-heart-pulse-line mr-2" aria-hidden="true" />
         Connect Health Data
       </Button>
 
@@ -102,27 +51,24 @@ export default function ConnectHealthDataButton() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             {providers.map((provider) => (
-              <Card 
-                key={provider.id} 
+              <Card
+                key={provider.id}
                 className="cursor-pointer hover:border-primary transition-colors duration-200"
                 onClick={() => handleConnect(provider)}
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{provider.name}</CardTitle>
-                    <i
-                      className={`${provider.logo} text-2xl text-primary`}
-                      aria-hidden="true"
-                    ></i>
+                    <i className={`${provider.logo} text-2xl text-primary`} aria-hidden="true" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <CardDescription>{provider.description}</CardDescription>
                 </CardContent>
                 <CardFooter className="pt-1">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full mt-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -141,7 +87,7 @@ export default function ConnectHealthDataButton() {
               Cancel
             </Button>
             <Button variant="ghost" className="flex items-center gap-1">
-              <i className="ri-question-line"></i>
+              <i className="ri-question-line" />
               Learn more about data privacy
             </Button>
           </DialogFooter>
@@ -150,3 +96,4 @@ export default function ConnectHealthDataButton() {
     </>
   );
 }
+

@@ -1,0 +1,64 @@
+{
+  "profile": {
+    "personal_info": {
+      "display_name": "John Doe",
+      "age_at_record": 42,
+      "physical_description": "Average build, 5'11", 180 lbs",
+      "record_date": "2025-04-01"
+    },
+    "medical_history": {
+      "neurological_history": {
+        "zinc_deficiency": true,
+        "sleep_quality": {
+          "type": "Good but suboptimal",
+          "frequency": "7.8 hours average per night, occasional disruptions"
+        },
+        "migraines": false,
+        "headaches": "Occasional, related to stress"
+      },
+      "diagnostic_tests": {
+        "Blood Work": "Low zinc levels (65 μg/dL, normal range: 70-120 μg/dL)",
+        "Sleep Study": "Normal sleep architecture, minor disruptions during REM cycles"
+      }
+    },
+    "treatment_plan": {
+      "medications": [
+        {
+          "name": "Zinc Supplement",
+          "purpose": "Treat zinc deficiency",
+          "dosage": "50mg daily"
+        },
+        {
+          "name": "Vitamin D3",
+          "purpose": "Support immune function",
+          "dosage": "2000 IU daily"
+        },
+        {
+          "name": "Magnesium Glycinate",
+          "purpose": "Improve sleep quality",
+          "dosage": "200mg before bedtime"
+        }
+      ],
+      "referrals": [
+        "Nutritional counseling",
+        "Sleep optimization program"
+      ]
+    },
+    "social_health": {
+      "impact_on_daily_life": "Mild fatigue and reduced immune function affect work productivity and exercise capacity",
+      "support_network": "Family, health coach, online health communities",
+      "self_management": "Regular nutritional tracking, sleep monitoring with Whoop strap, Apple Watch health metrics tracking"
+    },
+    "wearable_data": {
+      "devices": ["Apple Watch Series 9", "Whoop Strap 4.0"],
+      "metrics_tracked": [
+        "Heart rate variability",
+        "Sleep quality and stages",
+        "Recovery scores",
+        "Activity levels",
+        "Respiration rate"
+      ],
+      "integration_status": "Fully connected and synchronized daily"
+    }
+  }
+}

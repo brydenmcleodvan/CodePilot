@@ -1,0 +1,97 @@
+// ===============================
+// GoalCreator.jsx
+// ===============================
+import { useState } from 'react';
+import { db } from './firebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
+
+export default function GoalCreator({ userId }) {
+const \[goalType, setGoalType] = useState('');
+const \[target, setTarget] = useState('');
+const \[duration, setDuration] = useState('');
+const \[status, setStatus] = useState('');
+
+const handleSubmit = async (e) => {
+e.preventDefault();
+try {
+await addDoc(collection(db, 'user\_goals'), {
+userId,
+goalType,
+target: Number(target),
+duration: Number(duration),
+createdAt: new Date().toISOString()
+});
+setStatus('Goal successfully created.');
+setGoalType(''); setTarget(''); setDuration('');
+} catch (error) {
+setStatus('Error saving goal.');
+}
+};
+
+return ( <div className="p-6 max-w-xl mx-auto bg-white rounded shadow"> <h2 className="text-2xl font-bold mb-4">Set a Health Goal</h2> <form onSubmit={handleSubmit} className="space-y-4"> <div> <label className="block font-medium">Goal Type</label>
+\<select value={goalType} onChange={(e) => setGoalType(e.target.value)} className="w-full border p-2 rounded"> <option value="">Select...</option> <option value="steps">Daily Steps</option> <option value="sleep">Sleep Hours</option> <option value="nutrition">Nutrition Goal</option> <option value="stress">Mindfulness/Stress</option> </select> </div> <div> <label className="block font-medium">Target</label>
+\<input
+type="number"
+value={target}
+onChange={(e) => setTarget(e.target.value)}
+placeholder="e.g., 10000 steps"
+className="w-full border p-2 rounded"
+/> </div> <div> <label className="block font-medium">Duration (in days)</label>
+\<input
+type="number"
+value={duration}
+onChange={(e) => setDuration(e.target.value)}
+placeholder="e.g., 30"
+className="w-full border p-2 rounded"
+/> </div> <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Goal</button>
+{status && <p className="text-sm text-gray-600 mt-2">{status}</p>} </form> </div>
+);
+}
+
+// ===============================
+// ConnectedServicesSettings.jsx
+// ===============================
+import { useState } from 'react';
+import { db } from './firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
+
+export default function ConnectedServicesSettings({ userId }) {
+const \[services, setServices] = useState({
+healthApp: true,
+dnaService: true,
+familyTree: false
+});
+const \[status, setStatus] = useState('');
+
+const toggleConnection = async (key) => {
+const updated = { ...services, \[key]: !services\[key] };
+setServices(updated);
+try {
+await setDoc(doc(db, 'connected\_services', userId), updated);
+setStatus('Settings saved.');
+} catch (e) {
+setStatus('Error updating settings.');
+}
+};
+
+return ( <div className="p-6 max-w-xl mx-auto bg-white rounded shadow"> <h2 className="text-2xl font-bold mb-4">Connected Services</h2> <div className="space-y-4">
+{Object.entries(services).map((\[key, connected]) => ( <div key={key} className="flex justify-between items-center border p-3 rounded"> <span className="capitalize">{key.replace(/(\[A-Z])/g, ' \$1')}</span>
+\<button
+onClick={() => toggleConnection(key)}
+className={`px-3 py-1 rounded ${connected ? 'bg-red-500 text-white' : 'bg-green-600 text-white'}`}
+\>
+{connected ? 'Disconnect' : 'Connect'} </button> </div>
+))}
+{status && <p className="text-sm text-gray-600 mt-2">{status}</p>} </div> </div>
+);
+}
+
+// ===============================
+// App.jsx (Add to Routes)
+// ===============================
+import GoalCreator from './GoalCreator';
+import ConnectedServicesSettings from './ConnectedServicesSettings';
+
+// Inside your route config:
+\<Route path="/goals" element={<GoalCreator userId={user.uid} />} />
+\<Route path="/settings/connected-services" element={<ConnectedServicesSettings userId={user.uid} />} />

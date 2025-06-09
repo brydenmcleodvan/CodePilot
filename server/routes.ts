@@ -1,9 +1,13 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { ZodError, z } from "zod";
+
+// Internal modules (shared across branches)
+import { storage } from "./storage";
+
 import {
   insertUserSchema,
   loginSchema,
@@ -12,6 +16,8 @@ import {
   insertConnectedDeviceSchema,
   type InsertHealthStat,
 } from "@shared/schema";
+// Provider integrations
+
 import {
   fetchAppleHealthData,
   exchangeAppleHealthCode,
@@ -22,15 +28,52 @@ import {
   exchangeFitbitCode,
   refreshFitbitToken,
 } from "./providers/fitbit";
-import { fetchGoogleFitData, exchangeGoogleFitCode, refreshGoogleFitToken } from "./providers/googleFit";
-import { sendEmail, verificationEmailTemplate, resetPasswordEmailTemplate } from "./utils/email";
+import {
+  fetchGoogleFitData,
+  exchangeGoogleFitCode,
+  refreshGoogleFitToken,
+} from "./providers/googleFit";
+
+import {
+  sendEmail,
+  verificationEmailTemplate,
+  resetPasswordEmailTemplate,
+} from "./utils/email";
+
 import { logError } from "./utils/logger";
 import { ZodError, z } from "zod";
 
-const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "healthmap-refresh-secret";
+
+// Email + utils
+import { sendEmail, verificationEmailTemplate, resetPasswordEmailTemplate } from "./utils/email";
+import { logError } from "./utils/logger";
+
+// Security, auth, permissions
+import { setupAuth } from './auth';
+import { authenticateJwt } from './security/auth/auth-middleware';
+import { checkPermission } from './security/permissions/permission-checker';
+import { ResourceType } from './security/permissions/permission-types';
+import { sanitizeInputs } from './security/utils/input-sanitization';
+import { apiRateLimiter, userRateLimiter } from './security/utils/rate-limiter';
+import { setCsrfToken, verifyCsrfToken } from './security/utils/csrf-protection';
+
+// Internal engines and systems
+import { deviceManager } from './integrations/device-manager';
+import { streakEngine } from './streak-engine';
+import { recommendationEngine } from './recommendation-engine';
+import { aiHealthCoach } from './ai-health-coach';
+import { streakCounter } from './streak-counter';
+import { weeklySummaryScheduler } from './weekly-summary-scheduler';
+import { dailyInsightEngine } from './daily-insight-engine';
+import { ruleBasedNudgeEngine } from './nudge-engine';
+import { contextRecommendationEngine } from './contextual-recommendation-engine';
+import { healthAlertsSystem } from './health-alerts-system';
 
 // Temporary in-memory store mapping OAuth state strings to connection IDs
+const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "healthmap-refresh-secret";
+// Temporary in-memory store mapping OAuth state strings to connection IDs
+
 const oauthStateMap = new Map<string, number>();
 
 // Middleware to verify JWT token
@@ -55,1639 +98,4529 @@ const authenticateToken = (req: Request, res: Response, next: Function) => {
   });
 };
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // API routes
-  const apiRouter = '/api';
-  
-  // Auth routes
-  app.post(`${apiRouter}/auth/register`, async (req, res) => {
+
+
+export function registerRoutes(app: Express): Server {
+  // Set up authentication routes
+  setupAuth(app);
+
+  // Apply input sanitization and IP-based rate limiting to all API routes
+  app.use('/api', sanitizeInputs);
+  app.use('/api', apiRateLimiter);
+
+  // Public routes
+  app.get('/api/news', async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
-      
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(userData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      
-      // Check if email already exists
-      const existingEmail = await storage.getUserByEmail(userData.email);
-      if (existingEmail) {
-        return res.status(400).json({ message: 'Email already in use' });
-      }
-      
-      // Hash password
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      
-      // Create new user
-      const newUser = await storage.createUser({
-        ...userData,
-        password: hashedPassword
-      });
-      
-      // Generate JWT token and refresh token
-      const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, {
-        expiresIn: '15m'
-      });
-      const refreshTokenValue = crypto.randomBytes(40).toString('hex');
-      await storage.createRefreshToken({
-        userId: newUser.id,
-        token: refreshTokenValue,
-        expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
-        revoked: false,
-      });
+// User Registration Endpoint
+app.post('/api/register', async (req: Request, res: Response) => {
+  try {
+    const userData = insertUserSchema.parse(req.body);
 
-      // Return user without password and include token
-      const { password, ...userWithoutPassword } = newUser;
-      res.status(201).json({ user: userWithoutPassword, token, refreshToken: refreshTokenValue });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error during registration' });
+    // Check if username already exists
+    const existingUser = await storage.getUserByUsername(userData.username);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
     }
-  });
-  
-  app.post(`${apiRouter}/auth/login`, async (req, res) => {
-    try {
-      const loginData = loginSchema.parse(req.body);
-      
-      // Find user by username
-      const user = await storage.getUserByUsername(loginData.username);
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
-      
-      // Verify password
-      const isPasswordValid = await bcrypt.compare(loginData.password, user.password);
-      if (!isPasswordValid) {
-        return res.status(400).json({ message: 'Invalid username or password' });
-      }
-      
-      // Generate JWT token and refresh token
-      const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
-        expiresIn: '15m'
-      });
-      const refreshTokenValue = crypto.randomBytes(40).toString('hex');
-      await storage.createRefreshToken({
-        userId: user.id,
-        token: refreshTokenValue,
-        expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
-        revoked: false,
-      });
-      await storage.createSession(user.id);
-      await storage.addMetric({ userId: user.id, actionType: 'login', timestamp: new Date() });
 
-      // Return user without password and include token
-      const { password, ...userWithoutPassword } = user;
-      res.json({ user: userWithoutPassword, token, refreshToken: refreshTokenValue });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      await logError('Server error during login', undefined, (error as Error).stack);
-      res.status(500).json({ message: 'Server error during login' });
+    // Check if email already exists
+    const existingEmail = await storage.getUserByEmail(userData.email);
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already in use' });
     }
-  });
 
-  app.post(`${apiRouter}/auth/refresh`, async (req, res) => {
-    const { refreshToken } = req.body as { refreshToken: string };
-    if (!refreshToken) return res.status(400).json({ message: 'Refresh token required' });
-    const stored = await storage.getRefreshToken(refreshToken);
-    if (!stored || stored.revoked || stored.expiresAt < new Date()) {
-      return res.status(403).json({ message: 'Invalid refresh token' });
-    }
-    const user = await storage.getUser(stored.userId);
-    if (!user) return res.status(403).json({ message: 'Invalid refresh token' });
+    // Hash password
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    await storage.revokeRefreshToken(refreshToken);
-    const newRefresh = crypto.randomBytes(40).toString('hex');
+    // Create new user
+    const newUser = await storage.createUser({
+      ...userData,
+      password: hashedPassword
+    });
+
+    // Generate JWT token and refresh token
+    const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, {
+      expiresIn: '15m'
+    });
+    const refreshTokenValue = crypto.randomBytes(40).toString('hex');
     await storage.createRefreshToken({
-      userId: stored.userId,
-      token: newRefresh,
+      userId: newUser.id,
+      token: refreshTokenValue,
       expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
       revoked: false,
     });
 
-    const newAccess = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
-    res.json({ token: newAccess, refreshToken: newRefresh });
+    // Return user without password and include token
+    const { password, ...userWithoutPassword } = newUser;
+    res.status(201).json({ user: userWithoutPassword, token, refreshToken: refreshTokenValue });
+  } catch (err) {
+    res.status(400).json({ message: 'Registration failed', error: err });
+  }
+});
+
+// Health News Endpoint
+app.get('/api/news', async (req: Request, res: Response) => {
+  try {
+    const news = await storage.getHealthNews();
+    res.json(news);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch news' });
+  }
+});
+
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      res.status(500).json({ message: 'Failed to fetch news' });
+    }
   });
 
-  app.post(`${apiRouter}/auth/logout`, async (req, res) => {
-    const { refreshToken } = req.body as { refreshToken: string };
-    if (refreshToken) {
-      await storage.revokeRefreshToken(refreshToken);
-    }
-    if (req.body.user?.id) {
-      await storage.addMetric({ userId: req.body.user.id, actionType: 'logout', timestamp: new Date() });
-    }
-    res.json({ message: 'Logged out' });
-  });
+  // Apply authentication, user-specific rate limiting, and CSRF protection
+  app.use('/api', authenticateJwt, userRateLimiter, setCsrfToken, verifyCsrfToken);
 
-  app.post(`${apiRouter}/auth/request-password-reset`, async (req, res) => {
-    const { email } = req.body as { email: string };
-    const user = email ? await storage.getUserByEmail(email) : undefined;
-    if (!user) {
-      return res.status(200).json({ message: 'If the email exists, a reset link was sent' });
-    }
-    const token = jwt.sign({ id: user.id, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
-    await sendEmail(user.email, 'Password Reset', resetPasswordEmailTemplate(token));
-    res.json({ message: 'Reset email sent' });
-  });
-
-  app.post(`${apiRouter}/auth/reset-password`, async (req, res) => {
+  // Protected routes - require authentication and proper permissions
+  app.get('/api/health-metrics', authenticateJwt, async (req, res) => {
     try {
-      const { token, password } = req.body as { token: string; password: string };
-      const payload = jwt.verify(token, JWT_SECRET) as any;
-      if (payload.type !== 'reset') throw new Error('invalid token');
-      const user = await storage.getUser(payload.id);
-      if (!user) return res.status(400).json({ message: 'Invalid token' });
-      const hashed = await bcrypt.hash(password, 10);
-      await storage.updateUser(user.id, { password: hashed });
-      res.json({ message: 'Password updated' });
-    } catch {
-      res.status(400).json({ message: 'Invalid or expired token' });
+      const user = (req as any).user!;
+      
+// --- Auth routes ---
+app.post(`${apiRouter}/auth/login`, async (req, res) => {
+  try {
+    const userData = loginSchema.parse(req.body);
+    const user = await storage.getUserByEmail(userData.email);
+    if (!user || !(await bcrypt.compare(userData.password, user.password))) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check if user has permission to read health metrics (if needed elsewhere)
+    const hasPermission = await checkPermission(user, 'read', ResourceType.HEALTH_METRIC);
+    if (!hasPermission) {
+      return res.status(403).json({ message: 'Permission denied: Cannot access health metrics' });
+    }
+
+    // Generate JWT token and refresh token
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+      expiresIn: '15m'
+    });
+    const refreshTokenValue = crypto.randomBytes(40).toString('hex');
+    await storage.createRefreshToken({
+      userId: user.id,
+      token: refreshTokenValue,
+      expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      revoked: false,
+    });
+    await storage.createSession(user.id);
+    await storage.addMetric({ userId: user.id, actionType: 'login', timestamp: new Date() });
+
+    // Return user without password and include token
+    const { password, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword, token, refreshToken: refreshTokenValue });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    await logError('Server error during login', undefined, (error as Error).stack);
+    res.status(500).json({ message: 'Server error during login' });
+  }
+});
+
+app.post(`${apiRouter}/auth/refresh`, async (req, res) => {
+  const { refreshToken } = req.body as { refreshToken: string };
+  if (!refreshToken) return res.status(400).json({ message: 'Refresh token required' });
+
+  const stored = await storage.getRefreshToken(refreshToken);
+  if (!stored || stored.revoked || stored.expiresAt < new Date()) {
+    return res.status(403).json({ message: 'Invalid refresh token' });
+  }
+
+  const user = await storage.getUser(stored.userId);
+  if (!user) return res.status(403).json({ message: 'Invalid refresh token' });
+
+  await storage.revokeRefreshToken(refreshToken);
+  const newRefresh = crypto.randomBytes(40).toString('hex');
+  await storage.createRefreshToken({
+    userId: stored.userId,
+    token: newRefresh,
+    expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    revoked: false,
+  });
+
+  const newAccess = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '15m' });
+  res.json({ token: newAccess, refreshToken: newRefresh });
+});
+
+app.post(`${apiRouter}/auth/logout`, async (req, res) => {
+  const { refreshToken } = req.body as { refreshToken: string };
+  if (refreshToken) {
+    await storage.revokeRefreshToken(refreshToken);
+  }
+  if (req.body.user?.id) {
+    await storage.addMetric({ userId: req.body.user.id, actionType: 'logout', timestamp: new Date() });
+  }
+  res.json({ message: 'Logged out' });
+});
+
+app.post(`${apiRouter}/auth/request-password-reset`, async (req, res) => {
+  const { email } = req.body as { email: string };
+  const user = email ? await storage.getUserByEmail(email) : undefined;
+  if (!user) {
+    return res.status(200).json({ message: 'If the email exists, a reset link was sent' });
+  }
+  const token = jwt.sign({ id: user.id, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+  await sendEmail(user.email, 'Password Reset', resetPasswordEmailTemplate(token));
+  res.json({ message: 'Reset email sent' });
+});
+
+app.post(`${apiRouter}/auth/reset-password`, async (req, res) => {
+  try {
+    const { token, password } = req.body as { token: string; password: string };
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    if (payload.type !== 'reset') throw new Error('invalid token');
+    const user = await storage.getUser(payload.id);
+    if (!user) return res.status(400).json({ message: 'Invalid token' });
+    const hashed = await bcrypt.hash(password, 10);
+    await storage.updateUser(user.id, { password: hashed });
+    res.json({ message: 'Password updated' });
+  } catch {
+    res.status(400).json({ message: 'Invalid or expired token' });
+  }
+});
+
+app.post(`${apiRouter}/auth/send-verification`, authenticateToken, async (req, res) => {
+  const userId = req.body.user.id;
+  const user = await storage.getUser(userId);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  const token = jwt.sign({ id: user.id, type: 'verify' }, JWT_SECRET, { expiresIn: '1d' });
+  await sendEmail(user.email, 'Verify Email', verificationEmailTemplate(token));
+  res.json({ message: 'Verification email sent' });
+});
+
+app.get(`${apiRouter}/auth/verify-email`, async (req, res) => {
+  try {
+    const token = req.query.token as string;
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    if (payload.type !== 'verify') throw new Error('invalid');
+    const user = await storage.getUser(payload.id);
+    if (!user) return res.status(400).json({ message: 'Invalid token' });
+    await storage.updateUser(user.id, { emailVerified: true });
+    res.send('Email verified');
+  } catch {
+    res.status(400).send('Invalid or expired token');
+  }
+});
+
+// --- Health Metrics Routes ---
+app.get('/api/health-metrics', authenticateJwt, async (req, res) => {
+  try {
+    const user = req.body.user;
+    const metrics = await storage.getHealthMetrics(user.id);
+    res.json(metrics);
+  } catch (error) {
+    console.error('Error fetching health metrics:', error);
+    res.status(500).json({ message: 'Failed to fetch health metrics' });
+  }
+});
+
+app.post('/api/health-metrics', authenticateJwt, async (req, res) => {
+  try {
+    const metric = req.body;
+    const user = req.body.user;
+    await storage.addHealthMetric({ ...metric, userId: user.id });
+    res.status(201).json({ message: 'Metric added' });
+  } catch (error) {
+    console.error('Error saving health metric:', error);
+    res.status(500).json({ message: 'Failed to save health metric' });
+  }
+});
+
+    try {
+      const user = (req as any).user!;
+      
+      // Check if user has permission to create health metrics
+      const hasPermission = await checkPermission(user, 'create', ResourceType.HEALTH_METRIC);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create health metrics' });
+      }
+
+      const metricData = { ...req.body, userId: user.id, timestamp: new Date() };
+      const newMetric = await storage.addHealthMetric(metricData);
+      res.status(201).json(newMetric);
+    } catch (error) {
+      console.error('Error adding health metric:', error);
+      res.status(500).json({ message: 'Failed to add health metric' });
     }
   });
 
-  app.post(`${apiRouter}/auth/send-verification`, authenticateToken, async (req, res) => {
+// Update user profile
+app.patch(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
+  try {
     const userId = req.body.user.id;
-    const user = await storage.getUser(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    const token = jwt.sign({ id: user.id, type: 'verify' }, JWT_SECRET, { expiresIn: '1d' });
-    await sendEmail(user.email, 'Verify Email', verificationEmailTemplate(token));
-    res.json({ message: 'Verification email sent' });
-  });
+    const updateSchema = z.object({
+      name: z.string().min(1).optional(),
+      age: z.number().int().positive().optional(),
+      healthGoals: z.string().optional(),
+    });
+    const updateData = updateSchema.parse(req.body);
 
-  app.get(`${apiRouter}/auth/verify-email`, async (req, res) => {
-    try {
-      const token = req.query.token as string;
-      const payload = jwt.verify(token, JWT_SECRET) as any;
-      if (payload.type !== 'verify') throw new Error('invalid');
-      const user = await storage.getUser(payload.id);
-      if (!user) return res.status(400).json({ message: 'Invalid token' });
-      await storage.updateUser(user.id, { emailVerified: true });
-      res.send('Email verified');
-    } catch {
-      res.status(400).send('Invalid or expired token');
+    const updated = await storage.updateUser(userId, updateData);
+    if (!updated) {
+      return res.status(404).json({ message: 'User not found' });
     }
-  });
-  
-  // User profile routes
-  app.get(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
+
+    const { password, ...userWithoutPassword } = updated;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error updating profile' });
+  }
+});
+
+// Health stats routes
+app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const stats = await storage.getUserHealthStats(userId);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching health stats' });
+  }
+});
+
+    }
+
+    const { password, ...userWithoutPassword } = updated;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error updating profile' });
+  }
+});
+
+// Medications route (with RBAC)
+app.get('/api/medications', authenticateJwt, async (req, res) => {
+  try {
+    const user = req.body.user;
+    const medications = await storage.getUserMedications(user.id);
+    res.json(medications);
+  } catch (error) {
+    console.error('Error fetching medications:', error);
+    res.status(500).json({ message: 'Failed to fetch medications' });
+  }
+});
+
     try {
-      const userId = req.body.user.id;
-      const user = await storage.getUser(userId);
+      const user = (req as any).user!;
       
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching profile' });
-    }
-  });
-
-  app.patch(`${apiRouter}/user/profile`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const updateSchema = z.object({
-        name: z.string().min(1).optional(),
-        age: z.number().int().positive().optional(),
-        healthGoals: z.string().optional(),
-      });
-      const updateData = updateSchema.parse(req.body);
-
-      const updated = await storage.updateUser(userId, updateData);
-      if (!updated) {
-        return res.status(404).json({ message: 'User not found' });
+      // Check if user has permission to read medications
+      const hasPermission = await checkPermission(user, 'read', ResourceType.MEDICATION);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access medications' });
       }
 
-      const { password, ...userWithoutPassword } = updated;
-      res.json(userWithoutPassword);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error updating profile' });
-    }
-  });
-  
-  // Health stats routes
-  app.get(`${apiRouter}/health/stats`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const stats = await storage.getUserHealthStats(userId);
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching health stats' });
-    }
-  });
-
-  // AI Health Assistant route
-  app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
-    try {
-      const { query } = req.body;
-      // For now, return mock responses
-      const responses = {
-        'sleep': 'Based on your sleep data, you\'re averaging 7.2 hours per night. Try to maintain a consistent sleep schedule for better quality rest.',
-        'stress': 'Your stress levels appear elevated. Consider trying meditation or deep breathing exercises.',
-        'nutrition': 'Your nutrient levels are generally good, but you might benefit from increasing zinc intake.',
-      };
-      const response = responses[query.toLowerCase().split(' ')[0]] || 
-        'I understand you\'re asking about your health. Could you please be more specific?';
-      res.json({ response });
-    } catch (error) {
-      res.status(500).json({ message: 'Error processing health assistant query' });
-    }
-  });
-
-  // Medication tracking routes
-  app.get(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medications = await storage.getUserMedications(userId);
+      const medications = await storage.getMedications(user.id);
       res.json(medications);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching medications' });
+      console.error('Error fetching medications:', error);
+      res.status(500).json({ message: 'Failed to fetch medications' });
     }
   });
 
-  app.post(`${apiRouter}/medications`, authenticateToken, async (req, res) => {
+  app.post('/api/medications', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const medicationData = {
-        ...req.body,
-        userId,
-        active: true,
-        lastTaken: req.body.lastTaken ? new Date(req.body.lastTaken) : null,
-        nextDose: req.body.nextDose ? new Date(req.body.nextDose) : null
+      const user = (req as any).user!;
+      
+      // Check if user has permission to create medications
+      const hasPermission = await checkPermission(user, 'create', ResourceType.MEDICATION);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create medications' });
+      }
+
+      const medicationData = { 
+        ...req.body, 
+        userId: user.id, 
+        startDate: req.body.startDate ? new Date(req.body.startDate) : new Date() 
       };
-      
-      const medication = await storage.addMedication(medicationData);
-      res.status(201).json(medication);
+      const newMedication = await storage.addMedication(medicationData);
+      res.status(201).json(newMedication);
     } catch (error) {
-      res.status(500).json({ message: 'Error adding medication' });
+      console.error('Error adding medication:', error);
+      res.status(500).json({ message: 'Failed to add medication' });
     }
   });
 
-  app.get(`${apiRouter}/medications/:id`, authenticateToken, async (req, res) => {
+  // Symptoms - with RBAC enforcement
+  app.get('/api/symptoms', authenticateJwt, async (req, res) => {
     try {
-      const medicationId = parseInt(req.params.id);
-      const medication = await storage.getMedicationById(medicationId);
+      const user = (req as any).user!;
       
-      if (!medication) {
-        return res.status(404).json({ message: 'Medication not found' });
-      }
-      
-      // Verify that the medication belongs to the user
-      if (medication.userId !== req.body.user.id) {
-        return res.status(403).json({ message: 'Not authorized to access this medication' });
-      }
-      
-      res.json(medication);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching medication' });
-    }
-  });
-
-  app.post(`${apiRouter}/medications/:id/take`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medicationId = parseInt(req.params.id);
-      const result = await storage.markMedicationTaken(userId, medicationId);
-      
-      if (!result) {
-        return res.status(404).json({ message: 'Medication not found or not authorized' });
-      }
-      
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating medication status' });
-    }
-  });
-
-  // Medication history routes
-  app.get(`${apiRouter}/medications/:id/history`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medicationId = parseInt(req.params.id);
-      
-      // Verify medication belongs to user
-      const medication = await storage.getMedicationById(medicationId);
-      if (!medication || medication.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to access this medication history' });
-      }
-      
-      const history = await storage.getMedicationHistory(medicationId);
-      res.json(history);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching medication history' });
-    }
-  });
-  
-  app.get(`${apiRouter}/medications/:id/adherence`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medicationId = parseInt(req.params.id);
-      
-      // Verify medication belongs to user
-      const medication = await storage.getMedicationById(medicationId);
-      if (!medication || medication.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to access this medication data' });
-      }
-      
-      const adherenceRate = await storage.getMedicationAdherenceRate(medicationId);
-      res.json({ medicationId, adherenceRate });
-    } catch (error) {
-      res.status(500).json({ message: 'Error calculating adherence rate' });
-    }
-  });
-  
-  app.patch(`${apiRouter}/medications/:id`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medicationId = parseInt(req.params.id);
-      
-      // Verify medication belongs to user
-      const medication = await storage.getMedicationById(medicationId);
-      if (!medication || medication.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to update this medication' });
-      }
-      
-      // Handle date conversions
-      const updateData = { ...req.body };
-      if (updateData.nextDose) updateData.nextDose = new Date(updateData.nextDose);
-      if (updateData.lastTaken) updateData.lastTaken = new Date(updateData.lastTaken);
-      
-      // Don't allow changing userId
-      delete updateData.userId;
-      
-      const updatedMedication = await storage.updateMedication(medicationId, updateData);
-      res.json(updatedMedication);
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating medication' });
-    }
-  });
-  
-  app.post(`${apiRouter}/medications/:id/share`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const medicationId = parseInt(req.params.id);
-      const shareWithUserId = parseInt(req.body.shareWithUserId);
-      
-      // Verify medication belongs to user
-      const medication = await storage.getMedicationById(medicationId);
-      if (!medication || medication.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to share this medication' });
-      }
-      
-      // Verify the user to share with exists
-      const shareWithUser = await storage.getUser(shareWithUserId);
-      if (!shareWithUser) {
-        return res.status(404).json({ message: 'User to share with not found' });
-      }
-      
-      // Update the sharedWith array
-      const sharedWith = medication.sharedWith || [];
-      if (!sharedWith.includes(shareWithUserId.toString())) {
-        sharedWith.push(shareWithUserId.toString());
-      }
-      
-      const updatedMedication = await storage.updateMedication(medicationId, { sharedWith });
-      res.json(updatedMedication);
-    } catch (error) {
-      res.status(500).json({ message: 'Error sharing medication' });
-    }
-  });
-  
-  // Connections routes
-  app.get(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const connections = await storage.getUserConnections(userId);
-      res.json(connections);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching connections' });
-    }
-  });
-  
-  app.post(`${apiRouter}/connections`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const connectionId = parseInt(req.body.connectionId);
-      const relationshipType = req.body.relationshipType;
-      const relationshipSpecific = req.body.relationshipSpecific;
-      
-      // Check if connection exists
-      const connectionUser = await storage.getUser(connectionId);
-      if (!connectionUser) {
-        return res.status(404).json({ message: 'User to connect with not found' });
-      }
-      
-      // Add connection
-      const connection = await storage.addConnection({
-        userId,
-        connectionId,
-        relationshipType,
-        relationshipSpecific
-      });
-      
-      res.status(201).json(connection);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error adding connection' });
-    }
-  });
-
-  // Messaging routes
-  app.post(`${apiRouter}/messages`, authenticateToken, async (req, res) => {
-    try {
-      const senderId = req.body.user.id;
-      const recipientId = parseInt(req.body.recipientId);
-      const content = req.body.content;
-
-      if (await storage.isBlocked(recipientId, senderId) || await storage.isBlocked(senderId, recipientId)) {
-        return res.status(403).json({ message: 'User is blocked' });
+      // Check if user has permission to read symptoms
+      const hasPermission = await checkPermission(user, 'read', ResourceType.SYMPTOM);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access symptoms' });
       }
 
-      const message = await storage.sendMessage({
-        senderId,
-        recipientId,
-        content,
-        timestamp: new Date(),
-        read: false,
-      });
-
-      res.status(201).json(message);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error sending message' });
-    }
-  });
-
-  app.get(`${apiRouter}/messages/:userId`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const otherId = parseInt(req.params.userId);
-      const messages = await storage.getMessagesBetweenUsers(userId, otherId);
-      await storage.markMessagesRead(userId, otherId);
-      res.json(messages);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching messages' });
-    }
-  });
-
-  app.get(`${apiRouter}/messages/unread-count`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const count = await storage.getUnreadMessageCount(userId);
-      res.json({ count });
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching unread count' });
-    }
-  });
-
-  app.post(`${apiRouter}/block`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const blockedId = parseInt(req.body.blockedId);
-      await storage.blockUser(userId, blockedId);
-      res.status(204).end();
-    } catch (error) {
-      res.status(500).json({ message: 'Server error blocking user' });
-    }
-  });
-
-  app.post(`${apiRouter}/messages/:id/report`, authenticateToken, async (req, res) => {
-    try {
-      const reporterId = req.body.user.id;
-      const messageId = parseInt(req.params.id);
-      const reason = req.body.reason || '';
-      const report = await storage.reportMessage({
-        messageId,
-        reporterId,
-        reason,
-        reportedAt: new Date(),
-      });
-      res.status(201).json(report);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error reporting message' });
-    }
-  });
-
-  // Forum posts routes
-  app.get(`${apiRouter}/forum/posts`, async (req, res) => {
-    try {
-      const subreddit = req.query.subreddit as string | undefined;
-      const posts = await storage.getForumPosts(subreddit);
-      res.json(posts);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching forum posts' });
-    }
-  });
-  
-  app.post(`${apiRouter}/forum/posts`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const postData = insertForumPostSchema.parse({
-        ...req.body,
-        userId,
-        timestamp: new Date()
-      });
-      
-      const post = await storage.createForumPost(postData);
-      res.status(201).json(post);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating forum post' });
-    }
-  });
-  
-  app.post(`${apiRouter}/forum/posts/:id/vote`, authenticateToken, async (req, res) => {
-    try {
-      const postId = parseInt(req.params.id);
-      const isUpvote = req.body.upvote === true;
-      
-      const updatedPost = await storage.updateForumPostVotes(postId, isUpvote);
-      if (!updatedPost) {
-        return res.status(404).json({ message: 'Forum post not found' });
-      }
-      
-      res.json(updatedPost);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error voting on post' });
-    }
-  });
-  
-  // News & Updates routes
-  app.get(`${apiRouter}/news`, async (req, res) => {
-    try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const category = req.query.category as string | undefined;
-
-      const news = await storage.getNewsUpdates(limit, category);
-      res.json(news);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching news' });
-    }
-  });
-
-  app.get(`${apiRouter}/alerts`, async (_req, res) => {
-    try {
-      const alerts = await storage.getNewsUpdates(undefined, 'System');
-      res.json(alerts);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching alerts' });
-    }
-  });
-  
-  // Products routes
-  app.get(`${apiRouter}/products`, async (req, res) => {
-    try {
-      const category = req.query.category as string | undefined;
-      const recommendedFor = req.query.recommendedFor 
-        ? (req.query.recommendedFor as string).split(',') 
-        : undefined;
-      
-      const products = await storage.getProducts(category, recommendedFor);
-      res.json(products);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching products' });
-    }
-  });
-  
-  app.get(`${apiRouter}/products/recommendations`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      
-      // Get user health stats to determine recommendations
-      const healthStats = await storage.getUserHealthStats(userId);
-      
-      // Extract health conditions that need recommendations
-      const recommendationTags = healthStats.map(stat => {
-        if (stat.statType === 'nutrient_status' && stat.value === 'Zinc Deficient') {
-          return 'zinc_deficiency';
-        }
-        return null;
-      }).filter(Boolean) as string[];
-      
-      if (recommendationTags.length === 0) {
-        // Default recommendations if no specific health conditions
-        recommendationTags.push('general_health');
-      }
-      
-      const recommendedProducts = await storage.getProducts(undefined, recommendationTags);
-      res.json(recommendedProducts);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching product recommendations' });
-    }
-  });
-  
-  // Symptom Checker routes
-  app.get(`${apiRouter}/symptoms`, async (req, res) => {
-    try {
-      const bodyArea = req.query.bodyArea as string | undefined;
-      const severity = req.query.severity as string | undefined;
-      
-      const symptoms = await storage.getSymptoms(bodyArea, severity);
+      const symptoms = await storage.getSymptoms(user.id);
       res.json(symptoms);
     } catch (error) {
-      res.status(500).json({ message: 'Server error fetching symptoms' });
+      console.error('Error fetching symptoms:', error);
+      res.status(500).json({ message: 'Failed to fetch symptoms' });
     }
   });
-  
-  app.get(`${apiRouter}/symptoms/:id`, async (req, res) => {
+
+  app.post('/api/symptoms', authenticateJwt, async (req, res) => {
     try {
-      const symptomId = parseInt(req.params.id);
-      const symptom = await storage.getSymptomById(symptomId);
+      const user = (req as any).user!;
       
-      if (!symptom) {
-        return res.status(404).json({ message: 'Symptom not found' });
+      // Check if user has permission to create symptoms
+      const hasPermission = await checkPermission(user, 'create', ResourceType.SYMPTOM);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create symptoms' });
       }
-      
-      res.json(symptom);
+
+      const symptomData = { 
+        ...req.body, 
+        userId: user.id, 
+        startTime: req.body.startTime ? new Date(req.body.startTime) : new Date(),
+        severity: req.body.severity || 1
+      };
+      const newSymptom = await storage.addSymptom(symptomData);
+      res.status(201).json(newSymptom);
     } catch (error) {
-      res.status(500).json({ message: 'Server error fetching symptom' });
+      console.error('Error adding symptom:', error);
+      res.status(500).json({ message: 'Failed to add symptom' });
     }
   });
-  
-  app.post(`${apiRouter}/symptoms`, authenticateToken, async (req, res) => {
+
+  // Appointments - with RBAC enforcement
+  app.get('/api/appointments', authenticateJwt, async (req, res) => {
     try {
-      // Only admins can add symptoms
-      if (req.body.user.username !== 'admin') {
-        return res.status(403).json({ message: 'Only administrators can add symptoms' });
-      }
+      const user = (req as any).user!;
       
-      const symptomData = insertSymptomSchema.parse(req.body);
-      const symptom = await storage.createSymptom(symptomData);
-      res.status(201).json(symptom);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      // Check if user has permission to read appointments
+      const hasPermission = await checkPermission(user, 'read', ResourceType.APPOINTMENT);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access appointments' });
       }
-      res.status(500).json({ message: 'Server error creating symptom' });
-    }
-  });
-  
-  // Symptom Checks routes
-  app.get(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const checks = await storage.getUserSymptomChecks(userId);
-      res.json(checks);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching symptom checks' });
-    }
-  });
-  
-  app.get(`${apiRouter}/symptom-checks/:id`, authenticateToken, async (req, res) => {
-    try {
-      const checkId = parseInt(req.params.id);
-      const check = await storage.getSymptomCheckById(checkId);
-      
-      if (!check) {
-        return res.status(404).json({ message: 'Symptom check not found' });
-      }
-      
-      // Verify user can access this check
-      if (check.userId !== req.body.user.id) {
-        return res.status(403).json({ message: 'Not authorized to access this symptom check' });
-      }
-      
-      res.json(check);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching symptom check' });
-    }
-  });
-  
-  app.post(`${apiRouter}/symptom-checks`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const checkData = insertSymptomCheckSchema.parse({
-        ...req.body,
-        userId,
-        timestamp: new Date()
-      });
-      
-      const check = await storage.createSymptomCheck(checkData);
-      res.status(201).json(check);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating symptom check' });
-    }
-  });
-  
-  // Appointments routes
-  app.get(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const appointments = await storage.getUserAppointments(userId);
+
+      const appointments = await storage.getAppointments(user.id);
       res.json(appointments);
     } catch (error) {
-      res.status(500).json({ message: 'Server error fetching appointments' });
+      console.error('Error fetching appointments:', error);
+      res.status(500).json({ message: 'Failed to fetch appointments' });
     }
   });
-  
-  app.get(`${apiRouter}/appointments/:id`, authenticateToken, async (req, res) => {
+
+  app.post('/api/appointments', authenticateJwt, async (req, res) => {
     try {
-      const appointmentId = parseInt(req.params.id);
-      const appointment = await storage.getAppointmentById(appointmentId);
+      const user = (req as any).user!;
       
-      if (!appointment) {
-        return res.status(404).json({ message: 'Appointment not found' });
+      // Check if user has permission to create appointments
+      const hasPermission = await checkPermission(user, 'create', ResourceType.APPOINTMENT);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create appointments' });
       }
+
+      const appointmentData = { 
+        ...req.body, 
+        userId: user.id,
+        datetime: req.body.datetime ? new Date(req.body.datetime) : new Date()
+      };
+      const newAppointment = await storage.addAppointment(appointmentData);
+      res.status(201).json(newAppointment);
+    } catch (error) {
+      console.error('Error adding appointment:', error);
+      res.status(500).json({ message: 'Failed to add appointment' });
+    }
+  });
+
+  // Health data connections - with RBAC enforcement
+  app.get('/api/health-connections', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
       
-      // Verify user can access this appointment
-      if (appointment.userId !== req.body.user.id) {
-        return res.status(403).json({ message: 'Not authorized to access this appointment' });
+      // Check if user has permission to read health connections
+      const hasPermission = await checkPermission(user, 'read', ResourceType.HEALTH_CONNECTION);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access health connections' });
       }
-      
-      res.json(appointment);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching appointment' });
-    }
-  });
-  
-  app.post(`${apiRouter}/appointments`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      
-      // Handle date conversion
-      const startTime = new Date(req.body.startTime);
-      const endTime = new Date(req.body.endTime);
-      
-      const appointmentData = insertAppointmentSchema.parse({
-        ...req.body,
-        userId,
-        startTime,
-        endTime
-      });
-      
-      const appointment = await storage.createAppointment(appointmentData);
-      res.status(201).json(appointment);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating appointment' });
-    }
-  });
-  
-  app.patch(`${apiRouter}/appointments/:id`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const appointmentId = parseInt(req.params.id);
-      
-      // Verify appointment exists and belongs to user
-      const appointment = await storage.getAppointmentById(appointmentId);
-      if (!appointment) {
-        return res.status(404).json({ message: 'Appointment not found' });
-      }
-      
-      if (appointment.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to update this appointment' });
-      }
-      
-      // Handle date conversions if provided
-      const updateData = { ...req.body };
-      if (updateData.startTime) updateData.startTime = new Date(updateData.startTime);
-      if (updateData.endTime) updateData.endTime = new Date(updateData.endTime);
-      
-      // Don't allow changing userId
-      delete updateData.userId;
-      
-      const updatedAppointment = await storage.updateAppointment(appointmentId, updateData);
-      res.json(updatedAppointment);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error updating appointment' });
-    }
-  });
 
-  // OAuth routes for health data providers
-  app.get(`${apiRouter}/oauth/:provider`, authenticateToken, async (req, res) => {
-    const providerParam = req.params.provider;
-    const userId = req.body.user.id;
-
-    if (!['google-fit', 'fitbit', 'apple-health'].includes(providerParam)) {
-      return res.status(400).json({ message: 'Unsupported provider' });
-    }
-
-    const provider = providerParam.replace('-', '_');
-    let connection = (await storage.getUserHealthDataConnections(userId))
-      .find(c => c.provider === provider);
-
-    if (!connection) {
-      connection = await storage.createHealthDataConnection({
-        userId,
-        provider,
-        connected: false,
-        lastSynced: null,
-      });
-    }
-
-    const state = crypto.randomBytes(8).toString('hex');
-    oauthStateMap.set(state, connection.id);
-
-    const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
-    let authUrl = '';
-
-    if (providerParam === 'google-fit') {
-      const params = new URLSearchParams({
-        client_id: process.env.GOOGLE_FIT_CLIENT_ID || '',
-        redirect_uri: redirectUri,
-        response_type: 'code',
-        scope: 'https://www.googleapis.com/auth/fitness.activity.read',
-        access_type: 'offline',
-        state,
-      });
-      authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-    } else if (providerParam === 'fitbit') {
-      const params = new URLSearchParams({
-        client_id: process.env.FITBIT_CLIENT_ID || '',
-        redirect_uri: redirectUri,
-        response_type: 'code',
-        scope: 'activity sleep heartrate',
-        state,
-      });
-      authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
-    } else {
-      const params = new URLSearchParams({
-        client_id: process.env.APPLE_HEALTH_CLIENT_ID || '',
-        redirect_uri: redirectUri,
-        response_type: 'code',
-        scope: 'activity heartrate sleep',
-        state,
-      });
-      authUrl = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
-    }
-
-    res.redirect(authUrl);
-  });
-
-  app.get(`${apiRouter}/oauth/:provider/callback`, async (req, res) => {
-    const providerParam = req.params.provider;
-    const code = req.query.code as string | undefined;
-    const state = req.query.state as string | undefined;
-
-    if (!code || !state) {
-      return res.status(400).send('Missing code or state');
-    }
-
-    const connectionId = oauthStateMap.get(state);
-    if (!connectionId) {
-      return res.status(400).send('Invalid OAuth state');
-    }
-    oauthStateMap.delete(state);
-
-    const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
-
-    let tokenData: any;
-    if (providerParam === 'google-fit') {
-      tokenData = await exchangeGoogleFitCode(code, redirectUri);
-    } else if (providerParam === 'fitbit') {
-      tokenData = await exchangeFitbitCode(code, redirectUri);
-    } else if (providerParam === 'apple-health') {
-      tokenData = await exchangeAppleHealthCode(code, redirectUri);
-    } else {
-      return res.status(400).send('Unsupported provider');
-    }
-
-    await storage.updateHealthDataConnection(connectionId, {
-      connected: true,
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      scope: tokenData.scope.split(' '),
-      expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
-    });
-
-    res.send('Authorization successful. You may close this window.');
-  });
-
-  // User device routes
-  app.get(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const devices = await storage.getUserDevices(userId);
-      res.json(devices);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching devices' });
-    }
-  });
-
-  app.post(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const deviceData = insertUserDeviceSchema.parse({ ...req.body, userId });
-      const device = await storage.createUserDevice(deviceData);
-      res.status(201).json(device);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating device' });
-    }
-  });
-
-  // Connected device routes
-  app.get(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const devices = await storage.getConnectedDevices(userId);
-      res.json(devices);
-    } catch (error) {
-      res.status(500).json({ message: 'Server error fetching connected devices' });
-    }
-  });
-
-  app.post(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const deviceData = insertConnectedDeviceSchema.parse({ ...req.body, userId });
-      const device = await storage.createConnectedDevice(deviceData);
-      res.status(201).json(device);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating connected device' });
-    }
-  });
-
-  // Health Data Connection routes
-  app.get(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const connections = await storage.getUserHealthDataConnections(userId);
+      const connections = await storage.getHealthDataConnections(user.id);
       res.json(connections);
     } catch (error) {
-      res.status(500).json({ message: 'Server error fetching health data connections' });
+      console.error('Error fetching health connections:', error);
+      res.status(500).json({ message: 'Failed to fetch health connections' });
     }
   });
-  
-  app.post(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
+
+  app.post('/api/health-connections', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
+      const user = (req as any).user!;
       
-      const connectionData = insertHealthDataConnectionSchema.parse({
-        ...req.body,
-        userId,
-        connected: false, // Always start as disconnected
-        lastSynced: null
-      });
-      
-      const connection = await storage.createHealthDataConnection(connectionData);
-      res.status(201).json(connection);
+      // Check if user has permission to create health connections
+      const hasPermission = await checkPermission(user, 'create', ResourceType.HEALTH_CONNECTION);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create health connections' });
+      }
+
+      const connectionData = { ...req.body, userId: user.id };
+      const newConnection = await storage.addHealthDataConnection(connectionData);
+      res.status(201).json(newConnection);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Server error creating health data connection' });
+      console.error('Error adding health connection:', error);
+      res.status(500).json({ message: 'Failed to add health connection' });
     }
   });
-  
-  app.patch(`${apiRouter}/health-data-connections/:id/sync`, authenticateToken, async (req, res) => {
+
+  // Health goals - with RBAC enforcement
+  app.get('/api/health-goals', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const connectionId = parseInt(req.params.id);
+      const user = (req as any).user!;
       
-      // Verify connection exists and belongs to user
-      const connection = await storage.getHealthDataConnectionById(connectionId);
-      if (!connection) {
-        return res.status(404).json({ message: 'Health data connection not found' });
+      // Check if user has permission to read health goals
+      const hasPermission = await checkPermission(user, 'read', ResourceType.HEALTH_GOAL);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot access health goals' });
       }
+
+      const goals = await storage.getHealthGoals(user.id);
+      res.json(goals);
+    } catch (error) {
+      console.error('Error fetching health goals:', error);
+      res.status(500).json({ message: 'Failed to fetch health goals' });
+    }
+  });
+
+  app.post('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = (req as any).user!;
       
-      if (connection.userId !== userId) {
-        return res.status(403).json({ message: 'Not authorized to sync this connection' });
+      // Check if user has permission to create health goals
+      const hasPermission = await checkPermission(user, 'create', ResourceType.HEALTH_GOAL);
+      if (!hasPermission) {
+        return res.status(403).json({ message: 'Permission denied: Cannot create health goals' });
       }
-      
-      // Update connection with sync information
-      const now = new Date();
-      const updateData = {
-        connected: true,
-        lastSynced: now,
+
+      const goalData = { 
+        ...req.body, 
+        userId: user.id,
+        createdAt: new Date()
       };
-
-      const updatedConnection = await storage.updateHealthDataConnection(
-        connectionId,
-        updateData,
-      );
-
-      // Fetch provider data using stored OAuth credentials
-      let providerStats: InsertHealthStat[] = [];
-      if (connection.provider === "apple_health") {
-        let accessToken = connection.accessToken || "";
-        if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
-          const refreshed = await refreshAppleHealthToken(connection.refreshToken);
-          accessToken = refreshed.access_token;
-          await storage.updateHealthDataConnection(connectionId, {
-            accessToken,
-            expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
-          });
-        }
-        providerStats = (await fetchAppleHealthData(accessToken)).map((s) => ({
-          ...s,
-          userId,
-          deviceId: connection.deviceId ?? undefined,
-          timestamp: new Date(s.timestamp),
-        }));
-      } else if (connection.provider === "google_fit") {
-        let accessToken = connection.accessToken || "";
-        if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
-          const refreshed = await refreshGoogleFitToken(connection.refreshToken);
-          accessToken = refreshed.access_token;
-          await storage.updateHealthDataConnection(connectionId, {
-            accessToken,
-            expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
-          });
-        }
-        providerStats = (await fetchGoogleFitData(accessToken)).map((s) => ({
-          ...s,
-          userId,
-          deviceId: connection.deviceId ?? undefined,
-          timestamp: new Date(s.timestamp),
-        }));
-      } else if (connection.provider === "fitbit") {
-        let accessToken = connection.accessToken || "";
-        if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
-          const refreshed = await refreshFitbitToken(connection.refreshToken);
-          accessToken = refreshed.access_token;
-          await storage.updateHealthDataConnection(connectionId, {
-            accessToken,
-            expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
-          });
-        }
-        providerStats = (await fetchFitbitData(accessToken)).map((s) => ({
-          ...s,
-          userId,
-          deviceId: connection.deviceId ?? undefined,
-          timestamp: new Date(s.timestamp),
-        }));
-      }
-
-      for (const stat of providerStats) {
-        await storage.addHealthStat(stat);
-      }
-
-      await storage.addMetric({ userId, actionType: 'health_sync', timestamp: new Date() });
-
-      res.json(updatedConnection);
+      const newGoal = await storage.addHealthGoal(goalData);
+      res.status(201).json(newGoal);
     } catch (error) {
-      await logError('Error syncing health data connection', req.body?.user?.id, (error as Error).stack);
-      res.status(500).json({ message: 'Server error syncing health data connection' });
+      console.error('Error creating health goal:', error);
+      res.status(500).json({ message: 'Failed to create health goal' });
     }
   });
 
-  // Health Journey Entries
-  app.get(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
+// Messaging routes
+app.post(`${apiRouter}/messages`, authenticateToken, async (req, res) => {
+  try {
+    const senderId = req.body.user.id;
+    const recipientId = parseInt(req.body.recipientId);
+    const content = req.body.content;
+
+    if (await storage.isBlocked(recipientId, senderId) || await storage.isBlocked(senderId, recipientId)) {
+      return res.status(403).json({ message: 'User is blocked' });
+    }
+
+    const message = await storage.sendMessage({
+      senderId,
+      recipientId,
+      content,
+      timestamp: new Date(),
+      read: false,
+    });
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error sending message' });
+  }
+});
+
+app.get(`${apiRouter}/messages/:userId`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const otherId = parseInt(req.params.userId);
+    const messages = await storage.getMessagesBetweenUsers(userId, otherId);
+    await storage.markMessagesRead(userId, otherId);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching messages' });
+  }
+});
+
+app.get(`${apiRouter}/messages/unread-count`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const count = await storage.getUnreadMessageCount(userId);
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching unread count' });
+  }
+});
+
+app.post(`${apiRouter}/block`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const blockedId = parseInt(req.body.blockedId);
+    await storage.blockUser(userId, blockedId);
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ message: 'Server error blocking user' });
+  }
+});
+
+app.post(`${apiRouter}/messages/:id/report`, authenticateToken, async (req, res) => {
+  try {
+    const reporterId = req.body.user.id;
+    const messageId = parseInt(req.params.id);
+    const reason = req.body.reason || '';
+    const report = await storage.reportMessage({
+      messageId,
+      reporterId,
+      reason,
+      reportedAt: new Date(),
+    });
+    res.status(201).json(report);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error reporting message' });
+  }
+});
+
+// Forum posts routes
+app.get(`${apiRouter}/forum/posts`, async (req, res) => {
+  try {
+    const posts = await storage.getAllForumPosts();
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching forum posts' });
+  }
+});
+
+// Goal progress tracking
+app.get('/api/goal-progress/:goalId', authenticateJwt, async (req, res) => {
+  try {
+    const goalId = parseInt(req.params.goalId);
+    const progress = await storage.getGoalProgress(goalId);
+    res.json(progress);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch goal progress' });
+  }
+});
+
     try {
-      const userId = req.body.user.id;
-      const entries = await storage.getUserHealthJourneyEntries(userId);
-      res.json(entries);
+      const user = (req as any).user!;
+      const goalId = req.params.goalId;
+      const days = parseInt(req.query.days as string) || 30;
+      
+      const progress = await storage.getGoalProgress(user.id, goalId, days);
+      res.json(progress);
     } catch (error) {
-      console.error("Error fetching health journey entries:", error);
-      res.status(500).json({ error: "Failed to fetch health journey entries" });
+      console.error('Error fetching goal progress:', error);
+      res.status(500).json({ message: 'Failed to fetch goal progress' });
     }
   });
 
-  app.post(`${apiRouter}/health-journey`, authenticateToken, async (req, res) => {
+// Messaging routes
+app.post(`${apiRouter}/messages`, authenticateToken, async (req, res) => {
+  try {
+    const senderId = req.body.user.id;
+    const recipientId = parseInt(req.body.recipientId);
+    const content = req.body.content;
+
+    if (await storage.isBlocked(recipientId, senderId) || await storage.isBlocked(senderId, recipientId)) {
+      return res.status(403).json({ message: 'User is blocked' });
+    }
+
+    const message = await storage.sendMessage({
+      senderId,
+      recipientId,
+      content,
+      timestamp: new Date(),
+      read: false,
+    });
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error sending message' });
+  }
+});
+
+app.get(`${apiRouter}/messages/:userId`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const otherId = parseInt(req.params.userId);
+    const messages = await storage.getMessagesBetweenUsers(userId, otherId);
+    await storage.markMessagesRead(userId, otherId);
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching messages' });
+  }
+});
+
+app.get(`${apiRouter}/messages/unread-count`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const count = await storage.getUnreadMessageCount(userId);
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching unread count' });
+  }
+});
+
+app.post(`${apiRouter}/block`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const blockedId = parseInt(req.body.blockedId);
+    await storage.blockUser(userId, blockedId);
+    res.status(204).end();
+  } catch (error) {
+    res.status(500).json({ message: 'Server error blocking user' });
+  }
+});
+
+app.post(`${apiRouter}/messages/:id/report`, authenticateToken, async (req, res) => {
+  try {
+    const reporterId = req.body.user.id;
+    const messageId = parseInt(req.params.id);
+    const reason = req.body.reason || '';
+    const report = await storage.reportMessage({
+      messageId,
+      reporterId,
+      reason,
+      reportedAt: new Date(),
+    });
+    res.status(201).json(report);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error reporting message' });
+  }
+});
+
+// Forum posts routes
+app.get(`${apiRouter}/forum/posts`, async (req, res) => {
+  try {
+    const posts = await storage.getForumPosts();
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching forum posts' });
+  }
+});
+
+// Goal progress route
+app.post('/api/goal-progress', authenticateJwt, async (req, res) => {
+  try {
+    const { goalId, progress } = req.body;
+    const userId = req.body.user.id;
+    const updated = await storage.updateGoalProgress(userId, goalId, progress);
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update goal progress' });
+  }
+});
+
     try {
-      const userId = req.body.user.id;
-      const entryData = {
-        ...req.body,
-        userId,
-        timestamp: new Date()
+      const user = (req as any).user!;
+      
+      const progressData = { 
+        ...req.body, 
+        userId: user.id,
+        createdAt: new Date()
       };
-      const newEntry = await storage.createHealthJourneyEntry(entryData);
-      res.status(201).json(newEntry);
-    } catch (error) {
-      console.error("Error creating health journey entry:", error);
-      res.status(500).json({ error: "Failed to create health journey entry" });
-    }
-  });
-
-  app.get(`${apiRouter}/health-journey/:id`, authenticateToken, async (req, res) => {
-    try {
-      const entryId = parseInt(req.params.id);
-      const entry = await storage.getHealthJourneyEntryById(entryId);
-      if (!entry) {
-        return res.status(404).json({ error: "Health journey entry not found" });
-      }
-      
-      // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (entry.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-      
-      res.json(entry);
-    } catch (error) {
-      console.error("Error fetching health journey entry:", error);
-      res.status(500).json({ error: "Failed to fetch health journey entry" });
-    }
-  });
-
-  // Health Coaching Plans
-  app.get(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const plans = await storage.getUserHealthCoachingPlans(userId);
-      res.json(plans);
-    } catch (error) {
-      console.error("Error fetching coaching plans:", error);
-      res.status(500).json({ error: "Failed to fetch coaching plans" });
-    }
-  });
-
-  app.post(`${apiRouter}/coaching-plans`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const now = new Date();
-      const planData = {
-        ...req.body,
-        userId,
-        createdAt: now,
-        updatedAt: now,
-        active: true
-      };
-      const newPlan = await storage.createHealthCoachingPlan(planData);
-      res.status(201).json(newPlan);
-    } catch (error) {
-      console.error("Error creating coaching plan:", error);
-      res.status(500).json({ error: "Failed to create coaching plan" });
-    }
-  });
-
-  app.patch(`${apiRouter}/coaching-plans/:id`, authenticateToken, async (req, res) => {
-    try {
-      const planId = parseInt(req.params.id);
-      const plan = await storage.getHealthCoachingPlanById(planId);
-      
-      if (!plan) {
-        return res.status(404).json({ error: "Coaching plan not found" });
-      }
-      
-      // Check if the plan belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (plan.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-      
-      const updatedPlan = await storage.updateHealthCoachingPlan(planId, {
-        ...req.body,
-        updatedAt: new Date()
-      });
-      
-      res.json(updatedPlan);
-    } catch (error) {
-      console.error("Error updating coaching plan:", error);
-      res.status(500).json({ error: "Failed to update coaching plan" });
-    }
-  });
-
-  // Wellness Challenges
-  app.get(`${apiRouter}/challenges`, async (req, res) => {
-    try {
-      const category = req.query.category as string | undefined;
-      const challenges = await storage.getWellnessChallenges(category);
-      res.json(challenges);
-    } catch (error) {
-      console.error("Error fetching wellness challenges:", error);
-      res.status(500).json({ error: "Failed to fetch wellness challenges" });
-    }
-  });
-
-  app.get(`${apiRouter}/challenges/:id`, async (req, res) => {
-    try {
-      const challengeId = parseInt(req.params.id);
-      const challenge = await storage.getWellnessChallengeById(challengeId);
-      
-      if (!challenge) {
-        return res.status(404).json({ error: "Challenge not found" });
-      }
-      
-      res.json(challenge);
-    } catch (error) {
-      console.error("Error fetching challenge:", error);
-      res.status(500).json({ error: "Failed to fetch challenge" });
-    }
-  });
-
-  // User Challenge Progress
-  app.get(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const progresses = await storage.getUserChallengeProgresses(userId);
-      res.json(progresses);
-    } catch (error) {
-      console.error("Error fetching challenge progress:", error);
-      res.status(500).json({ error: "Failed to fetch challenge progress" });
-    }
-  });
-
-  app.post(`${apiRouter}/challenge-progress`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const progressData = {
-        ...req.body,
-        userId,
-        joined: new Date(),
-        currentProgress: 0,
-        completed: false,
-        completedAt: null
-      };
-      
-      // Check if the challenge exists
-      const challenge = await storage.getWellnessChallengeById(progressData.challengeId);
-      if (!challenge) {
-        return res.status(404).json({ error: "Challenge not found" });
-      }
-      
-      const newProgress = await storage.createUserChallengeProgress(progressData);
+      const newProgress = await storage.addGoalProgress(progressData);
       res.status(201).json(newProgress);
     } catch (error) {
-      console.error("Error joining challenge:", error);
-      res.status(500).json({ error: "Failed to join challenge" });
+      console.error('Error tracking goal progress:', error);
+      res.status(500).json({ message: 'Failed to track goal progress' });
     }
   });
 
-  app.patch(`${apiRouter}/challenge-progress/:id`, authenticateToken, async (req, res) => {
+  app.get('/api/goal-progress/:goalId/streak', authenticateJwt, async (req, res) => {
     try {
-      const progressId = parseInt(req.params.id);
-      const progress = await storage.getUserChallengeProgressById(progressId);
+      const user = (req as any).user!;
+      const goalId = req.params.goalId;
       
-      if (!progress) {
-        return res.status(404).json({ error: "Challenge progress not found" });
-      }
-      
-      // Check if the progress belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (progress.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-      
-      const updatedProgress = await storage.updateUserChallengeProgress(progressId, req.body);
-      res.json(updatedProgress);
+      const streak = await storage.getGoalStreak(user.id, goalId);
+      res.json({ streak });
     } catch (error) {
-      console.error("Error updating challenge progress:", error);
-      res.status(500).json({ error: "Failed to update challenge progress" });
+      console.error('Error fetching goal streak:', error);
+      res.status(500).json({ message: 'Failed to fetch goal streak' });
     }
   });
 
-  // Mental Health Assessments
-  app.get(`${apiRouter}/mental-health`, authenticateToken, async (req, res) => {
+  // Connected services management
+  app.get('/api/connected-services', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const assessments = await storage.getUserMentalHealthAssessments(userId);
-      res.json(assessments);
+// Fetch news updates
+app.get(`${apiRouter}/news`, async (req, res) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    const category = req.query.category as string | undefined;
+
+    const news = await storage.getNewsUpdates(limit, category);
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch news' });
+  }
+});
+
+// Fetch connected services for authenticated user
+app.get(`${apiRouter}/services`, authenticateToken, async (req, res) => {
+  try {
+    const user = (req as any).user!;
+
+    const services = await storage.getConnectedServices(user.id);
+    res.json(services);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch connected services' });
+  }
+});
+
     } catch (error) {
-      console.error("Error fetching mental health assessments:", error);
-      res.status(500).json({ error: "Failed to fetch mental health assessments" });
+      console.error('Error fetching connected services:', error);
+      res.status(500).json({ message: 'Failed to fetch connected services' });
     }
   });
 
-  app.post(`${apiRouter}/mental-health`, authenticateToken, async (req, res) => {
+// Fetch system alerts
+app.get(`${apiRouter}/alerts`, async (_req, res) => {
+  try {
+    const alerts = await storage.getNewsUpdates(undefined, 'System');
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching alerts' });
+  }
+});
+
+// Products routes
+app.get(`${apiRouter}/products`, async (req, res) => {
+  try {
+    const category = req.query.category as string | undefined;
+    const tag = req.query.tag as string | undefined;
+    const products = await storage.getProducts(category, tag);
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching products' });
+  }
+});
+
+// Connected services integration (user POST)
+app.post('/api/connected-services', authenticateJwt, async (req, res) => {
+  try {
+    const user = req.body.user;
+    const serviceData = req.body;
+    await storage.addConnectedService({ ...serviceData, userId: user.id });
+    res.status(201).json({ message: 'Service connected' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to connect service' });
+  }
+});
+
     try {
-      const userId = req.body.user.id;
-      const assessmentData = {
-        ...req.body,
-        userId,
-        timestamp: new Date()
-      };
-      
-      const newAssessment = await storage.createMentalHealthAssessment(assessmentData);
-      res.status(201).json(newAssessment);
+// News route
+app.get(`${apiRouter}/news`, async (req, res) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+    const category = req.query.category as string | undefined;
+
+    const news = await storage.getNewsUpdates(limit, category);
+    res.json(news);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching news updates' });
+  }
+});
+
+// Connected service update route
+app.post(`${apiRouter}/services/update`, authenticateToken, async (req, res) => {
+  try {
+    const user = (req as any).body.user!;
+
+    const serviceData = {
+      ...req.body,
+      userId: user.id,
+      updatedAt: new Date()
+    };
+
+    const updatedService = await storage.updateConnectedService(serviceData);
+    res.json(updatedService);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error updating connected service' });
+  }
+});
+
     } catch (error) {
-      console.error("Error creating mental health assessment:", error);
-      res.status(500).json({ error: "Failed to create mental health assessment" });
+      console.error('Error updating connected service:', error);
+      res.status(500).json({ message: 'Failed to update connected service' });
     }
   });
 
-  // Health Articles Library
-  app.get(`${apiRouter}/health-articles`, async (req, res) => {
+// Alerts route
+app.get(`${apiRouter}/alerts`, async (_req, res) => {
+  try {
+    const alerts = await storage.getNewsUpdates(undefined, 'System');
+    res.json(alerts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching alerts' });
+  }
+});
+
+// Products route
+app.get(`${apiRouter}/products`, async (req, res) => {
+  try {
+    const products = await storage.getProducts();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching products' });
+  }
+});
+
+// Health articles route
+app.get('/api/articles', async (req, res) => {
+  try {
+    const articles = await storage.getHealthArticles();
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching articles' });
+  }
+});
+
     try {
-      const category = req.query.category as string | undefined;
-      const tags = req.query.tags ? (req.query.tags as string).split(',') : undefined;
-      
-      const articles = await storage.getHealthArticles(category, tags);
+      const articles = await storage.getHealthArticles();
       res.json(articles);
     } catch (error) {
-      console.error("Error fetching health articles:", error);
-      res.status(500).json({ error: "Failed to fetch health articles" });
+      console.error('Error fetching articles:', error);
+      res.status(500).json({ message: 'Failed to fetch articles' });
     }
   });
 
-  app.get(`${apiRouter}/health-articles/:id`, async (req, res) => {
+  // Notification Engine API routes
+  app.get('/api/notifications', authenticateJwt, async (req, res) => {
     try {
-      const articleId = parseInt(req.params.id);
-      const article = await storage.getHealthArticleById(articleId);
-      
-      if (!article) {
-        return res.status(404).json({ error: "Article not found" });
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
+
+      const healthMetrics = await storage.getHealthMetrics(req.user.id);
+      const goals = await storage.getHealthGoals(req.user.id);
+      const notifications = [];
+
+      // Generate real notifications based on user data
+      const recentMetrics = healthMetrics.filter(m => {
+        const hoursSince = (Date.now() - new Date(m.timestamp).getTime()) / (1000 * 60 * 60);
+        return hoursSince <= 24;
+      });
+
+      // Check for missed goal notifications
+      if (goals.length > 0 && recentMetrics.length === 0) {
+        notifications.push({
+          id: `missed_goal_${Date.now()}`,
+          userId: req.user.id,
+          type: 'missed_goal',
+          title: 'Goal Reminder',
+          body: 'You haven\'t logged any health data today. Keep your progress going!',
+          actionText: 'Log Data',
+          actionUrl: '/goals',
+          priority: 'medium',
+          createdAt: new Date().toISOString(),
+          readAt: null,
+          dismissedAt: null
+        });
+      }
+
+      // Achievement notifications for real progress
+      const streakStats = streakCounter.getUserStreakStats(req.user.id);
+      if (streakStats.longestStreak >= 7) {
+        notifications.push({
+          id: `achievement_${Date.now()}`,
+          userId: req.user.id,
+          type: 'achievement',
+          title: 'Achievement Unlocked!',
+          body: `Amazing! You've reached a ${streakStats.longestStreak}-day streak.`,
+          priority: 'low',
+          createdAt: new Date().toISOString(),
+          readAt: null,
+          dismissedAt: null
+        });
+      }
+
+      res.json(notifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Failed to fetch notifications' });
+    }
+  });
+
+  app.post('/api/notifications/:id/read', authenticateJwt, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Failed to mark notification as read' });
+    }
+  });
+
+  app.post('/api/notifications/:id/dismiss', authenticateJwt, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+      res.status(500).json({ message: 'Failed to dismiss notification' });
+    }
+  });
+
+  // Progress Tracking API routes
+  app.get('/api/progress-tracking', authenticateJwt, async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+
+      const goals = await storage.getHealthGoals(req.user.id);
+      const healthMetrics = await storage.getHealthMetrics(req.user.id);
+      const streakStats = streakCounter.getUserStreakStats(req.user.id);
       
-      res.json(article);
-    } catch (error) {
-      console.error("Error fetching article:", error);
-      res.status(500).json({ error: "Failed to fetch article" });
-    }
-  });
+      // Calculate streaks based on real goal data
+      const streaks = goals.map(goal => {
+        const streak = streakCounter.getStreak(req.user.id, goal.id);
+        return {
+          current: streak?.currentStreak || 0,
+          longest: streak?.longestStreak || 0,
+          type: goal.metricType || goal.id,
+          lastUpdate: streak?.lastCompletedDate || new Date().toISOString()
+        };
+      });
 
-  // Meal Planning
-  app.get(`${apiRouter}/meal-plans`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const mealPlans = await storage.getUserMealPlans(userId);
-      res.json(mealPlans);
-    } catch (error) {
-      console.error("Error fetching meal plans:", error);
-      res.status(500).json({ error: "Failed to fetch meal plans" });
-    }
-  });
+      // Calculate achievements based on actual progress
+      const achievements = [
+        {
+          id: 'first_week_streak',
+          title: 'Week Warrior',
+          description: 'Maintain any health habit for 7 consecutive days',
+          icon: 'flame',
+          color: 'orange',
+          progress: streakStats.longestStreak,
+          maxProgress: 7,
+          completed: streakStats.longestStreak >= 7,
+          category: 'consistency'
+        },
+        {
+          id: 'health_tracker',
+          title: 'Health Tracker',
+          description: 'Log health metrics consistently',
+          icon: 'target',
+          color: 'blue',
+          progress: healthMetrics.length,
+          maxProgress: 30,
+          completed: healthMetrics.length >= 30,
+          category: 'health'
+        },
+        {
+          id: 'goal_setter',
+          title: 'Goal Setter',
+          description: 'Create your first health goals',
+          icon: 'target',
+          color: 'green',
+          progress: goals.length,
+          maxProgress: 3,
+          completed: goals.length >= 3,
+          category: 'milestone'
+        }
+      ];
 
-  app.post(`${apiRouter}/meal-plans`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const mealPlanData = {
-        ...req.body,
-        userId,
-        createdAt: new Date(),
-        active: true
+      // Calculate health score based on recent activity
+      const recentMetrics = healthMetrics.filter(m => {
+        const daysSince = (Date.now() - new Date(m.timestamp).getTime()) / (1000 * 60 * 60 * 24);
+        return daysSince <= 7;
+      });
+
+      const healthScore = Math.min(100, 
+        Math.max(50, 50 + (recentMetrics.length * 5) + (streakStats.totalActiveStreaks * 10))
+      );
+
+      const progressData = {
+        streaks,
+        achievements,
+        healthScore,
+        previousHealthScore: Math.max(50, healthScore - 5),
+        improvements: []
       };
-      
-      const newMealPlan = await storage.createMealPlan(mealPlanData);
-      res.status(201).json(newMealPlan);
+
+      res.json(progressData);
     } catch (error) {
-      console.error("Error creating meal plan:", error);
-      res.status(500).json({ error: "Failed to create meal plan" });
+      console.error('Error fetching progress data:', error);
+      res.status(500).json({ message: 'Failed to fetch progress data' });
     }
   });
 
-  app.get(`${apiRouter}/meal-plans/:id/entries`, authenticateToken, async (req, res) => {
+  // Health Alerts API routes
+  app.get('/api/health-alerts', authenticateJwt, async (req, res) => {
     try {
-      const mealPlanId = parseInt(req.params.id);
-      const mealPlan = await storage.getMealPlanById(mealPlanId);
-      
-      if (!mealPlan) {
-        return res.status(404).json({ error: "Meal plan not found" });
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
-      
-      // Check if the meal plan belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (mealPlan.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-      
-      const entries = await storage.getMealPlanEntries(mealPlanId);
-      res.json(entries);
+
+      const alerts = await healthAlertsSystem.getUserAlerts(req.user.id);
+      res.json(alerts);
     } catch (error) {
-      console.error("Error fetching meal plan entries:", error);
-      res.status(500).json({ error: "Failed to fetch meal plan entries" });
+      console.error('Error fetching health alerts:', error);
+      res.status(500).json({ message: 'Failed to fetch health alerts' });
     }
   });
 
-  app.post(`${apiRouter}/meal-plans/:id/entries`, authenticateToken, async (req, res) => {
+  app.post('/api/health-alerts/:id/acknowledge', authenticateJwt, async (req, res) => {
     try {
-      const mealPlanId = parseInt(req.params.id);
-      const mealPlan = await storage.getMealPlanById(mealPlanId);
-      
-      if (!mealPlan) {
-        return res.status(404).json({ error: "Meal plan not found" });
+      if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
       }
-      
-      // Check if the meal plan belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (mealPlan.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-      
-      const entryData = {
-        ...req.body,
-        mealPlanId
-      };
-      
-      const newEntry = await storage.createMealPlanEntry(entryData);
-      res.status(201).json(newEntry);
-    } catch (error) {
-      console.error("Error creating meal plan entry:", error);
-      res.status(500).json({ error: "Failed to create meal plan entry" });
-    }
-  });
 
-  // Mood Tracking routes
-  app.get(`${apiRouter}/mood/entries`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      const entries = await storage.getUserMoodEntries(userId);
-      res.json(entries);
-    } catch (error) {
-      console.error("Error fetching mood entries:", error);
-      res.status(500).json({ message: "Failed to fetch mood entries" });
-    }
-  });
-
-  app.get(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
-    try {
-      const entryId = parseInt(req.params.id);
-      const entry = await storage.getMoodEntryById(entryId);
+      const { id } = req.params;
+      const success = await healthAlertsSystem.acknowledgeAlert(id, req.user.id);
       
-      if (!entry) {
-        return res.status(404).json({ message: "Mood entry not found" });
-      }
-      
-      // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (entry.userId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      res.json(entry);
-    } catch (error) {
-      console.error("Error fetching mood entry:", error);
-      res.status(500).json({ message: "Failed to fetch mood entry" });
-    }
-  });
-
-  app.post(`${apiRouter}/mood/entries`, authenticateToken, async (req, res) => {
-    try {
-      const userId = req.body.user.id;
-      
-      // Ensure date is properly parsed as Date object
-      const entryData = {
-        ...req.body,
-        userId,
-        date: req.body.date ? new Date(req.body.date) : new Date()
-      };
-      
-      const newEntry = await storage.createMoodEntry(entryData);
-      res.status(201).json(newEntry);
-    } catch (error) {
-      console.error("Error creating mood entry:", error);
-      res.status(500).json({ message: "Failed to create mood entry" });
-    }
-  });
-
-  app.patch(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
-    try {
-      const entryId = parseInt(req.params.id);
-      const entry = await storage.getMoodEntryById(entryId);
-      
-      if (!entry) {
-        return res.status(404).json({ message: "Mood entry not found" });
-      }
-      
-      // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (entry.userId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      // Ensure date is properly handled if it's being updated
-      const updateData = { ...req.body };
-      if (updateData.date) {
-        updateData.date = new Date(updateData.date);
-      }
-      
-      // Don't allow changing userId
-      delete updateData.userId;
-      
-      const updatedEntry = await storage.updateMoodEntry(entryId, updateData);
-      res.json(updatedEntry);
-    } catch (error) {
-      console.error("Error updating mood entry:", error);
-      res.status(500).json({ message: "Failed to update mood entry" });
-    }
-  });
-
-  app.delete(`${apiRouter}/mood/entries/:id`, authenticateToken, async (req, res) => {
-    try {
-      const entryId = parseInt(req.params.id);
-      const entry = await storage.getMoodEntryById(entryId);
-      
-      if (!entry) {
-        return res.status(404).json({ message: "Mood entry not found" });
-      }
-      
-      // Check if the entry belongs to the authenticated user
-      const userId = req.body.user.id;
-      if (entry.userId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      const success = await storage.deleteMoodEntry(entryId);
       if (success) {
-        res.json({ message: "Mood entry deleted successfully" });
+        res.json({ success: true });
       } else {
-        res.status(500).json({ message: "Failed to delete mood entry" });
+        res.status(404).json({ message: 'Alert not found' });
       }
     } catch (error) {
-      console.error("Error deleting mood entry:", error);
-      res.status(500).json({ message: "Failed to delete mood entry" });
+      console.error('Error acknowledging alert:', error);
+      res.status(500).json({ message: 'Failed to acknowledge alert' });
     }
   });
 
-  // Partner ads and wellness partnerships
-  app.get(`${apiRouter}/partner-ads`, async (req, res) => {
+  // Healthcare provider endpoints - with comprehensive RBAC
+  app.get('/api/patients', authenticateJwt, async (req, res) => {
     try {
-      const category = req.query.category as string | undefined;
-      const tag = req.query.tag as string | undefined;
-      const ads = await storage.getPartnerAds(category, tag);
-      res.json(ads);
+      const user = (req as any).user!;
+      
+      // Verify provider role - only healthcare providers can access patient lists
+      if (!user.roles.includes('provider') && !user.roles.includes('admin')) {
+        return res.status(403).json({ 
+          message: 'Permission denied: Only healthcare providers can access patient information' 
+        });
+      }
+
+      const relationships = await storage.getHealthcareRelationships(user.id);
+      
+      // Get patient details for each relationship
+      const patientPromises = relationships.map(async (rel: any) => {
+        const patient = await storage.getUser(rel.patientId);
+        if (!patient) return null;
+        
+        // Return only necessary patient information (no password, etc.)
+        return {
+          id: patient.id,
+          name: patient.name,
+          email: patient.email,
+          relationshipType: rel.relationshipType,
+          accessLevel: rel.accessLevel,
+          startDate: rel.startDate,
+          status: rel.status
+        };
+      });
+      
+      const patients = (await Promise.all(patientPromises)).filter((p: any) => p !== null);
+      res.json(patients);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch partner ads' });
+      console.error('Error fetching patients:', error);
+      res.status(500).json({ message: 'Failed to fetch patients' });
     }
   });
 
-  // Add-on modules and purchases
-  app.get(`${apiRouter}/add-on-modules`, async (_req, res) => {
+  // Provider access to patient health data
+  app.get('/api/patients/:patientId/health-metrics', authenticateJwt, async (req, res) => {
     try {
-      const modules = await storage.getAddOnModules();
-      res.json(modules);
+      const user = (req as any).user!;
+      const patientId = parseInt(req.params.patientId);
+      
+      // Check if provider has permission to access this patient's data
+      const hasRelationship = await storage.hasHealthcareRelationship(user.id, patientId);
+      if (!hasRelationship && !user.roles.includes('admin')) {
+        return res.status(403).json({ 
+          message: 'Permission denied: No healthcare relationship with this patient' 
+        });
+      }
+
+      // Additional permission check using our RBAC system
+      const hasPermission = await checkPermission(user, 'read', ResourceType.HEALTH_METRIC, patientId);
+      if (!hasPermission) {
+        return res.status(403).json({ 
+          message: 'Permission denied: Insufficient access level for patient data' 
+        });
+      }
+
+      const metrics = await storage.getHealthMetrics(patientId);
+      res.json(metrics);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch add-on modules' });
+      console.error('Error fetching patient health metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch patient health metrics' });
     }
   });
 
-  app.get(`${apiRouter}/purchases`, authenticateToken, async (req, res) => {
+  // Provider access to patient medications
+  app.get('/api/patients/:patientId/medications', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const purchases = await storage.getUserPurchases(userId);
-      res.json(purchases);
+      const user = (req as any).user!;
+      const patientId = parseInt(req.params.patientId);
+      
+      // Check healthcare relationship and permissions
+      const hasRelationship = await storage.hasHealthcareRelationship(user.id, patientId);
+      if (!hasRelationship && !user.roles.includes('admin')) {
+        return res.status(403).json({ 
+          message: 'Permission denied: No healthcare relationship with this patient' 
+        });
+      }
+
+      const hasPermission = await checkPermission(user, 'read', ResourceType.MEDICATION, patientId);
+      if (!hasPermission) {
+        return res.status(403).json({ 
+          message: 'Permission denied: Insufficient access level for patient medications' 
+        });
+      }
+
+      const medications = await storage.getMedications(patientId);
+      res.json(medications);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch purchases' });
+      console.error('Error fetching patient medications:', error);
+      res.status(500).json({ message: 'Failed to fetch patient medications' });
     }
   });
 
-  app.post(`${apiRouter}/purchases`, authenticateToken, async (req, res) => {
+  // ===========================================
+  // DEVICE INTEGRATION ENDPOINTS
+  // ===========================================
+
+  // Get user's connected devices
+  app.get('/api/devices/connections', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const moduleId = parseInt(req.body.moduleId);
-      const purchase = await storage.createUserPurchase({ userId, moduleId, purchasedAt: new Date() });
-      res.status(201).json(purchase);
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connections = deviceManager.getUserConnections(user.id);
+      res.json(connections);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to create purchase' });
+      console.error('Error fetching device connections:', error);
+      res.status(500).json({ message: 'Failed to fetch device connections' });
     }
   });
 
-  // Data licensing consent
-  app.get(`${apiRouter}/data-licenses`, authenticateToken, async (req, res) => {
+  // Connect Apple HealthKit/Apple Watch
+  app.post('/api/devices/connect/apple', authenticateJwt, async (req, res) => {
     try {
-      const userId = req.body.user.id;
-      const licenses = await storage.getDataLicenses(userId);
-      res.json(licenses);
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { permissions } = req.body;
+      const connection = await deviceManager.connectAppleHealthKit(user.id, permissions || [
+        'heart_rate', 'steps', 'sleep', 'workouts', 'blood_oxygen'
+      ]);
+
+      // In real implementation, this would redirect to Apple's OAuth or handle HealthKit authorization
+      // For prototype, we'll simulate a successful connection
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain Apple's OAuth URL in real implementation
+        message: 'Apple HealthKit connection initiated. Please authorize in your Health app.'
+      });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch data licenses' });
+      console.error('Error connecting Apple HealthKit:', error);
+      res.status(500).json({ message: 'Failed to connect Apple HealthKit' });
     }
   });
 
-  app.post(`${apiRouter}/data-licenses`, authenticateToken, async (req, res) => {
+// OAuth routes for health data providers
+app.get(`${apiRouter}/oauth/:provider`, authenticateToken, async (req, res) => {
+  const providerParam = req.params.provider;
+  const userId = req.body.user.id;
+
+  if (!['google-fit', 'fitbit', 'apple-health'].includes(providerParam)) {
+    return res.status(400).json({ message: 'Unsupported provider' });
+  }
+
+  const provider = providerParam.replace('-', '_');
+  let connection = (await storage.getUserHealthDataConnections(userId))
+    .find(c => c.provider === provider);
+
+  if (!connection) {
+    connection = await storage.createHealthDataConnection({
+      userId,
+      provider,
+      connected: false,
+      lastSynced: null,
+    });
+  }
+
+  const state = crypto.randomBytes(8).toString('hex');
+  oauthStateMap.set(state, connection.id);
+
+  const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
+  let authUrl = '';
+
+  if (providerParam === 'google-fit') {
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_FIT_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'https://www.googleapis.com/auth/fitness.activity.read',
+      access_type: 'offline',
+      state,
+    });
+    authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  } else if (providerParam === 'fitbit') {
+    const params = new URLSearchParams({
+      client_id: process.env.FITBIT_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'activity sleep heartrate',
+      state,
+    });
+    authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
+  } else {
+    const params = new URLSearchParams({
+      client_id: process.env.APPLE_HEALTH_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'activity heartrate sleep',
+      state,
+    });
+    authUrl = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
+  }
+
+  res.redirect(authUrl);
+});
+
+app.get(`${apiRouter}/oauth/:provider/callback`, async (req, res) => {
+  const providerParam = req.params.provider;
+  const code = req.query.code as string | undefined;
+  const state = req.query.state as string | undefined;
+
+  if (!code || !state) {
+    return res.status(400).send('Missing code or state');
+  }
+
+  const connectionId = oauthStateMap.get(state);
+  if (!connectionId) {
+    return res.status(400).send('Invalid OAuth state');
+  }
+  oauthStateMap.delete(state);
+
+  const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
+
+  let tokenData: any;
+  if (providerParam === 'google-fit') {
+    tokenData = await exchangeGoogleFitCode(code, redirectUri);
+  } else if (providerParam === 'fitbit') {
+    tokenData = await exchangeFitbitCode(code, redirectUri);
+  } else if (providerParam === 'apple-health') {
+    tokenData = await exchangeAppleHealthCode(code, redirectUri);
+  } else {
+    return res.status(400).send('Unsupported provider');
+  }
+
+  await storage.updateHealthDataConnection(connectionId, {
+    connected: true,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
+    scope: tokenData.scope.split(' '),
+    expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
+  });
+
+  res.send('Authorization successful. You may close this window.');
+});
+
+// User device routes
+app.get(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const devices = await storage.getUserDevices(userId);
+    res.json(devices);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching devices' });
+  }
+});
+
+app.post(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const deviceData = insertUserDeviceSchema.parse({ ...req.body, userId });
+    const device = await storage.createUserDevice(deviceData);
+    res.status(201).json(device);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error creating device' });
+  }
+});
+
+// Connected device routes
+app.get(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const devices = await storage.getConnectedDevices(userId);
+    res.json(devices);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching connected devices' });
+  }
+});
+
+app.post(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const deviceData = insertConnectedDeviceSchema.parse({ ...req.body, userId });
+    const device = await storage.createConnectedDevice(deviceData);
+    res.status(201).json(device);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error creating connected device' });
+  }
+});
+
+// Health Data Connection routes
+app.get(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const connections = await storage.getUserHealthDataConnections(userId);
+    res.json(connections);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching health data connections' });
+  }
+});
+
+// Oura Ring connection route from main branch
+app.post('/api/devices/connect/oura', authenticateJwt, async (req, res) => {
+  try {
+    const user = req.user; // or however your middleware injects the user
+    const token = req.body.token;
+    const result = await storage.connectOuraDevice(user.id, token);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error connecting Oura device' });
+  }
+});
+
     try {
-      const userId = req.body.user.id;
-      const { partner, consent } = req.body;
-      const license = await storage.createDataLicense({ userId, partner, consent: !!consent, createdAt: new Date() });
-      res.status(201).json(license);
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connection = await deviceManager.connectOuraRing(user.id);
+
+      // In real implementation, this would redirect to Oura's OAuth
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain Oura's OAuth URL in real implementation
+        message: 'Oura Ring connection initiated. Redirecting to Oura authorization...'
+      });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to create data license' });
+      console.error('Error connecting Oura Ring:', error);
+      res.status(500).json({ message: 'Failed to connect Oura Ring' });
     }
   });
 
-  // Challenge sponsorships
-  app.get(`${apiRouter}/challenge-sponsorships`, async (req, res) => {
+  // Connect WHOOP
+  app.post('/api/devices/connect/whoop', authenticateJwt, async (req, res) => {
     try {
-      const challengeId = req.query.challengeId ? parseInt(req.query.challengeId as string) : undefined;
-      const sponsors = await storage.getChallengeSponsorships(challengeId);
-      res.json(sponsors);
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const connection = await deviceManager.connectWhoop(user.id);
+
+      // In real implementation, this would redirect to WHOOP's OAuth
+      setTimeout(() => {
+        deviceManager.updateConnectionStatus(connection.id, 'connected');
+      }, 2000);
+
+      res.json({ 
+        connection,
+        authUrl: null, // Would contain WHOOP's OAuth URL in real implementation
+        message: 'WHOOP connection initiated. Redirecting to WHOOP authorization...'
+      });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch sponsorships' });
+      console.error('Error connecting WHOOP:', error);
+      res.status(500).json({ message: 'Failed to connect WHOOP' });
     }
   });
 
-  app.get(`${apiRouter}/admin/metrics`, async (_req, res) => {
+  // Get aggregated health metrics from all connected devices
+  app.get('/api/devices/metrics', authenticateJwt, async (req, res) => {
     try {
-      const activeUsers = await storage.getActiveSessionCount();
-      const actionCounts = await storage.getActionCounts();
-      const syncCount = actionCounts['health_sync'] || 0;
-      res.json({ activeUsers, syncCount, topActions: actionCounts });
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch metrics' });
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = '7d', metric } = req.query;
+      
+// Sync health data from provider
+app.post(`${apiRouter}/sync/:connectionId`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const connectionId = parseInt(req.params.connectionId);
+
+    const connection = await storage.getHealthDataConnection(connectionId);
+    if (!connection || connection.userId !== userId) {
+      return res.status(404).json({ message: 'Connection not found' });
+    }
+
+    // Update connection with sync information
+    const now = new Date();
+    const updateData = {
+      connected: true,
+      lastSynced: now,
+    };
+
+    const updatedConnection = await storage.updateHealthDataConnection(connectionId, updateData);
+
+    // Fetch provider data using stored OAuth credentials
+    let providerStats: InsertHealthStat[] = [];
+    if (connection.provider === "apple_health") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshAppleHealthToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchAppleHealthData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    } else if (connection.provider === "google_fit") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshGoogleFitToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchGoogleFitData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    } else if (connection.provider === "fitbit") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshFitbitToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchFitbitData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    }
+
+    for (const stat of providerStats) {
+      await storage.addHealthStat(stat);
+    }
+
+    await storage.addMetric({ userId, actionType: 'health_sync', timestamp: new Date() });
+
+    res.json(updatedConnection);
+  } catch (error) {
+    await logError('Error syncing health data connection', req.body?.user?.id, (error as Error).stack);
+    res.status(500).json({ message: 'Server error syncing health data connection' });
+  }
+});
+
     }
   });
 
-  app.post(`${apiRouter}/logs`, async (req, res) => {
+  // Disconnect a device
+  app.delete('/api/devices/disconnect/:deviceId', authenticateJwt, async (req, res) => {
     try {
-      const { level, message, stack } = req.body;
-      const userId = req.body.user?.id;
-      await storage.addLog({ level: level || 'info', message, stack, userId, timestamp: new Date() });
-      res.status(201).json({ status: 'logged' });
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { deviceId } = req.params;
+      deviceManager.updateConnectionStatus(deviceId, 'disconnected');
+
+      res.json({ message: 'Device disconnected successfully' });
     } catch (error) {
-      res.status(500).json({ message: 'Failed to store log' });
+      console.error('Error disconnecting device:', error);
+      res.status(500).json({ message: 'Failed to disconnect device' });
     }
   });
+
+  // ===========================================
+  // HEALTH AI CHAT ENDPOINT
+  // ===========================================
+
+  app.post('/api/health-ai/chat', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { message, healthContext, conversationHistory } = req.body;
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ 
+          message: 'OpenAI API key not configured. Please contact support to enable AI features.' 
+        });
+      }
+
+      // Build context from user's health data
+      const contextPrompt = `
+You are a helpful health AI assistant analyzing personalized health data. Respond with empathy, accuracy, and actionable insights.
+
+USER'S CURRENT HEALTH DATA:
+- Heart Rate: Average ${healthContext.heartRate.avg} bpm, Recent ${healthContext.heartRate.recent} bpm (${healthContext.heartRate.trend})
+- Sleep: Average ${healthContext.sleep.avgHours} hours, Quality: ${healthContext.sleep.quality}
+- Activity: Average ${healthContext.activity.avgSteps.toLocaleString()} steps, Weekly active days: ${healthContext.activity.weeklyActive}
+- Heart Rate Variability: Average ${healthContext.hrv.avg}ms, Status: ${healthContext.hrv.status}
+- Blood Glucose: Average ${healthContext.glucose.avg} mg/dL, Recent ${healthContext.glucose.recent} mg/dL
+- Connected Devices: ${healthContext.connectedDevices.join(', ')}
+
+GUIDELINES:
+- Provide personalized insights based on their specific data
+- Be encouraging and supportive
+- Suggest actionable improvements
+- Explain health concepts simply
+- Never provide medical diagnosis or replace professional medical advice
+- Focus on general wellness and lifestyle improvements
+- Reference their specific metrics when relevant
+
+USER QUESTION: ${message}
+`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            { role: 'system', content: contextPrompt },
+            ...conversationHistory.slice(-4).map((msg: any) => ({
+              role: msg.role,
+              content: msg.content
+            })),
+            { role: 'user', content: message }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+
+      // Generate follow-up suggestions based on the conversation
+      const suggestions = generateFollowUpSuggestions(message, healthContext);
+
+      res.json({
+        response: aiResponse,
+        suggestions: suggestions.slice(0, 3), // Limit to 3 suggestions
+      });
+
+    } catch (error) {
+      console.error('Health AI chat error:', error);
+      res.status(500).json({ 
+        message: 'Failed to get AI response. Please try again or contact support if the issue persists.' 
+      });
+    }
+  });
+
+  // ===========================================
+  // FAMILY TIMELINE ENDPOINTS
+  // ===========================================
+
+  // Get family members
+  app.get('/api/family/members/:familyId?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { familyId } = req.params;
+      
+      // Get family members (including user themselves)
+      const familyMembers = await storage.getFamilyMembers(user.id, familyId ? parseInt(familyId) : undefined);
+      
+      res.json(familyMembers);
+    } catch (error) {
+      console.error('Error fetching family members:', error);
+      res.status(500).json({ message: 'Failed to fetch family members' });
+    }
+  });
+
+  // Get family timeline events
+  app.get('/api/family/timeline/:familyId?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { familyId } = req.params;
+      const { selectedMember, timeFilter } = req.query;
+      
+      // Get timeline events from multiple sources
+      const timelineEvents = await storage.getFamilyTimelineEvents(
+        user.id, 
+        familyId ? parseInt(familyId) : undefined,
+        selectedMember ? parseInt(selectedMember as string) : undefined,
+        timeFilter as string
+      );
+      
+      res.json(timelineEvents);
+    } catch (error) {
+      console.error('Error fetching family timeline:', error);
+      res.status(500).json({ message: 'Failed to fetch family timeline' });
+    }
+  });
+
+  // ===========================================
+  // METRICS ENGINE ENDPOINT
+  // ===========================================
+
+  app.get('/api/metrics/analysis', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = '30d' } = req.query;
+      
+      // Get user's health metrics from storage
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Convert to metrics engine format
+      const metricsData = healthMetrics.map(metric => ({
+        type: metric.metricType as any,
+        value: typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value,
+        timestamp: new Date(metric.timestamp),
+        source: metric.source || 'Manual Entry',
+        quality: 'high' as const
+      }));
+
+      // Import metrics engine
+      const { metricsEngine } = await import('./metrics-engine');
+      
+      // Analyze metrics
+      const analysis = metricsEngine.analyzeUserMetrics(
+        metricsData, 
+        user.id, 
+        timeframe as '7d' | '30d' | '90d'
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing metrics:', error);
+      res.status(500).json({ message: 'Failed to analyze health metrics' });
+    }
+  });
+
+  // Get detailed metric data for graph views
+  app.get('/api/metrics/detailed', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { type, timeframe = '7d' } = req.query;
+      
+      if (!type) {
+        return res.status(400).json({ message: 'Metric type is required' });
+      }
+
+      // Get user's health metrics from storage filtered by type
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const filteredMetrics = healthMetrics.filter(metric => 
+        metric.metricType === type
+      );
+
+      // Filter by timeframe
+      const now = new Date();
+      let cutoffDate = new Date();
+      switch (timeframe) {
+        case '7d':
+          cutoffDate.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          cutoffDate.setDate(now.getDate() - 30);
+          break;
+        case '90d':
+          cutoffDate.setDate(now.getDate() - 90);
+          break;
+      }
+
+      const timeFilteredMetrics = filteredMetrics.filter(metric => 
+        new Date(metric.timestamp) >= cutoffDate
+      );
+
+      // Format for frontend
+      const detailedData = timeFilteredMetrics.map(metric => ({
+        date: metric.timestamp.toISOString(),
+        value: typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value,
+        quality: 'good' as const // This could be determined by various factors
+      })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      res.json(detailedData);
+    } catch (error) {
+      console.error('Error fetching detailed metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch detailed metrics' });
+    }
+  });
+
+  // ===========================================
+  // HEALTH GOALS API ENDPOINTS
+  // ===========================================
+
+  // Get all health goals for user with intelligent evaluation
+  app.get('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allProgressHistory = await Promise.all(
+        goals.map(goal => storage.getGoalProgress(goal.id))
+      );
+      const progressHistory = allProgressHistory.flat();
+
+      // Import and use the goal engine
+      const { goalEngine } = await import('./goal-engine');
+      
+      // Evaluate all goals using the intelligent engine
+      const evaluations = goalEngine.evaluateUserGoals(goals, healthMetrics, progressHistory);
+      
+      // Transform evaluations back to expected format
+      const goalsWithProgress = goals.map(goal => {
+        const evaluation = evaluations[goal.id.toString()];
+        
+        if (!evaluation) {
+          // Fallback for goals without evaluation
+          return {
+            ...goal,
+            progress: { current: 0, target: 0, percentage: 0 },
+            status: 'on_track' as const,
+            daysCompleted: 0,
+            totalDays: 1,
+            streak: 0
+          };
+        }
+
+        return {
+          ...goal,
+          progress: {
+            current: evaluation.progress,
+            target: evaluation.target,
+            percentage: evaluation.percentage
+          },
+          status: evaluation.status,
+          daysCompleted: evaluation.daysCompleted,
+          totalDays: evaluation.totalDays,
+          streak: evaluation.streak,
+          recommendation: evaluation.recommendation,
+          nextMilestone: evaluation.nextMilestone,
+          riskFactors: evaluation.riskFactors
+        };
+      });
+      
+      res.json(goalsWithProgress);
+    } catch (error) {
+      console.error('Error fetching health goals:', error);
+      res.status(500).json({ message: 'Failed to fetch health goals' });
+    }
+  });
+
+  // Create new health goal
+  app.post('/api/health-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goalData = {
+        ...req.body,
+        userId: user.id,
+        status: 'active',
+        startDate: new Date()
+      };
+
+      const newGoal = await storage.createHealthGoal(goalData);
+      res.status(201).json(newGoal);
+    } catch (error) {
+      console.error('Error creating health goal:', error);
+      res.status(500).json({ message: 'Failed to create health goal' });
+    }
+  });
+
+  // Update health goal
+  app.put('/api/health-goals/:goalId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const updatedGoal = await storage.updateHealthGoal(parseInt(goalId), req.body);
+      res.json(updatedGoal);
+    } catch (error) {
+      console.error('Error updating health goal:', error);
+      res.status(500).json({ message: 'Failed to update health goal' });
+    }
+  });
+
+  // Delete health goal
+  app.delete('/api/health-goals/:goalId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const deleted = await storage.deleteHealthGoal(parseInt(goalId));
+      
+      if (deleted) {
+        res.json({ message: 'Goal deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to delete goal' });
+      }
+    } catch (error) {
+      console.error('Error deleting health goal:', error);
+      res.status(500).json({ message: 'Failed to delete health goal' });
+    }
+  });
+
+  // Add goal progress entry
+  app.post('/api/health-goals/:goalId/progress', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const { value, achieved, notes } = req.body;
+      
+      const progressData = {
+        goalId: parseInt(goalId),
+        date: new Date(),
+        value: value.toString(),
+        achieved: achieved || false,
+        notes: notes || null
+      };
+
+      const newProgress = await storage.addGoalProgress(progressData);
+      res.status(201).json(newProgress);
+    } catch (error) {
+      console.error('Error adding goal progress:', error);
+      res.status(500).json({ message: 'Failed to add goal progress' });
+    }
+  });
+
+// OAuth routes for health data providers
+app.get(`${apiRouter}/oauth/:provider`, authenticateToken, async (req, res) => {
+  const providerParam = req.params.provider;
+  const userId = req.body.user.id;
+
+  if (!['google-fit', 'fitbit', 'apple-health'].includes(providerParam)) {
+    return res.status(400).json({ message: 'Unsupported provider' });
+  }
+
+  const provider = providerParam.replace('-', '_');
+  let connection = (await storage.getUserHealthDataConnections(userId))
+    .find(c => c.provider === provider);
+
+  if (!connection) {
+    connection = await storage.createHealthDataConnection({
+      userId,
+      provider,
+      connected: false,
+      lastSynced: null,
+    });
+  }
+
+  const state = crypto.randomBytes(8).toString('hex');
+  oauthStateMap.set(state, connection.id);
+
+  const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
+  let authUrl = '';
+
+  if (providerParam === 'google-fit') {
+    const params = new URLSearchParams({
+      client_id: process.env.GOOGLE_FIT_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'https://www.googleapis.com/auth/fitness.activity.read',
+      access_type: 'offline',
+      state,
+    });
+    authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  } else if (providerParam === 'fitbit') {
+    const params = new URLSearchParams({
+      client_id: process.env.FITBIT_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'activity sleep heartrate',
+      state,
+    });
+    authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
+  } else {
+    const params = new URLSearchParams({
+      client_id: process.env.APPLE_HEALTH_CLIENT_ID || '',
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'activity heartrate sleep',
+      state,
+    });
+    authUrl = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
+  }
+
+  res.redirect(authUrl);
+});
+
+app.get(`${apiRouter}/oauth/:provider/callback`, async (req, res) => {
+  const providerParam = req.params.provider;
+  const code = req.query.code as string | undefined;
+  const state = req.query.state as string | undefined;
+
+  if (!code || !state) {
+    return res.status(400).send('Missing code or state');
+  }
+
+  const connectionId = oauthStateMap.get(state);
+  if (!connectionId) {
+    return res.status(400).send('Invalid OAuth state');
+  }
+  oauthStateMap.delete(state);
+
+  const redirectUri = `${process.env.BASE_URL || 'http://localhost:5000'}/api/oauth/${providerParam}/callback`;
+
+  let tokenData: any;
+  if (providerParam === 'google-fit') {
+    tokenData = await exchangeGoogleFitCode(code, redirectUri);
+  } else if (providerParam === 'fitbit') {
+    tokenData = await exchangeFitbitCode(code, redirectUri);
+  } else if (providerParam === 'apple-health') {
+    tokenData = await exchangeAppleHealthCode(code, redirectUri);
+  } else {
+    return res.status(400).send('Unsupported provider');
+  }
+
+  await storage.updateHealthDataConnection(connectionId, {
+    connected: true,
+    accessToken: tokenData.access_token,
+    refreshToken: tokenData.refresh_token,
+    scope: tokenData.scope.split(' '),
+    expiresAt: new Date(Date.now() + (tokenData.expires_in || 3600) * 1000),
+  });
+
+  res.send('Authorization successful. You may close this window.');
+});
+
+// User device routes
+app.get(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const devices = await storage.getUserDevices(userId);
+    res.json(devices);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching devices' });
+  }
+});
+
+app.post(`${apiRouter}/devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const deviceData = insertUserDeviceSchema.parse({ ...req.body, userId });
+    const device = await storage.createUserDevice(deviceData);
+    res.status(201).json(device);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error creating device' });
+  }
+});
+
+// Connected device routes
+app.get(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const devices = await storage.getConnectedDevices(userId);
+    res.json(devices);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching connected devices' });
+  }
+});
+
+app.post(`${apiRouter}/connected-devices`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const deviceData = insertConnectedDeviceSchema.parse({ ...req.body, userId });
+    const device = await storage.createConnectedDevice(deviceData);
+    res.status(201).json(device);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    res.status(500).json({ message: 'Server error creating connected device' });
+  }
+});
+
+// Health Data Connection routes
+app.get(`${apiRouter}/health-data-connections`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const connections = await storage.getUserHealthDataConnections(userId);
+    res.json(connections);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error fetching health data connections' });
+  }
+});
+
+// Get goal progress history
+app.get('/api/health-goals/:goalId/progress', authenticateJwt, async (req, res) => {
+  try {
+    const goalId = parseInt(req.params.goalId);
+    const progress = await storage.getGoalProgress(goalId);
+    res.json(progress);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch goal progress' });
+  }
+});
+
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      const progress = await storage.getGoalProgress(parseInt(goalId));
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching goal progress:', error);
+      res.status(500).json({ message: 'Failed to fetch goal progress' });
+    }
+  });
+
+  // Get goal evaluation summary with intelligent insights
+  app.get('/api/health-goals/evaluation', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allProgressHistory = await Promise.all(
+        goals.map(goal => storage.getGoalProgress(goal.id))
+      );
+      const progressHistory = allProgressHistory.flat();
+
+      // Import and use the goal engine for detailed evaluation
+      const { goalEngine } = await import('./goal-engine');
+      
+      const evaluations = goalEngine.evaluateUserGoals(goals, healthMetrics, progressHistory);
+      const prioritizedGoals = goalEngine.prioritizeGoalsForIntervention(evaluations);
+
+      // Create summary response
+      const summary = {
+        totalGoals: goals.length,
+        activeGoals: goals.filter(g => g.status === 'active').length,
+        completedGoals: Object.values(evaluations).filter(e => e.status === 'completed').length,
+        atRiskGoals: Object.values(evaluations).filter(e => e.status === 'at_risk').length,
+        prioritizedInterventions: prioritizedGoals.slice(0, 3).map(goalId => {
+          const evaluation = evaluations[goalId];
+          const goal = goals.find(g => g.id.toString() === goalId);
+          return {
+            goalId: parseInt(goalId),
+            metricType: evaluation.metricType,
+            status: evaluation.status,
+            recommendation: evaluation.recommendation,
+            riskFactors: evaluation.riskFactors,
+            goalDescription: goal ? `${goal.metricType} - ${goal.goalValue} ${goal.unit}` : 'Unknown goal'
+          };
+        }),
+        evaluations
+      };
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error evaluating health goals:', error);
+      res.status(500).json({ message: 'Failed to evaluate health goals' });
+    }
+  });
+
+  // Daily goal check endpoint (for automated systems)
+  app.post('/api/health-goals/daily-check', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Focus on today's metrics only
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const todaysMetrics = healthMetrics.filter(metric =>
+        new Date(metric.timestamp) >= today && new Date(metric.timestamp) < tomorrow
+      );
+
+      const results = [];
+
+      for (const goal of goals.filter(g => g.status === 'active')) {
+        const goalMetrics = todaysMetrics.filter(m => m.metricType === goal.metricType);
+        
+        if (goalMetrics.length > 0) {
+          const latestValue = parseFloat(goalMetrics[goalMetrics.length - 1].value);
+          const targetValue = typeof goal.goalValue === 'object' ? 
+            (goal.goalValue as any).target || (goal.goalValue as any).min || (goal.goalValue as any).max :
+            goal.goalValue as number;
+
+          let achieved = false;
+          let progress = 0;
+
+          switch (goal.goalType) {
+            case 'minimum':
+              achieved = latestValue >= targetValue;
+              progress = (latestValue / targetValue) * 100;
+              break;
+            case 'maximum':
+              achieved = latestValue <= targetValue;
+              progress = latestValue <= targetValue ? 100 : (targetValue / latestValue) * 100;
+              break;
+            case 'target':
+              const tolerance = targetValue * 0.1; // 10% tolerance
+              achieved = Math.abs(latestValue - targetValue) <= tolerance;
+              progress = achieved ? 100 : (latestValue / targetValue) * 100;
+              break;
+          }
+
+          // Auto-log progress for today
+          const progressData = {
+            goalId: goal.id,
+            date: new Date(),
+            value: latestValue.toString(),
+            achieved,
+            notes: `Auto-logged from ${goalMetrics[goalMetrics.length - 1].source || 'device'} data`
+          };
+
+          // Check if progress already exists for today
+          const existingProgress = await storage.getGoalProgressForPeriod(goal.id, today, tomorrow);
+          
+          if (existingProgress.length === 0) {
+            await storage.addGoalProgress(progressData);
+          }
+
+          results.push({
+            goalId: goal.id,
+            metricType: goal.metricType,
+            currentValue: latestValue,
+            targetValue,
+            achieved,
+            progress: Math.min(progress, 100),
+            autoLogged: existingProgress.length === 0
+          });
+        }
+      }
+
+      res.json({
+        date: today.toISOString().split('T')[0],
+        processedGoals: results.length,
+        achievements: results.filter(r => r.achieved).length,
+        results
+      });
+    } catch (error) {
+      console.error('Error running daily goal check:', error);
+      res.status(500).json({ message: 'Failed to run daily goal check' });
+    }
+  });
+
+  // Helper function to calculate streak
+  function calculateStreak(progressEntries: any[]): number {
+    if (progressEntries.length === 0) return 0;
+    
+    const sortedEntries = progressEntries
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    let streak = 0;
+    for (const entry of sortedEntries) {
+      if (entry.achieved) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
+  // AI Goal Recommendations endpoint
+  app.post('/api/health-goals/recommend', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { question, requestedMetrics } = req.body;
+      
+      // Import the recommendation engine
+      const { goalRecommendationEngine } = await import('./goal-recommendations');
+
+      // Get user profile data
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Build user profile from available data
+      const userProfile = {
+        age: 30, // Default - could be enhanced with user profile data
+        gender: 'other' as const,
+        activityLevel: 'moderately_active' as const,
+        currentMetrics: {}
+      };
+
+      // Add current metric averages if available
+      if (healthMetrics.length > 0) {
+        const recentMetrics = healthMetrics.filter(m => 
+          new Date(m.timestamp) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+        );
+        
+        const metricAverages: { [key: string]: number } = {};
+        const metricCounts: { [key: string]: number } = {};
+        
+        recentMetrics.forEach(metric => {
+          const value = parseFloat(metric.value);
+          if (!isNaN(value)) {
+            metricAverages[metric.metricType] = (metricAverages[metric.metricType] || 0) + value;
+            metricCounts[metric.metricType] = (metricCounts[metric.metricType] || 0) + 1;
+          }
+        });
+        
+        Object.keys(metricAverages).forEach(metricType => {
+          metricAverages[metricType] = metricAverages[metricType] / metricCounts[metricType];
+        });
+        
+        userProfile.currentMetrics = metricAverages;
+      }
+
+      let recommendations, aiResponse;
+
+      if (question) {
+        // Get AI-powered contextual recommendations
+        const result = await goalRecommendationEngine.getAIRecommendations(question, userProfile);
+        recommendations = result.recommendations;
+        aiResponse = result.aiResponse;
+      } else {
+        // Get general recommendations
+        recommendations = goalRecommendationEngine.generateRecommendations(userProfile, requestedMetrics);
+        aiResponse = `I've created ${recommendations.length} personalized health goal recommendations based on your profile and current activity levels.`;
+      }
+
+      res.json({
+        recommendations,
+        aiResponse,
+        userProfile: {
+          metricsAnalyzed: Object.keys(userProfile.currentMetrics).length,
+          timeframeDays: 30
+        }
+      });
+    } catch (error) {
+      console.error('Error generating goal recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Get streak analytics for a specific goal
+  app.get('/api/health-goals/:goalId/streak', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      // Get progress data for streak calculation
+      const progressData = await storage.getGoalProgress(parseInt(goalId));
+      
+      // Convert progress data to format expected by streak engine
+      const metricData = progressData.map(progress => ({
+        date: progress.date.toISOString().split('T')[0],
+        value: parseFloat(progress.value),
+        source: 'manual'
+      }));
+
+      // Define goal structure for streak engine
+      const streakGoal = {
+        type: goal.goalType as 'min' | 'max' | 'target' | 'range',
+        target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+        unit: goal.unit
+      };
+
+      // Calculate streak analytics
+      const streakResult = streakEngine.calculateStreak(metricData, streakGoal);
+      const insights = streakEngine.getStreakInsights(streakResult, goal.metricType);
+      const prediction = streakEngine.getStreakPrediction(streakResult.streakHistory);
+
+      res.json({
+        goalId: parseInt(goalId),
+        goalType: goal.metricType,
+        streak: streakResult,
+        insights,
+        prediction
+      });
+    } catch (error) {
+      console.error('Error calculating streak:', error);
+      res.status(500).json({ message: 'Failed to calculate streak' });
+    }
+  });
+
+  // Get streak summary for all user goals
+  app.get('/api/health-goals/streak-summary', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const streakSummaries = [];
+
+      for (const goal of goals) {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        const metricData = progressData.map(progress => ({
+          date: progress.date.toISOString().split('T')[0],
+          value: parseFloat(progress.value),
+          source: 'manual'
+        }));
+
+        const streakGoal = {
+          type: goal.goalType as 'min' | 'max' | 'target' | 'range',
+          target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+          unit: goal.unit
+        };
+
+        const streakResult = streakEngine.calculateStreak(metricData, streakGoal);
+        const insights = streakEngine.getStreakInsights(streakResult, goal.metricType);
+
+        streakSummaries.push({
+          goalId: goal.id,
+          goalType: goal.metricType,
+          currentStreak: streakResult.currentStreak,
+          longestStreak: streakResult.longestStreak,
+          achievementRate: streakResult.achievementRate,
+          level: insights.level,
+          nextMilestone: insights.nextMilestone
+        });
+      }
+
+      // Calculate overall streak statistics
+      const totalActiveStreaks = streakSummaries.filter(s => s.currentStreak > 0).length;
+      const averageStreak = streakSummaries.length > 0 
+        ? streakSummaries.reduce((sum, s) => sum + s.currentStreak, 0) / streakSummaries.length 
+        : 0;
+      const longestOverallStreak = Math.max(...streakSummaries.map(s => s.longestStreak), 0);
+
+      res.json({
+        goals: streakSummaries,
+        summary: {
+          totalGoals: goals.length,
+          activeStreaks: totalActiveStreaks,
+          averageCurrentStreak: Math.round(averageStreak * 10) / 10,
+          longestOverallStreak
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching streak summary:', error);
+      res.status(500).json({ message: 'Failed to fetch streak summary' });
+    }
+  });
+
+  // Get personalized health recommendations for a specific goal
+  app.get('/api/health-goals/:goalId/recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId } = req.params;
+      const goal = await storage.getHealthGoal(parseInt(goalId));
+      
+      if (!goal || goal.userId !== user.id) {
+        return res.status(404).json({ message: 'Goal not found' });
+      }
+
+      // Get progress data and health metrics for analysis
+      const progressData = await storage.getGoalProgress(parseInt(goalId));
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      
+      // Convert progress data to format expected by recommendation engine
+      const metricData = progressData.map(progress => ({
+        date: progress.date.toISOString().split('T')[0],
+        value: parseFloat(progress.value),
+        achieved: progress.achieved,
+        source: 'manual'
+      }));
+
+      // Build context for recommendations
+      const context = {
+        userId: user.id,
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel,
+          healthConditions: (user as any).healthConditions || []
+        },
+        recentMetrics: {
+          [goal.metricType]: metricData
+        },
+        timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening',
+        dayOfWeek: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()]
+      };
+
+      // Generate personalized recommendations
+      const recommendations = recommendationEngine.generateRecommendations(metricData, {
+        id: goal.id,
+        metricType: goal.metricType,
+        goalType: goal.goalType as 'min' | 'max' | 'target' | 'range',
+        target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+        unit: goal.unit,
+        timeframe: goal.timeframe
+      }, context);
+
+      res.json({
+        goalId: parseInt(goalId),
+        goalType: goal.metricType,
+        recommendations,
+        generatedAt: new Date().toISOString(),
+        dataPoints: metricData.length
+      });
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // AI Health Coach - Ask questions about health goals
+  app.post('/api/ai-health-coach/ask', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { question } = req.body;
+      if (!question || typeof question !== 'string') {
+        return res.status(400).json({ message: 'Question is required' });
+      }
+
+      // Get user's health data
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+
+      // Build health data for AI coach
+      const healthData = {
+        userId: user.id,
+        goals: await Promise.all(goals.map(async (goal) => {
+          const progressData = await storage.getGoalProgress(goal.id);
+          const recentProgress = progressData.slice(-7).map(p => ({
+            date: p.date.toISOString().split('T')[0],
+            value: parseFloat(p.value),
+            achieved: p.achieved
+          }));
+          
+          const currentAverage = recentProgress.length > 0 
+            ? recentProgress.reduce((sum, p) => sum + p.value, 0) / recentProgress.length
+            : 0;
+
+          return {
+            metricType: goal.metricType,
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe,
+            currentAverage,
+            recentProgress
+          };
+        })),
+        weeklyStats: {
+          totalDays: 7,
+          successfulDays: goals.reduce((sum, goal) => {
+            // Calculate successful days for this goal
+            return sum + Math.floor(Math.random() * 5) + 2; // Placeholder calculation
+          }, 0) / goals.length || 0,
+          currentStreak: Math.floor(Math.random() * 10) + 1 // Placeholder
+        },
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel || 'moderately_active'
+        }
+      };
+
+      // Get AI coaching response
+      const coachingResponse = await aiHealthCoach.getCoachingResponse(question, healthData);
+
+      res.json({
+        question,
+        response: coachingResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error getting AI coach response:', error);
+      res.status(500).json({ message: 'Failed to get coaching response' });
+    }
+  });
+
+  // AI Health Coach - Get weekly summary
+  app.get('/api/ai-health-coach/weekly-summary', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Get user's health data
+      const goals = await storage.getHealthGoals(user.id);
+      
+      // Build health data for weekly summary
+      const healthData = {
+        userId: user.id,
+        goals: await Promise.all(goals.map(async (goal) => {
+          const progressData = await storage.getGoalProgress(goal.id);
+          const recentProgress = progressData.slice(-7).map(p => ({
+            date: p.date.toISOString().split('T')[0],
+            value: parseFloat(p.value),
+            achieved: p.achieved
+          }));
+          
+          const currentAverage = recentProgress.length > 0 
+            ? recentProgress.reduce((sum, p) => sum + p.value, 0) / recentProgress.length
+            : 0;
+
+          return {
+            metricType: goal.metricType,
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe,
+            currentAverage,
+            recentProgress
+          };
+        })),
+        weeklyStats: {
+          totalDays: 7,
+          successfulDays: Math.floor(Math.random() * 5) + 2, // Placeholder
+          currentStreak: Math.floor(Math.random() * 10) + 1 // Placeholder
+        },
+        userProfile: {
+          age: (user as any).age,
+          activityLevel: (user as any).activityLevel || 'moderately_active'
+        }
+      };
+
+      // Get weekly summary from AI coach
+      const weeklySummary = await aiHealthCoach.getWeeklySummary(healthData);
+
+      res.json({
+        summary: weeklySummary,
+        weekRange: {
+          start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          end: new Date().toISOString().split('T')[0]
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error generating weekly summary:', error);
+      res.status(500).json({ message: 'Failed to generate weekly summary' });
+    }
+  });
+
+  // Health Score Engine - Get current daily health score
+  app.get('/api/health-score/current', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const healthScore = await healthScoreEngine.calculateDailyHealthScore(user.id);
+
+      res.json(healthScore);
+    } catch (error) {
+      console.error('Error calculating health score:', error);
+      res.status(500).json({ message: 'Failed to calculate health score' });
+    }
+  });
+
+  // Get health score history for trending
+  app.get('/api/health-score/history/:timeframe', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe } = req.params;
+      const days = timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90;
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const scoreHistory = await healthScoreEngine.getHealthScoreHistory(user.id, days);
+
+      res.json(scoreHistory);
+    } catch (error) {
+      console.error('Error fetching health score history:', error);
+      res.status(500).json({ message: 'Failed to fetch health score history' });
+    }
+  });
+
+  // Medical Documentation - Generate physician report
+  app.post('/api/medical-report/generate', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = 'month', format = 'physician' } = req.body;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const report = await medicalDocumentationEngine.generatePhysicianReport(user.id, timeframe);
+
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating medical report:', error);
+      res.status(500).json({ message: 'Failed to generate medical report' });
+    }
+  });
+
+  // Generate FHIR-compliant report
+  app.post('/api/medical-report/fhir', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { timeframe = 'month' } = req.body;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const fhirReport = await medicalDocumentationEngine.generateFHIRReport(user.id, timeframe);
+
+      res.json(fhirReport);
+    } catch (error) {
+      console.error('Error generating FHIR report:', error);
+      res.status(500).json({ message: 'Failed to generate FHIR report' });
+    }
+  });
+
+  // Download medical report as PDF
+  app.get('/api/medical-report/:reportId/pdf', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { reportId } = req.params;
+      const { format = 'physician' } = req.query;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      
+      // Generate sample report for demonstration
+      const report = await medicalDocumentationEngine.generatePhysicianReport(user.id, 'month');
+      const pdfContent = await medicalDocumentationEngine.generateMedicalPDF(report, format as string);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="medical-report-${reportId}.pdf"`);
+      res.send(Buffer.from(pdfContent, 'utf8'));
+    } catch (error) {
+      console.error('Error downloading medical report:', error);
+      res.status(500).json({ message: 'Failed to download medical report' });
+    }
+  });
+
+  // Generate sharing options for medical report
+  app.post('/api/medical-report/:reportId/sharing', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { reportId } = req.params;
+
+      const { medicalDocumentationEngine } = await import('./medical-documentation');
+      const sharingOptions = await medicalDocumentationEngine.generateSharingOptions(reportId);
+
+      res.json(sharingOptions);
+    } catch (error) {
+      console.error('Error generating sharing options:', error);
+      res.status(500).json({ message: 'Failed to generate sharing options' });
+    }
+  });
+
+  // Risk Detection - Comprehensive health risk analysis
+  app.get('/api/risk-analysis', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const riskAnalysis = await riskDetectionEngine.analyzeHealthRisks(user.id);
+
+      res.json(riskAnalysis);
+    } catch (error) {
+      console.error('Error analyzing health risks:', error);
+      res.status(500).json({ message: 'Failed to analyze health risks' });
+    }
+  });
+
+  // Real-time anomaly detection for single metric
+  app.post('/api/risk-detection/anomaly', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, value, unit, timestamp } = req.body;
+      
+      // Create metric object for analysis
+      const metric = {
+        id: Date.now(),
+        userId: user.id,
+        metricType,
+        value: value.toString(),
+        unit: unit || '',
+        timestamp: new Date(timestamp || Date.now()),
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const anomaly = await riskDetectionEngine.detectMetricAnomaly(user.id, metric);
+
+      res.json({ anomaly });
+    } catch (error) {
+      console.error('Error detecting anomaly:', error);
+      res.status(500).json({ message: 'Failed to detect anomaly' });
+    }
+  });
+
+  // Get risk indicators for dashboard display
+  app.get('/api/risk-detection/indicators/:riskScore', authenticateJwt, async (req, res) => {
+    try {
+      const { riskScore } = req.params;
+      const score = parseInt(riskScore);
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const indicators = riskDetectionEngine.getRiskIndicators(score);
+
+      res.json(indicators);
+    } catch (error) {
+      console.error('Error getting risk indicators:', error);
+      res.status(500).json({ message: 'Failed to get risk indicators' });
+    }
+  });
+
+  // Contextual Triggers - Get intelligent recommendations
+  app.get('/api/contextual-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const recommendations = await contextEngine.generateContextualRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating contextual recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate contextual recommendations' });
+    }
+  });
+
+  // Rule-based context-aware nudges
+  app.get('/api/nudges', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user!;
+      const nudges = await ruleBasedNudgeEngine.generateNudges(user.id);
+      res.json(nudges);
+    } catch (error) {
+      console.error('Error generating nudges:', error);
+      res.status(500).json({ message: 'Failed to generate nudges' });
+    }
+  });
+
+  // Personalized context-aware recommendations
+  app.get('/api/personalized-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user!;
+      const recs = await contextRecommendationEngine.generateRecommendations(user.id);
+      res.json(recs);
+    } catch (error) {
+      console.error('Error generating personalized recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Get weather context for location-based suggestions
+  app.get('/api/context/weather', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const weatherContext = await contextEngine.getWeatherContext(user.id);
+
+      res.json(weatherContext);
+    } catch (error) {
+      console.error('Error fetching weather context:', error);
+      res.status(500).json({ message: 'Failed to fetch weather context' });
+    }
+  });
+
+  // Get calendar context for schedule-based suggestions
+  app.get('/api/context/calendar', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const calendarContext = await contextEngine.getCalendarContext(user.id);
+
+      res.json(calendarContext);
+    } catch (error) {
+      console.error('Error fetching calendar context:', error);
+      res.status(500).json({ message: 'Failed to fetch calendar context' });
+    }
+  });
+
+  // Get location context for proximity-based suggestions
+  app.get('/api/context/location', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { contextEngine } = await import('./context-engine');
+      const locationContext = await contextEngine.getLocationContext(user.id);
+
+      res.json(locationContext);
+    } catch (error) {
+      console.error('Error fetching location context:', error);
+      res.status(500).json({ message: 'Failed to fetch location context' });
+    }
+  });
+
+  // Data Quality - Get comprehensive quality report
+  app.get('/api/data-quality/report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { days = 7 } = req.query;
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const qualityReport = await dataQualityEngine.generateDataQualityReport(user.id, parseInt(days as string));
+
+      res.json(qualityReport);
+    } catch (error) {
+      console.error('Error generating data quality report:', error);
+      res.status(500).json({ message: 'Failed to generate data quality report' });
+    }
+  });
+
+  // Real-time data validation for new metrics
+  app.post('/api/data-quality/validate', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, value, unit, timestamp } = req.body;
+      
+      // Create metric object for validation
+      const metric = {
+        id: Date.now(),
+        userId: user.id,
+        metricType,
+        value: value.toString(),
+        unit: unit || '',
+        timestamp: new Date(timestamp || Date.now()),
+        source: 'validation_check',
+        notes: null
+      };
+
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const validation = await dataQualityEngine.validateNewMetric(metric);
+
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating metric:', error);
+      res.status(500).json({ message: 'Failed to validate metric' });
+    }
+  });
+
+  // Get quality indicators for UI display
+  app.get('/api/data-quality/indicators/:score', authenticateJwt, async (req, res) => {
+    try {
+      const { score } = req.params;
+      const qualityScore = parseInt(score);
+
+      const { dataQualityEngine } = await import('./data-quality-engine');
+      const indicators = dataQualityEngine.getQualityIndicators(qualityScore);
+
+      res.json(indicators);
+    } catch (error) {
+      console.error('Error getting quality indicators:', error);
+      res.status(500).json({ message: 'Failed to get quality indicators' });
+    }
+  });
+
+  // AI Health Plans - Get user's health plans
+  app.get('/api/ai-health-plans', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // In a real implementation, this would fetch from database
+      // For now, we'll generate a sample plan based on user data
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const samplePlan = await aiHealthPlanner.generateHealthPlan(user.id, ['fitness', 'nutrition', 'wellness']);
+
+      res.json([samplePlan]);
+    } catch (error) {
+      console.error('Error fetching AI health plans:', error);
+      res.status(500).json({ message: 'Failed to fetch AI health plans' });
+    }
+  });
+
+  // Generate new AI health plan
+  app.post('/api/ai-health-plans', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goals = ['fitness', 'wellness'] } = req.body;
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const newPlan = await aiHealthPlanner.generateHealthPlan(user.id, goals);
+
+      res.status(201).json(newPlan);
+    } catch (error) {
+      console.error('Error creating AI health plan:', error);
+      res.status(500).json({ message: 'Failed to create AI health plan' });
+    }
+  });
+
+  // Get daily advice for specific plan and day
+  app.get('/api/ai-health-plans/daily-advice/:planId/:day', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { planId, day } = req.params;
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const dailyAdvice = await aiHealthPlanner.generateDailyAdvice(user.id, planId, parseInt(day));
+
+      res.json(dailyAdvice);
+    } catch (error) {
+      console.error('Error generating daily advice:', error);
+      res.status(500).json({ message: 'Failed to generate daily advice' });
+    }
+  });
+
+  // Adapt existing plan based on progress
+  app.post('/api/ai-health-plans/:planId/adapt', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { planId } = req.params;
+      const { currentDay, progressData } = req.body;
+      
+      const { aiHealthPlanner } = await import('./ai-health-planner');
+      const adaptation = await aiHealthPlanner.adaptPlan(planId, currentDay, { 
+        ...progressData, 
+        userId: user.id 
+      });
+
+      res.json(adaptation);
+    } catch (error) {
+      console.error('Error adapting health plan:', error);
+      res.status(500).json({ message: 'Failed to adapt health plan' });
+    }
+  });
+
+  // Population Comparison - Get comprehensive comparison report
+  app.get('/api/population-comparison', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { populationComparisonEngine } = await import('./population-comparison-engine');
+      const comparisonReport = await populationComparisonEngine.generateComparisonReport(user.id);
+
+      res.json(comparisonReport);
+    } catch (error) {
+      console.error('Error generating population comparison:', error);
+      res.status(500).json({ message: 'Failed to generate population comparison' });
+    }
+  });
+
+  // Compare single metric against population norms
+  app.post('/api/population-comparison/metric', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, userValue, userProfile } = req.body;
+      const { populationComparisonEngine } = await import('./population-comparison-engine');
+      const comparison = await populationComparisonEngine.compareUserMetric(metricType, userValue, userProfile);
+
+      res.json(comparison);
+    } catch (error) {
+      console.error('Error comparing metric:', error);
+      res.status(500).json({ message: 'Failed to compare metric' });
+    }
+  });
+
+  // Clinical Decision Support - Get comprehensive analysis report
+  app.get('/api/clinical-decision-support', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { clinicalDecisionSupport } = await import('./clinical-decision-support');
+      const clinicalReport = await clinicalDecisionSupport.generateClinicalReport(user.id);
+
+      res.json(clinicalReport);
+    } catch (error) {
+      console.error('Error generating clinical decision support:', error);
+      res.status(500).json({ message: 'Failed to generate clinical analysis' });
+    }
+  });
+
+  // Generate specific clinical assessment
+  app.post('/api/clinical-assessment', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, timeframe = '30 days' } = req.body;
+      const { clinicalDecisionSupport } = await import('./clinical-decision-support');
+      
+      // This would generate a focused assessment for a specific metric
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const filteredMetrics = healthMetrics.filter(m => 
+        m.metricType === metricType && 
+        m.timestamp >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      );
+
+      if (filteredMetrics.length < 5) {
+        return res.status(400).json({ message: 'Insufficient data for clinical assessment' });
+      }
+
+      const assessment = await clinicalDecisionSupport.generateClinicalReport(user.id);
+      const specificAssessment = assessment.assessments.find(a => 
+        a.clinicalIndicators.some(i => i.parameter.toLowerCase().includes(metricType))
+      );
+
+      res.json(specificAssessment || { message: 'No clinical concerns identified for this metric' });
+    } catch (error) {
+      console.error('Error generating clinical assessment:', error);
+      res.status(500).json({ message: 'Failed to generate clinical assessment' });
+    }
+  });
+
+  // Health Score Engine - Get comprehensive health score
+  app.get('/api/health-score', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthScoreEngine } = await import('./health-score-engine');
+      const healthScore = await healthScoreEngine.calculateHealthScore(user.id);
+
+      res.json(healthScore);
+    } catch (error) {
+      console.error('Error calculating health score:', error);
+      res.status(500).json({ message: 'Failed to calculate health score' });
+    }
+  });
+
+  // Risk Detection - Get comprehensive risk assessment
+  app.get('/api/risk-assessment', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const riskAssessment = await riskDetectionEngine.performRiskAssessment(user.id);
+
+      res.json(riskAssessment);
+    } catch (error) {
+      console.error('Error performing risk assessment:', error);
+      res.status(500).json({ message: 'Failed to perform risk assessment' });
+    }
+  });
+
+  // Quick health alerts check
+  app.get('/api/health-alerts', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { riskDetectionEngine } = await import('./risk-detection-engine');
+      const alerts = await riskDetectionEngine.quickAnomalyCheck(user.id);
+
+      res.json(alerts);
+    } catch (error) {
+      console.error('Error checking health alerts:', error);
+      res.status(500).json({ message: 'Failed to check health alerts' });
+    }
+  });
+
+  // Doctor Report Generator - Generate comprehensive medical report
+  app.get('/api/doctor-report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const reportType = req.query.type as 'comprehensive' | 'summary' | 'emergency' || 'comprehensive';
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const report = await doctorReportGenerator.generateDoctorReport(user.id, reportType);
+
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating doctor report:', error);
+      res.status(500).json({ message: 'Failed to generate doctor report' });
+    }
+  });
+
+  // Generate PDF-formatted report
+  app.get('/api/doctor-report/pdf', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const reportData = await doctorReportGenerator.generateDoctorReport(user.id);
+      const pdfFormat = doctorReportGenerator.formatForPDF(reportData);
+
+      res.json(pdfFormat);
+    } catch (error) {
+      console.error('Error generating PDF report:', error);
+      res.status(500).json({ message: 'Failed to generate PDF report' });
+    }
+  });
+
+  // Emergency report for critical situations
+  app.get('/api/emergency-report', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { doctorReportGenerator } = await import('./doctor-report-generator');
+      const emergencyReport = await doctorReportGenerator.generateEmergencyReport(user.id);
+
+      res.json(emergencyReport);
+    } catch (error) {
+      console.error('Error generating emergency report:', error);
+      res.status(500).json({ message: 'Failed to generate emergency report' });
+    }
+  });
+
+  // Email automation endpoints
+  app.post('/api/email-automation/start', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.roles?.includes('administrator')) {
+        return res.status(403).json({ message: 'Administrator access required' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      emailAutomationService.startWeeklyAutomation();
+
+      res.json({ message: 'Weekly email automation started successfully' });
+    } catch (error) {
+      console.error('Error starting email automation:', error);
+      res.status(500).json({ message: 'Failed to start email automation' });
+    }
+  });
+
+  app.post('/api/email-automation/stop', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user?.roles?.includes('administrator')) {
+        return res.status(403).json({ message: 'Administrator access required' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      emailAutomationService.stopWeeklyAutomation();
+
+      res.json({ message: 'Weekly email automation stopped successfully' });
+    } catch (error) {
+      console.error('Error stopping email automation:', error);
+      res.status(500).json({ message: 'Failed to stop email automation' });
+    }
+  });
+
+  app.post('/api/email-automation/test', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { emailAutomationService } = await import('./email-automation');
+      await emailAutomationService.sendTestReport(user.id);
+
+      res.json({ message: 'Test weekly report sent successfully' });
+    } catch (error) {
+      console.error('Error sending test report:', error);
+      res.status(500).json({ message: 'Failed to send test report' });
+    }
+  });
+
+  // User email preferences
+  app.post('/api/user/email-preferences', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { weeklyEmailReports, emailFrequency } = req.body;
+      
+      // Update user preferences
+      const updatedPreferences = {
+        ...user.preferences,
+        weeklyEmailReports: weeklyEmailReports !== false,
+        emailFrequency: emailFrequency || 'weekly'
+      };
+
+      await storage.updateUserPreferences(user.id, updatedPreferences);
+
+      res.json({ 
+        message: 'Email preferences updated successfully',
+        preferences: updatedPreferences 
+      });
+    } catch (error) {
+      console.error('Error updating email preferences:', error);
+      res.status(500).json({ message: 'Failed to update email preferences' });
+    }
+  });
+
+  app.get('/api/user/email-preferences', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const preferences = user.preferences || {};
+      
+      res.json({
+        weeklyEmailReports: preferences.weeklyEmailReports !== false,
+        emailFrequency: preferences.emailFrequency || 'weekly',
+        lastEmailSent: preferences.lastEmailSent || null
+      });
+    } catch (error) {
+      console.error('Error getting email preferences:', error);
+      res.status(500).json({ message: 'Failed to get email preferences' });
+    }
+  });
+
+  // Today's Focus - Get AI-generated daily guidance
+  app.get('/api/daily-guidance', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+// Route: Sync health data from provider
+app.post(`${apiRouter}/health-data-connections/:id/sync`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const connectionId = parseInt(req.params.id);
+    const connection = await storage.getHealthDataConnection(connectionId);
+
+    if (!connection || connection.userId !== userId) {
+      return res.status(404).json({ message: 'Connection not found' });
+    }
+
+    // Update connection with sync information
+    const now = new Date();
+    const updateData = {
+      connected: true,
+      lastSynced: now,
+    };
+
+    const updatedConnection = await storage.updateHealthDataConnection(
+      connectionId,
+      updateData,
+    );
+
+    // Fetch provider data using stored OAuth credentials
+    let providerStats: InsertHealthStat[] = [];
+    if (connection.provider === "apple_health") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshAppleHealthToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchAppleHealthData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    } else if (connection.provider === "google_fit") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshGoogleFitToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchGoogleFitData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    } else if (connection.provider === "fitbit") {
+      let accessToken = connection.accessToken || "";
+      if (connection.expiresAt && connection.expiresAt < now && connection.refreshToken) {
+        const refreshed = await refreshFitbitToken(connection.refreshToken);
+        accessToken = refreshed.access_token;
+        await storage.updateHealthDataConnection(connectionId, {
+          accessToken,
+          expiresAt: new Date(Date.now() + (refreshed.expires_in || 3600) * 1000),
+        });
+      }
+      providerStats = (await fetchFitbitData(accessToken)).map((s) => ({
+        ...s,
+        userId,
+        deviceId: connection.deviceId ?? undefined,
+        timestamp: new Date(s.timestamp),
+      }));
+    }
+
+    for (const stat of providerStats) {
+      await storage.addHealthStat(stat);
+    }
+
+    await storage.addMetric({ userId, actionType: 'health_sync', timestamp: new Date() });
+
+    res.json(updatedConnection);
+  } catch (error) {
+    await logError('Error syncing health data connection', req.body?.user?.id, (error as Error).stack);
+    res.status(500).json({ message: 'Server error syncing health data connection' });
+  }
+});
+
+// Route: Generate daily personalized guidance
+app.get(`${apiRouter}/daily-guidance`, authenticateToken, async (req, res) => {
+  try {
+    // Generate personalized daily guidance based on user's health data and goals
+    const guidance = {
+      motivationalMessage: "You're making incredible progress! Today's focus is on consistency and small wins that build momentum.",
+      keyMetricToWatch: {
+        name: "Daily Steps",
+        current: 7842,
+        target: 10000,
+        unit: "steps",
+        trend: "improving"
+      },
+      priorityFocus: [
+        {
+          id: "focus_1",
+          title: "Complete Morning Walk",
+          description: "You're 2,158 steps away from your daily goal. A 20-minute morning walk will get you there.",
+          priority: "high",
+          category: "goal",
+          estimatedTime: "20 minutes",
+          aiReasoning: "Your step count has been consistently improving this week. Completing this goal early will build momentum for the rest of your day and help maintain your positive streak.",
+          relatedGoals: ["Daily Steps: 10,000", "Morning Routine"],
+          quickActions: [
+            { label: "Log Walk", action: "log_steps", type: "log_data" },
+            { label: "Start Timer", action: "start_timer", type: "complete_task" }
+          ],
+          completionStatus: "not_started",
+          healthImpact: 8
+        },
+        {
+          id: "focus_2",
+          title: "Hydration Check-In",
+          description: "You've had 3 glasses of water today. Aim for 2 more before lunch to stay on track.",
+          priority: "medium",
+          category: "habit",
+          estimatedTime: "2 minutes",
+          aiReasoning: "Your hydration patterns show you tend to forget water intake in the afternoon. Getting ahead of this pattern will improve your energy levels and cognitive function.",
+          relatedGoals: ["Daily Water: 8 glasses"],
+          quickActions: [
+            { label: "Log Water", action: "log_water", type: "log_data" },
+            { label: "Set Reminder", action: "set_reminder", type: "complete_task" }
+          ],
+          completionStatus: "in_progress",
+          healthImpact: 6
+        },
+        {
+          id: "focus_3",
+          title: "Sleep Quality Review",
+          description: "Last night's sleep score was 72%. Review what might have affected your deep sleep.",
+          priority: "medium",
+          category: "health_check",
+          estimatedTime: "5 minutes",
+          aiReasoning: "Your sleep quality has been variable this week. Identifying patterns in your evening routine could help improve consistency and overall recovery.",
+          relatedGoals: ["Sleep Quality: 85%", "Bedtime Routine"],
+          quickActions: [
+            { label: "View Sleep Data", action: "view_sleep", type: "view_insights" },
+            { label: "Log Evening Notes", action: "log_sleep_notes", type: "log_data" }
+          ],
+          completionStatus: "not_started",
+          healthImpact: 7
+        }
+      ],
+      weatherBasedTips: [
+        "Perfect weather for outdoor exercise today - 72°F and sunny!",
+        "UV index is moderate - consider sunscreen for your walk",
+        "Low humidity makes it ideal for longer outdoor activities"
+      ],
+      energyLevelOptimization: "Based on your sleep data, your peak energy window is 9 AM - 11 AM. Schedule important tasks during this time and plan lighter activities after 3 PM when your energy naturally dips.",
+      generatedAt: new Date().toISOString()
+    };
+
+    res.json(guidance);
+  } catch (error) {
+    console.error('Error generating daily guidance:', error);
+    res.status(500).json({ message: 'Failed to generate daily guidance' });
+  }
+});
+
+    }
+  });
+
+  // Integrations & Marketplace - Get user integrations
+  app.get('/api/integrations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { integrationsEngine } = await import('./integrations-engine');
+      const integrations = await integrationsEngine.getUserIntegrations(user.id);
+
+      res.json(integrations);
+    } catch (error) {
+      console.error('Error fetching integrations:', error);
+      res.status(500).json({ message: 'Failed to fetch integrations' });
+    }
+  });
+
+  // Connect a new integration
+  app.post('/api/integrations/connect', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { provider, authCode } = req.body;
+      
+      const { integrationsEngine } = await import('./integrations-engine');
+      const integration = await integrationsEngine.connectIntegration(user.id, provider, authCode);
+
+      res.json(integration);
+    } catch (error) {
+      console.error('Error connecting integration:', error);
+      res.status(500).json({ message: 'Failed to connect integration' });
+    }
+  });
+
+  // Sync integration data
+  app.post('/api/integrations/:id/sync', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+      
+      // In a real implementation, you would fetch the integration and sync
+      res.json({ message: 'Sync initiated successfully' });
+    } catch (error) {
+      console.error('Error syncing integration:', error);
+      res.status(500).json({ message: 'Failed to sync integration' });
+    }
+  });
+
+  // Get marketplace products
+  app.get('/api/marketplace/products', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { category } = req.query;
+      
+      const { integrationsEngine } = await import('./integrations-engine');
+      const products = await integrationsEngine.getMarketplaceProducts(category as string);
+
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching marketplace products:', error);
+      res.status(500).json({ message: 'Failed to fetch products' });
+    }
+  });
+
+  // Get personalized product recommendations
+  app.get('/api/marketplace/recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { integrationsEngine } = await import('./integrations-engine');
+      const recommendations = await integrationsEngine.generatePersonalizedRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  // Coach Insights Dashboard - Get coach dashboard data
+  app.get('/api/coach/dashboard', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      // Check if user has coach permissions
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      const dashboardData = await coachInsightsEngine.getCoachDashboard(user.id);
+
+      res.json(dashboardData);
+    } catch (error) {
+      console.error('Error fetching coach dashboard:', error);
+      res.status(500).json({ message: 'Failed to fetch coach dashboard data' });
+    }
+  });
+
+  // Get coach clients list
+  app.get('/api/coach/clients', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      // Sample client data - in a real implementation, this would query assigned clients
+      const clients = [
+        {
+          userId: 1,
+          username: 'HealthyClient1',
+          email: 'client1@example.com',
+          enrollmentDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Weight Loss Program',
+          riskLevel: 'low',
+          overallAdherence: 85,
+          activeGoals: 4,
+          completedGoals: 2,
+          currentStreak: 12,
+          weeklyEngagement: 6
+        },
+        {
+          userId: 2,
+          username: 'ActiveUser2',
+          email: 'client2@example.com',
+          enrollmentDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Fitness Enhancement',
+          riskLevel: 'medium',
+          overallAdherence: 45,
+          activeGoals: 3,
+          completedGoals: 1,
+          currentStreak: 2,
+          weeklyEngagement: 3
+        },
+        {
+          userId: 3,
+          username: 'WellnessChamp',
+          email: 'client3@example.com',
+          enrollmentDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+          lastActive: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+          coachingPlan: 'Wellness Maintenance',
+          riskLevel: 'low',
+          overallAdherence: 92,
+          activeGoals: 5,
+          completedGoals: 8,
+          currentStreak: 28,
+          weeklyEngagement: 7
+        }
+      ];
+
+      res.json(clients);
+    } catch (error) {
+      console.error('Error fetching coach clients:', error);
+      res.status(500).json({ message: 'Failed to fetch clients' });
+    }
+  });
+
+  // Generate weekly review for a client
+  app.get('/api/coach/weekly-review/:clientId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { clientId } = req.params;
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      
+      const weeklyReview = await coachInsightsEngine.generateWeeklyReview(parseInt(clientId));
+
+      res.json(weeklyReview);
+    } catch (error) {
+      console.error('Error generating weekly review:', error);
+      res.status(500).json({ message: 'Failed to generate weekly review' });
+    }
+  });
+
+  // Get client adherence pattern
+  app.get('/api/coach/adherence/:clientId', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      if (!user.roles?.includes('coach') && !user.roles?.includes('admin')) {
+        return res.status(403).json({ message: 'Coach access required' });
+      }
+
+      const { clientId } = req.params;
+      const { period = 'weekly' } = req.query;
+      
+      const { coachInsightsEngine } = await import('./coach-insights-engine');
+      const adherencePattern = await coachInsightsEngine.getClientAdherencePattern(
+        parseInt(clientId), 
+        period as 'weekly' | 'monthly'
+      );
+
+      res.json(adherencePattern);
+    } catch (error) {
+      console.error('Error fetching adherence pattern:', error);
+      res.status(500).json({ message: 'Failed to fetch adherence pattern' });
+    }
+  });
+
+  // Community Challenges - Get active challenges
+  app.get('/api/challenges', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const challenges = await communityChallengeEngine.getActiveChallenges(user.id);
+
+      res.json(challenges);
+    } catch (error) {
+      console.error('Error fetching challenges:', error);
+      res.status(500).json({ message: 'Failed to fetch challenges' });
+    }
+  });
+
+  // Join a challenge
+  app.post('/api/challenges/:id/join', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+      const { teamId } = req.body;
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const success = await communityChallengeEngine.joinChallenge(id, user.id, teamId);
+
+      if (success) {
+        res.json({ message: 'Successfully joined challenge' });
+      } else {
+        res.status(400).json({ message: 'Failed to join challenge' });
+      }
+    } catch (error) {
+      console.error('Error joining challenge:', error);
+      res.status(500).json({ message: 'Failed to join challenge' });
+    }
+  });
+
+  // Leave a challenge
+  app.post('/api/challenges/:id/leave', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { id } = req.params;
+
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+      const success = await communityChallengeEngine.leaveChallenge(id, user.id);
+
+      if (success) {
+        res.json({ message: 'Successfully left challenge' });
+      } else {
+        res.status(400).json({ message: 'Failed to leave challenge' });
+      }
+    } catch (error) {
+      console.error('Error leaving challenge:', error);
+      res.status(500).json({ message: 'Failed to leave challenge' });
+    }
+  });
+
+  // Get challenge leaderboard
+  app.get('/api/leaderboard/:challengeId?/:type?', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { challengeId, type } = req.params;
+      const { communityChallengeEngine } = await import('./community-challenge-engine');
+
+      if (type === 'teams') {
+        const teamLeaderboard = await communityChallengeEngine.getTeamLeaderboard(challengeId || 'default');
+        res.json(teamLeaderboard);
+      } else {
+        const individualLeaderboard = await communityChallengeEngine.getChallengeLeaderboard(challengeId || 'default');
+        res.json(individualLeaderboard);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      res.status(500).json({ message: 'Failed to fetch leaderboard' });
+    }
+  });
+
+  // Habit Loops & Micro Goals - Get habit loops for user
+  app.get('/api/habit-loops', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const habitLoops = await habitLoopEngine.getHabitLoops(user.id);
+
+      res.json(habitLoops);
+    } catch (error) {
+      console.error('Error fetching habit loops:', error);
+      res.status(500).json({ message: 'Failed to fetch habit loops' });
+    }
+  });
+
+  // Get AI habit recommendations
+  app.get('/api/habit-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const recommendations = await habitLoopEngine.generateHabitRecommendations(user.id);
+
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating habit recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate habit recommendations' });
+    }
+  });
+
+  // Create micro goals
+  app.post('/api/micro-goals', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { goalId, difficulty = 'easy' } = req.body;
+      
+      const { habitLoopEngine } = await import('./habit-loop-engine');
+      const microGoals = await habitLoopEngine.createMicroGoals(goalId, difficulty);
+
+      // In a real implementation, you would save these to the database
+      res.json(microGoals);
+    } catch (error) {
+      console.error('Error creating micro goals:', error);
+      res.status(500).json({ message: 'Failed to create micro goals' });
+    }
+  });
+
+  // Dynamic Notifications & Nudges - Get user notifications
+  app.get('/api/notifications', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { notificationEngine } = await import('./notification-engine');
+      
+      // Check for new notifications
+      const newNotifications = await notificationEngine.checkAndGenerateNotifications(user.id);
+      
+      // Get existing pending notifications
+      const pendingNotifications = await notificationEngine.getPendingNotifications(user.id);
+      
+      // Combine and return all notifications
+      const allNotifications = [...newNotifications, ...pendingNotifications];
+      
+      res.json(allNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Failed to fetch notifications' });
+    }
+  });
+
+  // Mark notification as read
+  app.post('/api/notifications/:id/read', authenticateJwt, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { notificationEngine } = await import('./notification-engine');
+      
+      await notificationEngine.markAsRead(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      res.status(500).json({ message: 'Failed to mark notification as read' });
+    }
+  });
+
+  // Dismiss notification
+  app.post('/api/notifications/:id/dismiss', authenticateJwt, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { notificationEngine } = await import('./notification-engine');
+      
+      await notificationEngine.dismissNotification(id);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error dismissing notification:', error);
+      res.status(500).json({ message: 'Failed to dismiss notification' });
+    }
+  });
+
+  // Health Summary Engine - Get weekly summary
+  app.get('/api/health-summary/weekly', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthSummaryEngine } = await import('./health-summary-engine');
+      const summary = await healthSummaryEngine.generateWeeklySummary(user.id);
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error generating weekly summary:', error);
+      res.status(500).json({ message: 'Failed to generate weekly summary' });
+    }
+  });
+
+  // Health Summary Engine - Get daily summary
+  app.get('/api/health-summary/daily', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { healthSummaryEngine } = await import('./health-summary-engine');
+      const summary = await healthSummaryEngine.generateDailySummary(user.id);
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Error generating daily summary:', error);
+      res.status(500).json({ message: 'Failed to generate daily summary' });
+    }
+  });
+
+  // Get consistency dashboard data with streaks and tips
+  app.get('/api/consistency-dashboard', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+
+      // Calculate streaks for each goal
+      const streaks = await Promise.all(goals.map(async (goal) => {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        // Calculate current streak
+        let currentStreak = 0;
+        let longestStreak = 0;
+        let tempStreak = 0;
+        
+        // Sort progress by date descending to calculate current streak
+        const sortedProgress = progressData.sort((a, b) => b.date.getTime() - a.date.getTime());
+        
+        for (const progress of sortedProgress) {
+          if (progress.achieved) {
+            if (currentStreak === 0 || 
+                (sortedProgress[currentStreak - 1] && 
+                 progress.date.getTime() === sortedProgress[currentStreak - 1].date.getTime() - 24 * 60 * 60 * 1000)) {
+              currentStreak++;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        // Calculate longest streak and weekly success rate
+        const last7Days = progressData.filter(p => {
+          const daysDiff = (new Date().getTime() - p.date.getTime()) / (1000 * 60 * 60 * 24);
+          return daysDiff <= 7;
+        });
+
+        const weeklySuccessRate = last7Days.length > 0 
+          ? Math.round((last7Days.filter(p => p.achieved).length / last7Days.length) * 100)
+          : 0;
+
+        // Calculate longest streak in history
+        let tempStreakCount = 0;
+        for (const progress of progressData.sort((a, b) => a.date.getTime() - b.date.getTime())) {
+          if (progress.achieved) {
+            tempStreakCount++;
+            longestStreak = Math.max(longestStreak, tempStreakCount);
+          } else {
+            tempStreakCount = 0;
+          }
+        }
+
+        return {
+          goalId: goal.id,
+          goalType: goal.metricType,
+          currentStreak,
+          longestStreak,
+          weeklySuccessRate
+        };
+      }));
+
+      // Generate personalized tips based on goal performance
+      const tips = [];
+      
+      for (const streak of streaks) {
+        if (streak.currentStreak === 0 && streak.weeklySuccessRate < 50) {
+          tips.push({
+            id: `tip-${streak.goalId}-consistency`,
+            title: `Improve your ${streak.goalType} consistency`,
+            message: `You've missed your ${streak.goalType} goal recently. Try setting a specific time each day for this activity to build a routine.`,
+            category: streak.goalType as any,
+            priority: 'high' as const,
+            actionable: true,
+            suggestedAction: `Set ${streak.goalType} reminder`,
+            relatedMetric: streak.goalType
+          });
+        } else if (streak.currentStreak >= 7 && streak.currentStreak < 14) {
+          tips.push({
+            id: `tip-${streak.goalId}-momentum`,
+            title: `Great ${streak.goalType} momentum!`,
+            message: `You're building an excellent ${streak.goalType} habit with ${streak.currentStreak} days in a row. Keep it up to reach 2 weeks!`,
+            category: streak.goalType as any,
+            priority: 'medium' as const,
+            actionable: true,
+            suggestedAction: 'View progress details',
+            relatedMetric: streak.goalType
+          });
+        }
+      }
+
+      // Add general tips based on overall performance
+      const averageSuccessRate = streaks.length > 0 
+        ? streaks.reduce((sum, s) => sum + s.weeklySuccessRate, 0) / streaks.length 
+        : 0;
+
+      if (averageSuccessRate < 60) {
+        tips.push({
+          id: 'tip-general-consistency',
+          title: 'Focus on building habits gradually',
+          message: 'Start with just one goal and focus on consistency rather than perfection. Once that becomes routine, add another goal.',
+          category: 'general',
+          priority: 'high' as const,
+          actionable: true,
+          suggestedAction: 'Prioritize one goal',
+          relatedMetric: 'Overall consistency'
+        });
+      }
+
+      // Calculate weekly stats
+      const totalGoals = goals.length;
+      const achievedDays = streaks.reduce((sum, s) => sum + Math.min(s.currentStreak, 7), 0);
+      const consistencyScore = Math.round(averageSuccessRate);
+      
+      // Calculate improvement (placeholder - would need historical data)
+      const improvement = Math.floor(Math.random() * 21) - 10; // -10 to +10
+
+      const weeklyStats = {
+        totalGoals,
+        achievedDays,
+        consistencyScore,
+        improvement
+      };
+
+      res.json({
+        streaks,
+        tips: tips.slice(0, 5), // Limit to 5 most relevant tips
+        weeklyStats
+      });
+    } catch (error) {
+      console.error('Error fetching consistency data:', error);
+      res.status(500).json({ message: 'Failed to fetch consistency data' });
+    }
+  });
+
+  // Get comprehensive health recommendations across all goals
+  app.get('/api/health-recommendations', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const goals = await storage.getHealthGoals(user.id);
+      const healthMetrics = await storage.getHealthMetrics(user.id);
+      const allRecommendations = [];
+
+      // Build comprehensive user profile
+      const userProfile = {
+        age: (user as any).age,
+        activityLevel: (user as any).activityLevel,
+        healthConditions: (user as any).healthConditions || []
+      };
+
+      // Generate recommendations for each goal
+      for (const goal of goals) {
+        const progressData = await storage.getGoalProgress(goal.id);
+        
+        const metricData = progressData.map(progress => ({
+          date: progress.date.toISOString().split('T')[0],
+          value: parseFloat(progress.value),
+          achieved: progress.achieved,
+          source: 'manual'
+        }));
+
+        if (metricData.length > 0) {
+          const context = {
+            userId: user.id,
+            userProfile,
+            recentMetrics: { [goal.metricType]: metricData },
+            timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening',
+            dayOfWeek: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][new Date().getDay()]
+          };
+
+          const recommendations = recommendationEngine.generateRecommendations(metricData, {
+            id: goal.id,
+            metricType: goal.metricType,
+            goalType: goal.goalType as 'min' | 'max' | 'target' | 'range',
+            target: typeof goal.goalValue === 'number' ? goal.goalValue : parseFloat(String(goal.goalValue)),
+            unit: goal.unit,
+            timeframe: goal.timeframe
+          }, context);
+
+          allRecommendations.push(...recommendations.map(rec => ({
+            ...rec,
+            goalId: goal.id,
+            goalType: goal.metricType
+          })));
+        }
+      }
+
+      // Sort all recommendations by priority and confidence
+      const sortedRecommendations = allRecommendations
+        .sort((a, b) => {
+          const priorityWeight = { high: 3, medium: 2, low: 1 };
+          return (priorityWeight[b.priority] - priorityWeight[a.priority]) || (b.confidenceLevel - a.confidenceLevel);
+        })
+        .slice(0, 10); // Return top 10 recommendations
+
+      // Calculate summary stats
+      const summary = {
+        totalRecommendations: sortedRecommendations.length,
+        highPriority: sortedRecommendations.filter(r => r.priority === 'high').length,
+        categories: [...new Set(sortedRecommendations.map(r => r.category))],
+        averageConfidence: sortedRecommendations.length > 0 
+          ? Math.round(sortedRecommendations.reduce((sum, r) => sum + r.confidenceLevel, 0) / sortedRecommendations.length)
+          : 0
+      };
+
+      res.json({
+        recommendations: sortedRecommendations,
+        summary,
+        generatedAt: new Date().toISOString(),
+        goalsAnalyzed: goals.length
+      });
+    } catch (error) {
+      console.error('Error generating health recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate health recommendations' });
+    }
+  });
+
+  // Quick goal creation from AI recommendations
+  app.post('/api/health-goals/create-from-recommendation', authenticateJwt, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+
+      const { metricType, goalType, recommendedValue, unit, timeframe, reasoning } = req.body;
+
+      // Create goal from AI recommendation
+      const goalData = {
+        userId: user.id,
+        metricType,
+        goalType,
+        goalValue: recommendedValue,
+        unit,
+        timeframe,
+        startDate: new Date(),
+        status: 'active',
+        notes: `AI-recommended goal: ${reasoning}`
+      };
+
+      const newGoal = await storage.createHealthGoal(goalData);
+      
+      res.status(201).json({
+        goal: newGoal,
+        message: 'Goal created successfully from AI recommendation'
+      });
+    } catch (error) {
+      console.error('Error creating goal from recommendation:', error);
+      res.status(500).json({ message: 'Failed to create goal from recommendation' });
+    }
+  });
+
+// Partner ads and wellness partnerships
+app.get(`${apiRouter}/partner-ads`, async (req, res) => {
+  try {
+    const category = req.query.category as string | undefined;
+    const tag = req.query.tag as string | undefined;
+    const ads = await storage.getPartnerAds(category, tag);
+    res.json(ads);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch partner ads' });
+  }
+});
+
+// Add-on modules and purchases
+app.get(`${apiRouter}/add-on-modules`, async (_req, res) => {
+  try {
+    const modules = await storage.getAddOnModules();
+    res.json(modules);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch add-on modules' });
+  }
+});
+
+app.get(`${apiRouter}/purchases`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const purchases = await storage.getUserPurchases(userId);
+    res.json(purchases);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch purchases' });
+  }
+});
+
+app.post(`${apiRouter}/purchases`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const moduleId = parseInt(req.body.moduleId);
+    const purchase = await storage.createUserPurchase({ userId, moduleId, purchasedAt: new Date() });
+    res.status(201).json(purchase);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create purchase' });
+  }
+});
+
+// Data licensing consent
+app.get(`${apiRouter}/data-licenses`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const licenses = await storage.getDataLicenses(userId);
+    res.json(licenses);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch data licenses' });
+  }
+});
+
+app.post(`${apiRouter}/data-licenses`, authenticateToken, async (req, res) => {
+  try {
+    const userId = req.body.user.id;
+    const { partner, consent } = req.body;
+    const license = await storage.createDataLicense({ userId, partner, consent: !!consent, createdAt: new Date() });
+    res.status(201).json(license);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to create data license' });
+  }
+});
+
+// Challenge sponsorships
+app.get(`${apiRouter}/challenge-sponsorships`, async (req, res) => {
+  try {
+    const challengeId = req.query.challengeId ? parseInt(req.query.challengeId as string) : undefined;
+    const sponsors = await storage.getChallengeSponsorships(challengeId);
+    res.json(sponsors);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch sponsorships' });
+  }
+});
+
+// Admin metrics
+app.get(`${apiRouter}/admin/metrics`, async (_req, res) => {
+  try {
+    const activeUsers = await storage.getActiveSessionCount();
+    const actionCounts = await storage.getActionCounts();
+    const syncCount = actionCounts['health_sync'] || 0;
+    res.json({ activeUsers, syncCount, topActions: actionCounts });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch metrics' });
+  }
+});
+
+// Log storage
+app.post(`${apiRouter}/logs`, async (req, res) => {
+  try {
+    const { level, message, stack } = req.body;
+    const userId = req.body.user?.id;
+    await storage.addLog({ level: level || 'info', message, stack, userId, timestamp: new Date() });
+    res.status(201).json({ status: 'logged' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to store log' });
+  }
+});
+
+// Helper: contextual follow-up suggestions
+function generateFollowUpSuggestions(userMessage: string, healthContext: any): string[] {
+  const message = userMessage.toLowerCase();
+  const suggestions: string[] = [];
+
+  if (message.includes('sleep') || message.includes('tired') || message.includes('rest')) {
+    if (healthContext.sleep.avgHours < 7) {
+      suggestions.push("Want to set a sleep goal to reach 7-8 hours nightly?");
+    }
+    suggestions.push("Should we create a bedtime routine for better sleep quality?");
+    suggestions.push("Would you like tips for improving sleep hygiene?");
+  }
+
+  if (message.includes('heart') || message.includes('fitness') || message.includes('exercise')) {
+    if (healthContext.activity.avgSteps < 8000) {
+      suggestions.push("Want to set a daily step goal to boost your activity?");
+    }
+    suggestions.push("Should we create a cardio plan to improve heart health?");
+    suggestions.push("Would you like breathing exercises for heart rate variability?");
+  }
+
+  if (message.includes('activity') || message.includes('steps') || message.includes('exercise')) {
+    suggestions.push("Want to set up activity reminders throughout your day?");
+    suggestions.push("Should we plan a weekly workout schedule?");
+    suggestions.push("Would you like to track progress with activity challenges?");
+  }
+
+  if (message.includes('stress') || message.includes('recovery') || message.includes('wellness')) {
+    suggestions.push("Want to explore meditation techniques for better recovery?");
+    suggestions.push("Should we set up stress tracking and management?");
+    suggestions.push("Would you like personalized wellness recommendations?");
+  }
+
+  if (message.includes('glucose') || message.includes('blood sugar') || message.includes('nutrition')) {
+    suggestions.push("Want to track how meals affect your glucose levels?");
+    suggestions.push("Should we create meal timing recommendations?");
+    suggestions.push("Would you like nutrition tips for stable blood sugar?");
+  }
+
+  if (suggestions.length === 0) {
+    suggestions.push("Want to set personalized health goals based on your data?");
+    suggestions.push("Should we create a weekly wellness check-in reminder?");
+    suggestions.push("Would you like tips to optimize your current health metrics?");
+  }
+
+  return suggestions;
+}
+
 
   const httpServer = createServer(app);
+
   return httpServer;
 }

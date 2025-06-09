@@ -1,0 +1,90 @@
+// ===============================
+// CoachDashboardSummary.jsx
+// ===============================
+import React from 'react';
+import { HealthScoreCard } from './HealthScoreCard';
+import { HealthAlertBanner } from './HealthAlertBanner';
+import { generateDoctorReport } from './doctorReportGenerator';
+import { useHealthAlerts } from './hooks/useHealthAlerts';
+
+export function CoachDashboardSummary({ client, metrics }) {
+  const alerts = useHealthAlerts(metrics);
+  const score = calculateHealthScore(metrics);
+
+  return (
+    <div className="space-y-6 p-4 border rounded-xl bg-white dark:bg-zinc-900">
+      <h2 className="text-xl font-bold mb-2">{client.name}'s Summary</h2>
+      <HealthScoreCard score={score} />
+      <HealthAlertBanner alerts={alerts} />
+
+      <button
+        onClick={() => generateDoctorReport(client, metrics)}
+        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700"
+      >
+        Export Report for {client.name}
+      </button>
+    </div>
+  );
+}
+
+// ===============================
+// AlertPushNotifier.js
+// ===============================
+import { sendPushNotification } from './utils/notifications';
+import { detectAnomalies } from './riskDetection';
+
+export function handleAlertPush(user, metrics) {
+  const alerts = detectAnomalies(metrics);
+  const critical = alerts.find(a => a.type === 'critical');
+
+  if (critical) {
+    sendPushNotification(user.id, {
+      title: '🚨 Critical Health Alert',
+      body: critical.message,
+      priority: 'high',
+    });
+  }
+}
+
+// ===============================
+// AnomalyTrendGraph.jsx
+// ===============================
+import React from 'react';
+import { Line } from 'react-chartjs-2';
+
+export function AnomalyTrendGraph({ history }) {
+  const data = {
+    labels: history.map(entry => entry.date),
+    datasets: [
+      {
+        label: 'Health Score',
+        data: history.map(entry => entry.score),
+        fill: false,
+        borderColor: '#3b82f6',
+        tension: 0.4,
+      },
+      {
+        label: 'Anomalies',
+        data: history.map(entry => entry.anomalies),
+        fill: false,
+        borderColor: '#ef4444',
+        tension: 0.4,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Weekly Health Trends & Anomalies',
+      },
+    },
+  };
+
+  return <Line data={data} options={options} />;
+}
