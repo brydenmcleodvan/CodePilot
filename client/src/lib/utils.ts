@@ -6,12 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Auth token retrieval utility
+
 export function getAuthToken(): string | null {
   if (typeof localStorage === "undefined") return null;
   return localStorage.getItem("auth_token");
 }
 
 // Download CSV helper
+
 export function downloadCSV(data: Record<string, any>[], filename = 'data.csv') {
   if (!data.length) return;
   const headers = Object.keys(data[0]).join(',');
@@ -25,7 +27,6 @@ export function downloadCSV(data: Record<string, any>[], filename = 'data.csv') 
   link.click();
   document.body.removeChild(link);
 }
-
 // Perplexity AI interfaces
 interface ChatMessage {
   role: string;

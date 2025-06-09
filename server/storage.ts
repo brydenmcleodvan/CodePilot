@@ -138,6 +138,16 @@ export interface IStorage {
   createConnectedDevice(device: InsertConnectedDevice): Promise<ConnectedDevice>;
   updateConnectedDevice(id: number, deviceData: Partial<ConnectedDevice>): Promise<ConnectedDevice | undefined>;
 
+  // User Devices
+  getUserDevices(userId: number): Promise<UserDevice[]>;
+  createUserDevice(device: InsertUserDevice): Promise<UserDevice>;
+  updateUserDevice(id: number, deviceData: Partial<UserDevice>): Promise<UserDevice | undefined>;
+
+  // Connected Devices
+  getConnectedDevices(userId: number): Promise<ConnectedDevice[]>;
+  createConnectedDevice(device: InsertConnectedDevice): Promise<ConnectedDevice>;
+  updateConnectedDevice(id: number, deviceData: Partial<ConnectedDevice>): Promise<ConnectedDevice | undefined>;
+
   // Health Stats
   getUserHealthStats(userId: number): Promise<HealthStat[]>;
   addHealthStat(stat: InsertHealthStat): Promise<HealthStat>;
@@ -228,29 +238,79 @@ interface IStorage {
   getHealthArticles(category?: string, tags?: string[]): Promise<HealthArticle[]>;
   getHealthArticleById(id: number): Promise<HealthArticle | undefined>;
   createHealthArticle(article: InsertHealthArticle): Promise<HealthArticle>;
-  getHealthNews(): Promise<any[]>;
+// Meal Planning
+getUserMealPlans(userId: number): Promise<MealPlan[]>;
+getMealPlanById(id: number): Promise<MealPlan | undefined>;
+createMealPlan(plan: InsertMealPlan): Promise<MealPlan>;
+updateMealPlan(id: number, planData: Partial<MealPlan>): Promise<MealPlan | undefined>;
 
-  // Health Goals
-  createHealthGoal(goalData: InsertHealthGoal): Promise<HealthGoal>;
-  getHealthGoals(userId: number): Promise<HealthGoal[]>;
-  getHealthGoal(goalId: number): Promise<HealthGoal | undefined>;
-  updateHealthGoal(goalId: number, updates: Partial<InsertHealthGoal>): Promise<HealthGoal | undefined>;
-  deleteHealthGoal(goalId: number): Promise<boolean>;
+// Meal Plan Entries
+getMealPlanEntries(mealPlanId: number): Promise<MealPlanEntry[]>;
+getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
+createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
+updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
 
-  // Goal Progress
-  addGoalProgress(progressData: InsertGoalProgress): Promise<GoalProgress>;
-  getGoalProgress(goalId: number): Promise<GoalProgress[]>;
-  getGoalProgressForPeriod(goalId: number, startDate: Date, endDate: Date): Promise<GoalProgress[]>;
+// Anonymized Metrics
+getOrCreateAnonymizedProfile(userId: number): Promise<AnonymizedProfile>;
+addAnonymizedMetric(metric: InsertAnonymizedMetric): Promise<AnonymizedMetric>;
 
-  // Daily Insights
-  addDailyInsight(insight: { userId: number; date: Date; summary: string }): Promise<void>;
-  getDailyInsights(userId: number): Promise<{ id: number; userId: number; date: Date; summary: string; createdAt: Date }[]>;
+// Partner Ads
+getPartnerAds(category?: string, tag?: string): Promise<PartnerAd[]>;
+createPartnerAd(ad: InsertPartnerAd): Promise<PartnerAd>;
 
-  // Security and Permissions
-  getTokenById(tokenId: string): Promise<any>;
-  storeTokenMetadata(tokenData: any): Promise<void>;
-  revokeToken(tokenId: string): Promise<void>;
-  revokeAllUserTokens(userId: number): Promise<void>;
+// Add-on Modules & Purchases
+getAddOnModules(): Promise<AddOnModule[]>;
+getAddOnModuleById(id: number): Promise<AddOnModule | undefined>;
+createAddOnModule(module: InsertAddOnModule): Promise<AddOnModule>;
+getUserPurchases(userId: number): Promise<UserPurchase[]>;
+createUserPurchase(purchase: InsertUserPurchase): Promise<UserPurchase>;
+
+// Data Licensing
+getDataLicenses(userId: number): Promise<DataLicense[]>;
+createDataLicense(license: InsertDataLicense): Promise<DataLicense>;
+
+// Refresh Tokens
+createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken>;
+getRefreshToken(token: string): Promise<RefreshToken | undefined>;
+revokeRefreshToken(token: string): Promise<void>;
+
+// Challenge Sponsorships
+getChallengeSponsorships(challengeId?: number): Promise<ChallengeSponsorship[]>;
+createChallengeSponsorship(sponsorship: InsertChallengeSponsorship): Promise<ChallengeSponsorship>;
+
+// Sessions & Metrics
+createSession(userId: number): Promise<UserSession>;
+updateSession(id: number): Promise<void>;
+getActiveSessionCount(): Promise<number>;
+addMetric(metric: InsertMetric): Promise<Metric>;
+addLog(log: InsertLog): Promise<Log>;
+getActionCounts(): Promise<Record<string, number>>;
+
+// Health News
+getHealthNews(): Promise<any[]>;
+
+// Health Goals
+createHealthGoal(goalData: InsertHealthGoal): Promise<HealthGoal>;
+getHealthGoals(userId: number): Promise<HealthGoal[]>;
+getHealthGoal(goalId: number): Promise<HealthGoal | undefined>;
+updateHealthGoal(goalId: number, updates: Partial<InsertHealthGoal>): Promise<HealthGoal | undefined>;
+deleteHealthGoal(goalId: number): Promise<boolean>;
+
+// Goal Progress
+addGoalProgress(progressData: InsertGoalProgress): Promise<GoalProgress>;
+getGoalProgress(goalId: number): Promise<GoalProgress[]>;
+getGoalProgressForPeriod(goalId: number, startDate: Date, endDate: Date): Promise<GoalProgress[]>;
+
+// Daily Insights
+addDailyInsight(insight: { userId: number; date: Date; summary: string }): Promise<void>;
+getDailyInsights(userId: number): Promise<{ id: number; userId: number; date: Date; summary: string; createdAt: Date }[]>;
+
+// Security and Permissions
+getTokenById(tokenId: string): Promise<any>;
+storeTokenMetadata(tokenData: any): Promise<void>;
+revokeToken(tokenId: string): Promise<void>;
+revokeAllUserTokens(userId: number): Promise<void>;
+
 
   getResourceOwnerId(resourceId: number, resourceType: string): Promise<number | null>;
   isUserAssignedToResource(userId: number, resourceId: number, resourceType: string): Promise<boolean>;
@@ -264,26 +324,44 @@ interface IStorage {
   getFamilyTimelineEvents(userId: number, familyId?: number, memberId?: number, timeFilter?: string): Promise<any[]>;
 }
 
-      username: "johndoe",
-      email: "john@healthmap.com",
-      name: "John Doe",
-  // Sample data seeding for demo purposes
-  async seed() {
-    const user1 = await this.createUser({
-      name: "Demo User",
-      email: "demo@example.com",
-      password: "c7a628cbbfaa66f78e8ee5c8e9cf88b2e4d7b5a5.af2bdbe1aa9b6ec1e2ade1d11e90b88",
-      roles: ["patient"],
-      createdAt: new Date("2024-01-01"),
-      updatedAt: new Date("2024-01-01"),
-      age: 35,
-      healthGoals: "Stay fit and eat well",
-      profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-      healthData: JSON.stringify({}),
-      isPremium: true,
-      preferences: null,
-      profileImage: null,
-      bio: null
+// Sample data seeding for demo purposes
+async seed() {
+  const user1 = await this.createUser({
+    name: "Demo User",
+    email: "demo@example.com",
+    password: "c7a628cbbfaa66f78e8ee5c8e9cf88b2e4d7b5a5.af2bdbe1aa9b6ec1e2ade1d11e90b88",
+    roles: ["patient"],
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+    age: 35,
+    healthGoals: "Stay fit and eat well",
+    profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    healthData: JSON.stringify({}),
+    isPremium: true,
+    preferences: null,
+    profileImage: null,
+    bio: null
+  });
+
+  await this.createNewsUpdate({
+    title: "Scheduled Maintenance Tonight",
+    content: "The system will be undergoing maintenance at 10 PM UTC.",
+    thumbnail: "",
+    category: "System",
+    timestamp: new Date()
+  });
+
+  await this.createProduct({
+    name: "Zinc Complex",
+    description: "High-absorption zinc supplement with copper to support immune function.",
+    price: "$24.99",
+    image: "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80",
+    category: "Supplements",
+    tags: ["zinc", "immune", "recommended"],
+    recommendedFor: ["zinc_deficiency"]
+  });
+}
+
     });
 
     // Seed devices, stats, medications, news, etc.
@@ -317,7 +395,271 @@ interface IStorage {
   private familyTimelineEvents: any[] = [];
   private dailyInsights: { id: number; userId: number; date: Date; summary: string; createdAt: Date }[] = [];
 
-  // User methods...
+async seed() {
+  // ... assume user1 and device1 were created earlier
+
+  // Forum posts
+  await this.createForumPost({
+    userId: 1,
+    title: "STUDY: New research links zinc levels to immune function and metabolism",
+    content: "A new study published in the Journal of Nutritional Science has found significant correlations between zinc levels and both immune function and metabolic health. Here's what you need to know...",
+    subreddit: "Nutrition",
+    upvotes: 95,
+    downvotes: 2,
+    tags: ["Research", "Zinc", "Immunity"],
+    timestamp: new Date()
+  });
+
+  await this.createForumPost({
+    userId: 1,
+    title: "My 30-day experience with zinc supplementation [Before & After]",
+    content: "I decided to document my experience with zinc supplementation after discovering I had low levels. Here's how it affected my energy, skin health, and immune function over 30 days...",
+    subreddit: "Nutrition",
+    upvotes: 64,
+    downvotes: 1,
+    tags: ["Experience", "Zinc", "Supplements"],
+    timestamp: new Date()
+  });
+
+  // Symptoms
+  await this.createSymptom({
+    name: "Headache",
+    description: "Pain or discomfort in the head, scalp, or neck",
+    bodyArea: "head",
+    severity: "moderate",
+    commonCauses: ["Stress", "Dehydration", "Lack of sleep", "Eye strain"],
+    recommendedActions: ["Rest", "Hydrate", "Over-the-counter pain relievers"]
+  });
+
+  await this.createSymptom({
+    name: "Fatigue",
+    description: "Feeling of tiredness, lack of energy, or exhaustion",
+    bodyArea: "full_body",
+    severity: "moderate",
+    commonCauses: ["Poor sleep", "Stress", "Nutrient deficiencies", "Anemia"],
+    recommendedActions: ["Rest", "Balanced diet", "Stress management", "Check for deficiencies"]
+  });
+
+  await this.createSymptom({
+    name: "Chest Pain",
+    description: "Discomfort or pain in the chest area",
+    bodyArea: "chest",
+    severity: "severe",
+    commonCauses: ["Heart issues", "Muscle strain", "Anxiety", "Acid reflux"],
+    recommendedActions: ["Seek immediate medical attention", "Call emergency services"]
+  });
+
+  // Symptom check
+  const now = new Date();
+  await this.createSymptomCheck({
+    userId: 1,
+    timestamp: new Date(now.getTime() - 3 * 86400000), // 3 days ago
+    reportedSymptoms: ["Headache", "Fatigue"],
+    preliminaryAssessment: "Possible dehydration or stress-related symptoms",
+    recommendedActions: ["Increase water intake", "Rest", "Over-the-counter pain relievers if needed"],
+    severity: "routine",
+    notes: "Symptoms appeared after long work session with limited water intake"
+  });
+
+  // Appointments
+  const nextWeek = new Date(now);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  nextWeek.setHours(10, 30, 0, 0);
+
+  const nextWeekEnd = new Date(nextWeek);
+  nextWeekEnd.setHours(11, 15, 0, 0);
+
+  await this.createAppointment({
+    userId: 1,
+    title: "Annual Physical Checkup",
+    description: "Regular annual physical examination with primary care physician",
+    startTime: nextWeek,
+    endTime: nextWeekEnd,
+    location: "Dr. Smith's Clinic, 123 Health St",
+    provider: "Dr. James Smith",
+    status: "scheduled",
+    type: "checkup",
+    reminderSent: false
+  });
+
+  const twoWeeksLater = new Date(now);
+  twoWeeksLater.setDate(twoWeeksLater.getDate() + 14);
+  twoWeeksLater.setHours(14, 0, 0, 0);
+
+  const twoWeeksLaterEnd = new Date(twoWeeksLater);
+  twoWeeksLaterEnd.setHours(14, 45, 0, 0);
+
+  await this.createAppointment({
+    userId: 1,
+    title: "Nutritional Consultation",
+    description: "Follow-up appointment to discuss zinc deficiency and nutritional plan",
+    startTime: twoWeeksLater,
+    endTime: twoWeeksLaterEnd,
+    location: "Wellness Nutrition Center, 456 Healthy Blvd",
+    provider: "Dr. Sarah Johnson, RD",
+    status: "scheduled",
+    type: "specialist",
+    reminderSent: false
+  });
+
+  // Health data connection
+  await this.createHealthDataConnection({
+    userId: 1,
+    deviceId: device1.id,
+    provider: "apple_health",
+    connected: false,
+    lastSynced: null,
+    accessToken: null,
+    refreshToken: null,
+    scope: ["activity", "heart_rate", "sleep"],
+    expiresAt: null
+  });
+
+  // Health journey
+  await this.createHealthJourneyEntry({
+    userId: 1,
+    timestamp: new Date(now.getTime() - 7 * 86400000), // 7 days ago
+    category: "nutrition",
+    title: "Started Zinc Supplements",
+    description: "Started taking zinc supplements to improve my immune function after recent blood tests showed deficiency.",
+    metrics: JSON.stringify({ supplement: "Zinc", dosage: "50mg", frequency: "daily" }),
+    mediaUrl: null,
+    sentiment: "positive"
+  });
+
+  await this.createHealthJourneyEntry({
+    userId: 1,
+    timestamp: new Date(now.getTime() - 2 * 86400000), // 2 days ago
+    category: "exercise",
+    title: "Increased daily steps goal",
+    description: "Increased my daily step goal from 8,000 to 10,000 steps. Feeling more energetic lately.",
+    metrics: JSON.stringify({ previous_goal: 8000, new_goal: 10000, current_average: 7500 }),
+    mediaUrl: null,
+    sentiment: "positive"
+  });
+
+  // Health coaching plan
+  await this.createHealthCoachingPlan({
+    userId: 1,
+    title: "Zinc Deficiency Improvement Plan",
+    description: "A personalized plan to address your zinc deficiency and boost your immune system",
+    createdAt: new Date(now.getTime() - 7 * 86400000),
+    updatedAt: new Date(now.getTime() - 7 * 86400000),
+    goals: [
+      "Increase zinc levels to normal range within 3 months",
+      "Reduce frequency of seasonal illness",
+      "Improve energy levels"
+    ],
+    recommendations: [
+      "Take zinc supplement daily with food",
+      "Increase consumption of zinc-rich foods (oysters, beef, pumpkin seeds)",
+      "Monitor for improvements in immune function",
+      "Retest zinc levels after 3 months"
+    ],
+    progress: 25,
+    active: true
+  });
+
+  // Wellness challenge
+  const walkingChallenge = await this.createWellnessChallenge({
+    title: "10K Steps Challenge",
+    description: "Walk at least 10,000 steps every day for 30 days to boost cardiovascular health and energy levels",
+    category: "fitness",
+    pointsReward: 500,
+    startDate: new Date(now.getTime() - 15 * 86400000),
+    endDate: new Date(now.getTime() + 15 * 86400000),
+    requirementType: "steps",
+    requirementTarget: 10000,
+    image: "https://images.unsplash.com/photo-1510021115607-c94b84bcb73a?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80"
+  });
+
+  await this.createUserChallengeProgress({
+    userId: 1,
+    challengeId: walkingChallenge.id,
+    joined: new Date(now.getTime() - 10 * 86400000),
+    currentProgress: 7500,
+    completed: false,
+    completedAt: null
+  });
+
+  // Mental health assessment
+  await this.createMentalHealthAssessment({
+    userId: 1,
+    timestamp: new Date(now.getTime() - 5 * 86400000),
+    assessmentType: "stress",
+    score: 7,
+    notes: "Feeling moderately stressed due to work deadlines and health concerns",
+    recommendations: [
+      "Practice mindfulness meditation for 10 minutes daily",
+      "Take short breaks during work hours",
+      "Prioritize 7-8 hours of sleep",
+      "Consider speaking with a mental health professional if stress persists"
+    ]
+  });
+
+  // Mood entries
+  await this.createMoodEntry({
+    userId: 1,
+    date: new Date(now.getTime() - 4 * 86400000),
+    mood: 6,
+    energy: 5,
+    sleep: 6.5,
+    categories: ["work", "health"],
+    notes: "Feeling tired after a long day at work. Stress about upcoming health appointment.",
+    factors: ["work stress", "health issue"]
+  });
+
+  await this.createMoodEntry({
+    userId: 1,
+    date: new Date(now.getTime() - 3 * 86400000),
+    mood: 8,
+    energy: 7,
+    sleep: 7.5,
+    categories: ["personal", "social"],
+    notes: "Had a good night's sleep and spent time with friends. Feeling much better.",
+    factors: ["good sleep", "social connection", "relaxation"]
+  });
+
+  await this.createMoodEntry({
+    userId: 1,
+    date: new Date(now.getTime() - 86400000),
+    mood: 7,
+    energy: 8,
+    sleep: 8,
+    categories: ["personal", "health"],
+    notes: "Started morning with exercise and took zinc supplement. Feeling energized.",
+    factors: ["exercise", "nutrition"]
+  });
+
+  // Health article
+  await this.createHealthArticle({
+    title: "Understanding Zinc's Role in Immune Function",
+    summary: "A comprehensive guide to how zinc affects your immune system and what deficiency means for your health",
+    content: "...", // Full article content here
+    authorName: "Dr. Emily Chen, PhD",
+    publishedAt: new Date(now.getTime() - 30 * 86400000),
+    category: "Nutrition",
+    tags: ["zinc", "immunity", "nutrition", "micronutrients"],
+    imageUrl: "https://images.unsplash.com/photo-1505253758473-96b7015fcd40",
+    sourceName: "Journal of Nutritional Science",
+    sourceUrl: "https://example.com/jns/zinc-immune-function",
+    readTime: 8
+  });
+
+  // Meal plans and entries
+  const mealPlan = await this.createMealPlan({ /* same as before */ });
+  await this.createMealPlanEntry({ /* breakfast */ });
+  await this.createMealPlanEntry({ /* lunch */ });
+
+  // Monetization: Ads, Modules, Purchases
+  await this.createPartnerAd({ /* partner ad info */ });
+  const coachingModule = await this.createAddOnModule({ /* module info */ });
+  await this.createUserPurchase({ userId: 1, moduleId: coachingModule.id, purchasedAt: new Date() });
+  await this.createDataLicense({ userId: 1, partner: "Health Research Co", consent: true, createdAt: new Date() });
+  await this.createChallengeSponsorship({ challengeId: walkingChallenge.id, sponsor: "FitBrand", url: "...", description: "..." });
+}
+
+// User Management
 
   async getUser(id: number): Promise<User | undefined> {
     return this.users.find(user => user.id === id);
@@ -418,6 +760,25 @@ interface IStorage {
     });
 
     return newStat;
+  }
+
+  // Synced Data
+  async getDeviceSyncedData(deviceId: number): Promise<SyncedData[]> {
+    return Array.from(this.syncedData.values()).filter(d => d.deviceId === deviceId);
+  }
+
+  async addSyncedData(data: InsertSyncedData): Promise<SyncedData> {
+    const id = this.syncedDataIdCounter++;
+    const newData: SyncedData = { ...data, id };
+    this.syncedData.set(id, newData);
+    return newData;
+  }
+
+  // Medications
+  async getUserMedications(userId: number): Promise<Medication[]> {
+    return Array.from(this.medications.values()).filter(
+      (medication) => medication.userId === userId && medication.active
+    );
   }
 
   }
@@ -739,10 +1100,11 @@ interface IStorage {
     if (connectionData.refreshToken !== undefined) {
       updatedConnection.refreshToken = connectionData.refreshToken ? encrypt(connectionData.refreshToken) : null;
     }
-    Object.assign(updatedConnection, connectionData, {
-      accessToken: updatedConnection.accessToken,
-      refreshToken: updatedConnection.refreshToken
-    });
+Object.assign(updatedConnection, connectionData, {
+  accessToken: updatedConnection.accessToken,
+  refreshToken: updatedConnection.refreshToken
+});
+
     this.healthDataConnections.set(id, updatedConnection);
     return updatedConnection;
   }
@@ -1242,8 +1604,6 @@ interface IStorage {
 
   async getDailyInsights(userId: number): Promise<{ id: number; userId: number; date: Date; summary: string; createdAt: Date }[]> {
     return this.dailyInsights.filter(i => i.userId === userId);
-  }
-
   }
 
   // Anonymized Metrics

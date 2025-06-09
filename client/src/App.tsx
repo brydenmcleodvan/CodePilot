@@ -4,10 +4,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth";
-import NotificationProvider from "@/lib/notifications";
+import { NotificationProvider } from "@/lib/notifications";
 import SystemAlerts from "@/components/system-alerts";
 import ThemeProvider from "@/components/theme-provider";
-import Loader from "lucide-react";
+import { Loader2 } from "lucide-react";
+
 
 // Core pages with immediate loading
 import Home from "@/pages/home";
@@ -15,9 +16,9 @@ import Profile from "@/pages/profile";
 import ProfileEdit from "@/pages/profile-edit";
 import Forum from "@/pages/forum";
 import MessagesPage from "@/pages/messages";
+import Auth from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
-import Auth from "@/pages/auth";
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 
@@ -84,6 +85,9 @@ function Router() {
   const LoadingComponent = () => (
     <div className="flex items-center justify-center min-h-[60vh]">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+  );
+
     </div>
   );
 
@@ -159,8 +163,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
 <ThemeProvider defaultTheme="light">
-  <Router />
-  <Toaster />
+  <NotificationProvider>
+    <Router />
+    <Toaster />
+  </NotificationProvider>
 </ThemeProvider>
 
       </AuthProvider>

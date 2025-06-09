@@ -51,13 +51,15 @@ const MobileNavLink = ({ href, active, children }: NavLinkProps) => {
   );
 };
 
+
 const Navbar = () => {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { unreadCount } = useNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
+const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
   const { isDark, toggle } = useDarkMode();
 
   const handleLogout = () => {
@@ -83,46 +85,58 @@ const Navbar = () => {
   }, [location]);
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-border-light dark:border-gray-700">
-      <div className="clean-container">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-3 h-full">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center justify-center p-1.5 bg-primary/10 dark:bg-primary/20 rounded-full">
-                <i className="ri-heart-pulse-line text-primary text-xl"></i>
-              </div>
-              <span className="text-xl font-heading font-bold text-dark-text dark:text-white transition-colors duration-200">
-                Healthmap
-              </span>
-            </Link>
+<header className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 border-b border-border-light dark:border-gray-700">
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex justify-between items-center h-16">
+      <div className="flex items-center gap-3 h-full">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex items-center justify-center p-1.5 bg-primary/10 dark:bg-primary/20 rounded-full">
+            <i className="ri-heart-pulse-line text-primary text-xl"></i>
           </div>
+          <span className="text-xl font-heading font-bold text-dark-text dark:text-white transition-colors duration-200">
+            Healthmap
+          </span>
+        </Link>
+      </div>
 
-          <nav className="hidden md:flex items-center space-x-8 h-full">
-            <NavLink href="/" active={location === "/"}>Home</NavLink>
-            <NavLink href="/profile" active={location === "/profile"}>Profile</NavLink>
-            <NavLink href="/dashboard" active={location === "/dashboard"}>Dashboard</NavLink>
-            <NavLink href="/family" active={location === "/family"}>Family Health</NavLink>
-            <div className="flex items-center justify-center h-full">
-              <DropdownMenu open={isMoreDropdownOpen} onOpenChange={setIsMoreDropdownOpen}>
-                <DropdownMenuTrigger className="text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
-                  More <ChevronDown className="h-3 w-3" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700 p-1">
-                  <DropdownMenuItem asChild><Link href="/health-coach">Health Coach</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/connections">Connections</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/forum">Forum</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/messenger">Messenger</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/nutrition">Nutrition</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/longevity">Longevity</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/metabolic">Metabolic Health</Link></DropdownMenuItem>
-                  <DropdownMenuItem asChild><Link href="/integrations">Integrations</Link></DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </nav>
+      <nav className="hidden md:flex items-center space-x-8 h-full">
+        <NavLink href="/" active={location === "/"}>Home</NavLink>
+        <NavLink href="/dashboard" active={location === "/dashboard"}>Dashboard</NavLink>
+        <NavLink href="/profile" active={location === "/profile"}>Profile</NavLink>
+        <NavLink href="/admin" active={location === "/admin"}>Admin</NavLink>
+        <NavLink href="/forum" active={location.startsWith("/forum")}>Forum</NavLink>
+        <NavLink href="/messages" active={location.startsWith("/messages")}>
+          Messages
+          {unreadCount > 0 && (
+            <Badge className="ml-1" variant="destructive">
+              {unreadCount}
+            </Badge>
+          )}
+        </NavLink>
+        <div className="flex items-center justify-center h-full">
+          <DropdownMenu open={isMoreDropdownOpen} onOpenChange={setIsMoreDropdownOpen}>
+            <DropdownMenuTrigger className="text-body-text dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 flex items-center gap-1 text-sm font-medium">
+              More <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white dark:bg-gray-800 border dark:border-gray-700 p-1">
+              <DropdownMenuItem asChild><Link href="/health-coach">Health Coach</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/connections">Connections</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/nutrition">Nutrition</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/longevity">Longevity</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/metabolic">Metabolic Health</Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/integrations">Integrations</Link></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </nav>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+      </div>
+    </div>
+  </div>
+</header>
+
 
             {user ? (
               <DropdownMenu open={isUserDropdownOpen} onOpenChange={setIsUserDropdownOpen}>
@@ -155,32 +169,59 @@ const Navbar = () => {
               </div>
             )}
 
-            <button onClick={toggle} aria-label="Toggle dark mode" className="text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded">
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button>
+<button
+  onClick={toggle}
+  aria-label="Toggle dark mode"
+  className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+>
+  {isDark ? (
+    <Sun className="h-5 w-5" aria-hidden="true" />
+  ) : (
+    <Moon className="h-5 w-5" aria-hidden="true" />
+  )}
+</button>
 
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary focus:outline-none" aria-label="Toggle mobile menu">
-              <Menu className="h-6 w-6" />
+<button
+  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+  aria-label="Toggle mobile menu"
+  aria-expanded={isMobileMenuOpen}
+  className="md:hidden text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+>
+  <Menu className="h-6 w-6" aria-hidden="true" />
+</button>
+
               <span className="sr-only">Toggle navigation menu</span>
             </button>
           </div>
         </div>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden py-3 px-2 border-t border-light-blue-border dark:border-gray-700">
-            <nav className="flex flex-col space-y-0.5">
-              <MobileNavLink href="/" active={location === "/"}>Home</MobileNavLink>
-              <MobileNavLink href="/profile" active={location === "/profile"}>Profile</MobileNavLink>
-              <MobileNavLink href="/dashboard" active={location === "/dashboard"}>Dashboard</MobileNavLink>
-              <MobileNavLink href="/health-coach" active={location === "/health-coach"}>Health Coach</MobileNavLink>
-              <MobileNavLink href="/connections" active={location === "/connections"}>Connections</MobileNavLink>
-              <MobileNavLink href="/family" active={location === "/family"}>Family Health</MobileNavLink>
-              <MobileNavLink href="/forum" active={location === "/forum"}>Forum</MobileNavLink>
-              <MobileNavLink href="/messenger" active={location === "/messenger"}>Messenger</MobileNavLink>
-              <MobileNavLink href="/nutrition" active={location === "/nutrition"}>Nutrition</MobileNavLink>
-              <MobileNavLink href="/longevity" active={location === "/longevity"}>Longevity</MobileNavLink>
-              <MobileNavLink href="/metabolic" active={location === "/metabolic"}>Metabolic Health</MobileNavLink>
-              <MobileNavLink href="/integrations" active={location === "/integrations"}>Integrations</MobileNavLink>
+<div className="md:hidden py-4 px-2 border-t border-light-blue-border dark:border-gray-700">
+  <nav className="flex flex-col space-y-1" role="navigation" aria-label="mobile">
+    <MobileNavLink href="/" active={location === "/"}>Home</MobileNavLink>
+    <MobileNavLink href="/dashboard" active={location === "/dashboard"}>Dashboard</MobileNavLink>
+    <MobileNavLink href="/profile" active={location === "/profile"}>Profile</MobileNavLink>
+    <MobileNavLink href="/messages" active={location.startsWith("/messages")}>
+      Messages
+      {unreadCount > 0 && (
+        <Badge className="ml-2" variant="destructive">
+          {unreadCount}
+        </Badge>
+      )}
+    </MobileNavLink>
+    <MobileNavLink href="/admin" active={location === "/admin"}>Admin</MobileNavLink>
+    <MobileNavLink href="/forum" active={location.startsWith("/forum")}>Forum</MobileNavLink>
+    <MobileNavLink href="/health-coach" active={location === "/health-coach"}>Health Coach</MobileNavLink>
+    <MobileNavLink href="/connections" active={location === "/connections"}>Connections</MobileNavLink>
+    <MobileNavLink href="/family" active={location === "/family"}>Family Health</MobileNavLink>
+    <MobileNavLink href="/messenger" active={location === "/messenger"}>Messenger</MobileNavLink>
+    <MobileNavLink href="/nutrition" active={location === "/nutrition"}>Nutrition</MobileNavLink>
+    <MobileNavLink href="/longevity" active={location === "/longevity"}>Longevity</MobileNavLink>
+    <MobileNavLink href="/metabolic" active={location === "/metabolic"}>Metabolic Health</MobileNavLink>
+    <MobileNavLink href="/integrations" active={location === "/integrations"}>Integrations</MobileNavLink>
+  </nav>
+</div>
+
             </nav>
           </div>
         )}

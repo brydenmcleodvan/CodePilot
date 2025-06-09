@@ -369,7 +369,7 @@ const Profile = () => {
       </div>
     </div>
     <p className="text-gray-600 dark:text-gray-300">
-      Connect and manage your health data from Apple Watch, Whoop Strap, medical records, and more.
+      Connect and manage your health data from various sources.
     </p>
   </div>
 
@@ -387,6 +387,7 @@ const Profile = () => {
 
 <div className="grid grid-cols-1 gap-6">
   <FamilyTree />
+</div>
 
               </div>
             </div>
