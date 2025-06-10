@@ -22,17 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
-import { lazy, Suspense } from 'react';
-const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
-
-function ChartFallback() {
-  return (
-    <div className="flex justify-center items-center h-48">
-      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-    </div>
-  );
-}
+import { Line } from 'react-chartjs-2';
 
 interface DailyHealthScore {
   date: string;
@@ -644,9 +634,7 @@ export default function HealthScoreDashboard() {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <Suspense fallback={<ChartFallback />}>
-                  <Line data={chartData} options={chartOptions} />
-                </Suspense>
+                <Line data={chartData} options={chartOptions} />
               </div>
             </CardContent>
           </Card>

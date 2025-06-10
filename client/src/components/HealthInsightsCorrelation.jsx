@@ -1,17 +1,7 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
-const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
-const Scatter = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Scatter })));
-import { Loader2 } from 'lucide-react';
-
-function ChartFallback() {
-  return (
-    <div className="flex justify-center items-center h-48">
-      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-    </div>
-  );
-}
+import { Line, Scatter } from 'react-chartjs-2';
 import {
   TrendingUp,
   TrendingDown,
@@ -284,8 +274,7 @@ export function HealthInsightsCorrelation() {
                     <div>
                       <h3 className="font-semibold mb-3">Correlation Scatter Plot</h3>
                       <div className="h-64 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                        <Suspense fallback={<ChartFallback />}>
-                          <Scatter
+                        <Scatter
                           data={{
                             datasets: [{
                               label: 'Data Points',
@@ -322,8 +311,7 @@ export function HealthInsightsCorrelation() {
                               }
                             }
                           }}
-                          />
-                        </Suspense>
+                        />
                       </div>
                     </div>
 
@@ -331,10 +319,9 @@ export function HealthInsightsCorrelation() {
                     <div>
                       <h3 className="font-semibold mb-3">Timeline Comparison</h3>
                       <div className="h-64 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                        <Suspense fallback={<ChartFallback />}>
-                          <Line
+                        <Line
                           data={{
-                            labels: visualizationData.timeline?.metric1Data?.map(d =>
+                            labels: visualizationData.timeline?.metric1Data?.map(d => 
                               new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                             ) || [],
                             datasets: [
@@ -385,8 +372,7 @@ export function HealthInsightsCorrelation() {
                               }
                             }
                           }}
-                          />
-                        </Suspense>
+                        />
                       </div>
                     </div>
                   </div>

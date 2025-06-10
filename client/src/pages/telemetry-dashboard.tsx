@@ -1,18 +1,7 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-const Line = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Line })));
-const Bar = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Bar })));
-const Doughnut = lazy(() => import('react-chartjs-2').then(m => ({ default: m.Doughnut })));
-import { Loader2 } from 'lucide-react';
-
-function ChartFallback() {
-  return (
-    <div className="flex justify-center items-center h-48">
-      <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-    </div>
-  );
-}
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -271,10 +260,9 @@ export default function TelemetryDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
-                    <Suspense fallback={<ChartFallback />}>
-                      <Line
+                    <Line
                       data={{
-                        labels: featureUsageOverTime.map(item =>
+                        labels: featureUsageOverTime.map(item => 
                           new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                         ),
                         datasets: [
@@ -321,8 +309,7 @@ export default function TelemetryDashboard() {
                           }
                         }
                       }}
-                      />
-                    </Suspense>
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -375,8 +362,7 @@ export default function TelemetryDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
-                    <Suspense fallback={<ChartFallback />}>
-                      <Doughnut
+                    <Doughnut
                       data={{
                         labels: Object.keys(supportTicketsByTopic),
                         datasets: [{
@@ -402,8 +388,7 @@ export default function TelemetryDashboard() {
                           }
                         }
                       }}
-                      />
-                    </Suspense>
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -482,8 +467,7 @@ export default function TelemetryDashboard() {
                     </div>
 
                     <div className="h-64">
-                      <Suspense fallback={<ChartFallback />}>
-                        <Bar
+                      <Bar
                         data={{
                           labels: ['Daily Active', 'Weekly Active', 'Monthly Active'],
                           datasets: [{
@@ -520,8 +504,7 @@ export default function TelemetryDashboard() {
                             }
                           }
                         }}
-                        />
-                      </Suspense>
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -568,8 +551,7 @@ export default function TelemetryDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
-                    <Suspense fallback={<ChartFallback />}>
-                      <Doughnut
+                    <Doughnut
                       data={{
                         labels: Object.keys(subscriptionBreakdown),
                         datasets: [{
@@ -593,8 +575,7 @@ export default function TelemetryDashboard() {
                           }
                         }
                       }}
-                      />
-                    </Suspense>
+                    />
                   </div>
                 </CardContent>
               </Card>

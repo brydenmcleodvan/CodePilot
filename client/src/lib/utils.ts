@@ -5,29 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Auth token retrieval utility
-
-export function getAuthToken(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  return localStorage.getItem("auth_token");
-}
-
-// Download CSV helper
-
-export function downloadCSV(data: Record<string, any>[], filename = 'data.csv') {
-  if (!data.length) return;
-  const headers = Object.keys(data[0]).join(',');
-  const rows = data.map((row) => Object.values(row).join(',')).join('\n');
-  const csv = headers + '\n' + rows;
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-// Perplexity AI interfaces
 interface ChatMessage {
   role: string;
   content: string;
@@ -58,7 +35,7 @@ interface PerplexityResponse {
   };
 }
 
-// Function to query Perplexity API
+// Function to interact with Perplexity API
 export async function queryPerplexityAPI(messages: ChatMessage[]): Promise<string> {
   try {
     const response = await fetch('/api/perplexity', {
@@ -81,7 +58,7 @@ export async function queryPerplexityAPI(messages: ChatMessage[]): Promise<strin
   }
 }
 
-// Fallback health responses
+// Fallback responses for when the API isn't available
 export const healthResponses = [
   "Based on general health guidelines, adults should aim for 7-9 hours of sleep per night for optimal health. If you're consistently getting less, it may be worth examining your sleep hygiene practices.",
   "While I can provide general information, it's always best to consult with your healthcare provider about specific diet recommendations for your situation. Generally, a balanced diet rich in vegetables, fruits, lean proteins, and whole grains is beneficial for most people.",
@@ -93,4 +70,3 @@ export const healthResponses = [
   "Signs of vitamin D deficiency may include fatigue, bone pain, muscle weakness, mood changes, and increased susceptibility to infections. A blood test can confirm if your levels are low.",
   "To improve sleep quality, consider maintaining a consistent sleep schedule, creating a restful environment, limiting screen time before bed, avoiding caffeine in the afternoon/evening, and developing a calming pre-sleep routine."
 ];
-

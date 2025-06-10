@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getAuthToken } from "./utils";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -19,7 +18,7 @@ export async function apiRequest(
   };
   
   // Add authorization header if token exists
-  const token = getAuthToken();
+  const token = localStorage.getItem("auth_token");
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -56,7 +55,7 @@ export const getQueryFn: <T>(options: {
     };
     
     // Add authorization header if token exists
-    const token = getAuthToken();
+    const token = localStorage.getItem("auth_token");
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }

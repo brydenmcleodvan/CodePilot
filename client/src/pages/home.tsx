@@ -60,7 +60,7 @@ const Home = () => {
   });
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="container mx-auto px-4 py-6">
       <section id="home" className="py-8">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl overflow-hidden shadow-lg mb-12">

@@ -71,7 +71,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Profile Sidebar */}
         <div className="md:w-1/3 lg:w-1/4">
@@ -85,17 +85,11 @@ const Profile = () => {
                 height={96}
                 priority={true}
               />
-<h2 className="text-xl font-medium dark:text-white">{user.name}</h2>
-<p className="text-gray-500 dark:text-gray-400">{user.email}</p>
-<Link
-  href="/profile/edit"
-  className="mt-4 w-full bg-white dark:bg-gray-700 text-primary dark:text-primary-400 border border-primary dark:border-primary-500 font-medium py-2 rounded-md hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-200 text-center"
->
-  Edit Profile
-</Link>
-
+              <h2 className="text-xl font-medium dark:text-white">{user.name}</h2>
+              <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+              <button className="mt-4 w-full bg-white dark:bg-gray-700 text-primary dark:text-primary-400 border border-primary dark:border-primary-500 font-medium py-2 rounded-md hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors duration-200">
                 Edit Profile
-              </Link>
+              </button>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -355,40 +349,28 @@ const Profile = () => {
 
           {activeTab === "health-data" && (
             <div className="space-y-6">
-<div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-  <div className="mb-6">
-    <div className="flex justify-between items-center mb-2">
-      <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Health Data</h2>
-      <div className="flex space-x-2">
-        <Button variant="outline" size="sm">
-          <i className="ri-refresh-line mr-1"></i> Sync Devices
-        </Button>
-        <Button size="sm">
-          <i className="ri-add-line mr-1"></i> Connect Device
-        </Button>
-      </div>
-    </div>
-    <p className="text-gray-600 dark:text-gray-300">
-      Connect and manage your health data from various sources.
-    </p>
-  </div>
-
-  <HealthStats userId={user.id} detailed={true} />
-
-  <div className="mt-8">
-    <HealthVisualization />
-  </div>
-</div>
-
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  <GoalTracker />
-  <MedicationTracker />
-</div>
-
-<div className="grid grid-cols-1 gap-6">
-  <FamilyTree />
-</div>
-
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-2xl font-heading font-semibold text-dark-text dark:text-white">Health Data</h2>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        <i className="ri-refresh-line mr-1"></i> Sync Devices
+                      </Button>
+                      <Button size="sm">
+                        <i className="ri-add-line mr-1"></i> Connect Device
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Your comprehensive health dashboard with data from Apple Watch, Whoop Strap, and medical records.
+                  </p>
+                </div>
+                
+                {/* Enhanced Dashboard Component */}
+                <div className="mt-8">
+                  <HealthDashboard />
+                </div>
               </div>
             </div>
           )}

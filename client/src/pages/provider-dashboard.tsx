@@ -1,11 +1,6 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useAuth } from "@/lib/auth";
-
-const ProviderDashboardView = lazy(() =>
-  import("@/components/ProviderDashboardView").then((m) => ({
-    default: m.ProviderDashboardView || m.default,
-  }))
-);
+import { ProviderDashboardView } from "@/components/ProviderDashboardView";
 import { Loader2 } from "lucide-react";
 
 function LoadingSpinner() {
