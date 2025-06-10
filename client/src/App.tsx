@@ -4,12 +4,24 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/auth";
-import { ThemeProvider } from "@/components/theme-provider";
+import { NotificationProvider } from "@/lib/notifications";
+import SystemAlerts from "@/components/system-alerts";
+import ThemeProvider from "@/components/theme-provider";
 import { Loader2 } from "lucide-react";
+
 
 // Core pages with immediate loading
 import Home from "@/pages/home";
+import Profile from "@/pages/profile";
+import ProfileEdit from "@/pages/profile-edit";
+import Forum from "@/pages/forum";
+import MessagesPage from "@/pages/messages";
 import Auth from "@/pages/auth";
+import Dashboard from "@/pages/dashboard";
+import AdminDashboard from "@/pages/admin-dashboard";
+import NotFound from "@/pages/not-found";
+import LandingPage from "@/pages/landing";
+
 import NotFound from "@/pages/not-found";
 import LandingPage from "@/pages/landing";
 
@@ -76,66 +88,73 @@ function Router() {
     </div>
   );
 
-  return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-900 dark:text-white transition-colors duration-200">
-      {!hideNavAndFooter && <Navbar />}
-      
-      <main className="flex-grow py-8">
-        <div className="clean-container">
-          <Suspense fallback={<LoadingComponent />}>
-            <Switch>
-              <Route path="/" component={Home} />
-              <Route path="/enhanced" component={EnhancedHome} />
-              <Route path="/landing" component={LandingPage} />
-              <Route path="/landing-new" component={LandingPageNew} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/profile" component={Profile} />
-              <Route path="/forum" component={Forum} />
-              <Route path="/forum/:subreddit" component={Forum} />
-              <Route path="/auth/:type" component={Auth} />
-              <Route path="/python-integration" component={PythonIntegrationPage} />
-              <Route path="/health-coach" component={HealthCoach} />
-              <Route path="/connections" component={Connections} />
-              <Route path="/family" component={Family} />
-              <Route path="/family-tree" component={FamilyTreePage} />
-              <Route path="/messenger" component={MessengerPage} />
-              <Route path="/shop" component={Shop} />
-              <Route path="/nutrition" component={NutritionPage} />
-              <Route path="/longevity" component={LongevityPage} />
-              <Route path="/metabolic" component={MetabolicHealthPage} />
-              <Route path="/integrations" component={IntegrationsPage} />
-              <Route path="/integrations/callback/:service" component={OAuthCallbackPage} />
-              <Route path="/thank-you" component={ThankYouPage} />
-              <Route path="/ai-intelligence" component={AIIntelligencePage} />
-              <Route path="/privacy-policy" component={PrivacyPolicyPage} />
-              <Route path="/settings" component={SettingsPage} />
-              <Route path="/settings/privacy" component={PrivacySettingsPage} />
-              <Route path="/settings/connected-services" component={ConnectedServicesPage} />
-              <Route path="/progress" component={ProgressPage} />
-              <Route path="/dna" component={DNAInsightsPage} />
-              <Route path="/provider" component={ProviderDashboardPage} />
-              <Route path="/habits" component={HabitsPage} />
-              <Route path="/health-goals" component={HealthGoalsPage} />
-              <Route path="/goals" component={HealthGoalsPage} />
-              <Route path="/changelog" component={ChangelogPage} />
-              <Route path="/feature-voting" component={FeatureVotingPage} />
-              <Route path="/skeleton-demo" component={SkeletonDemoPage} />
-              <Route path="/responsive-ui-demo" component={ResponsiveUIDemoPage} />
-              <Route path="/summary" component={SummaryPage} />
-              <Route path="/email-automation" component={EmailAutomationPage} />
-              <Route path="/coach-dashboard" component={CoachDashboardPage} />
-              <Route path="/telehealth" component={TelehealthPage} />
-              <Route path="/global-compliance" component={GlobalCompliancePage} />
-              <Route path="/marketplace" component={AffiliateMarketplacePage} />
-              <Route path="/b2b-licensing" component={B2BLicensingPage} />
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </div>
-      </main>
-      
-      {!hideNavAndFooter && <Footer />}
     </div>
+  );
+
+
+return (
+  <>
+    {!isAuthPage && <Navbar />}
+    {isAuthPage && <SystemAlerts />}
+
+    <main className="flex-col min-h-screen bg-white dark:bg-gray-900 text-white transition-colors duration-200">
+      {!hideNavAndFooter && <Navbar />}
+
+      <div className="flex-grow py-8">
+        <Suspense fallback={<LoadingComponent />}>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/enhanced" component={EnhancedHome} />
+            <Route path="/landing" component={LandingPage} />
+            <Route path="/landing-new" component={LandingPageNew} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/forum" component={Forum} />
+            <Route path="/forum/subreddit" component={Forum} />
+            <Route path="/auth/:type" component={Auth} />
+            <Route path="/shop" component={Shop} />
+            <Route path="/health-coach" component={HealthCoach} />
+            <Route path="/connections" component={Connections} />
+            <Route path="/nutrition" component={NutritionPage} />
+            <Route path="/longevity" component={LongevityPage} />
+            <Route path="/metabolic" component={MetabolicHealthPage} />
+            <Route path="/integrations" component={IntegrationsPage} />
+            <Route path="/integrations/callback/service" component={OAuthCallbackPage} />
+            <Route path="/thank-you" component={ThankYouPage} />
+            <Route path="/ai-intelligence" component={AIntelligencePage} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route path="/settings/privacy" component={PrivacySettingsPage} />
+            <Route path="/settings/connected-services" component={ConnectedServicesPage} />
+            <Route path="/progress" component={ProgressPage} />
+            <Route path="/provider" component={ProviderDashboardPage} />
+            <Route path="/dna" component={DNAInsightsDashboard} />
+            <Route path="/habits" component={HabitsPage} />
+            <Route path="/health-goals" component={HealthGoalsPage} />
+            <Route path="/goals" component={HealthGoalsPage} />
+            <Route path="/changelog" component={ChangeLogPage} />
+            <Route path="/feature-voting" component={FeatureVotingPage} />
+            <Route path="/skeleton-demo" component={SkeletonDemoPage} />
+            <Route path="/responsive-ui-demo" component={ResponsiveUIDemoPage} />
+            <Route path="/summary" component={SummaryPage} />
+            <Route path="/email-automation" component={EmailAutomationPage} />
+            <Route path="/coach-dashboard" component={CoachDashboardPage} />
+            <Route path="/telehealth" component={TelehealthPage} />
+            <Route path="/global-compliance" component={GlobalCompliancePage} />
+            <Route path="/marketplace" component={AffiliateMarketplacePage} />
+            <Route path="/b2b-licensing" component={B2BLicensingPage} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
+      </div>
+
+      {!hideNavAndFooter && <Footer />}
+    </main>
+  
+);
+
+
+      
+    
   );
 }
 
@@ -143,10 +162,13 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider defaultTheme="light">
-          <Router />
-          <Toaster />
-        </ThemeProvider>
+<ThemeProvider defaultTheme="light">
+  <NotificationProvider>
+    <Router />
+    <Toaster />
+  </NotificationProvider>
+</ThemeProvider>
+
       </AuthProvider>
     </QueryClientProvider>
   );
