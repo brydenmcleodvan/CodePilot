@@ -2,50 +2,28 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Test
         run: npm test
-
-      - name: Build
-        run: npm run build
-
-      - name: Upload Pages artifact
-        if: success()
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: dist
-
-      - name: Deploy to GitHub Pages
-        if: success()
-        uses: actions/deploy-pages@v1
-
-      - name: Deploy to Vercel
-        if: success() && env.VERCEL_TOKEN != ''
-        run: |
-          npx vercel deploy --prod --token $VERCEL_TOKEN --confirm
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

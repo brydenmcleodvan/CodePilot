@@ -10,7 +10,7 @@
  * - Edge cases and error handling
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { Express } from 'express';
 import { storage } from '../server/storage';

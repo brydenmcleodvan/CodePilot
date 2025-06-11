@@ -27,7 +27,18 @@ npm install
 npm run dev
 ```
 
+Copy `.env.example` to `.env` and fill in the required values before starting the server.
+
 Use `start-all.sh` to run both the Node.js backend and Streamlit interface together.
+
+## Environment Variables
+
+Create a `.env` file based on `.env.example` with the following:
+
+- `DATABASE_URL`: Your Postgres connection string
+- `JWT_ACCESS_SECRET`: JWT signing key
+- `NODE_ENV`: `development`, `production`, or `test`
+- `PORT`: Optional server port (defaults to 3000)
 
 ## Folder Structure Overview
 
