@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiRequest } from './queryClient';
 
+async function throwIfResNotOk(res: Response) {
+  if (!res.ok) {
+    const text = (await res.text()) || res.statusText;
+    throw new Error(`${res.status}: ${text}`);
+  }
+}
+
 export interface SystemAlert {
   id: number;
   title: string;
@@ -23,18 +30,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchData = async () => {
     try {
-      const data = await apiRequest('/api/messages/unread-count');
+      const res = await apiRequest('GET', '/api/messages/unread-count');
+      await throwIfResNotOk(res);
+      const data = await res.json();
       setUnreadCount(data.count || 0);
     } catch (err) {
-      // Silently handle error - API endpoint exists but may return empty data
       setUnreadCount(0);
     }
 
     try {
-      const data = await apiRequest('/api/alerts');
+      const res = await apiRequest('GET', '/api/alerts');
+      await throwIfResNotOk(res);
+      const data = await res.json();
       setAlerts(Array.isArray(data) ? data : []);
     } catch (err) {
-      // Silently handle error - API endpoint exists but may return empty data
       setAlerts([]);
     }
   };
