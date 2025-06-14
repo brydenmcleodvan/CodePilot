@@ -169,100 +169,103 @@ export default function Dashboard() {
         </div>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Risk Alert Card - Prominent placement at top */}
-          <RiskAlertCard 
-            userId={user?.id} 
-            className="mb-6"
-          />
-
-          {/* Genetic Risk Panel - Show if user has DNA data */}
-          {hasGeneticData && (
-            <GeneticRiskPanel 
+          <div className="space-y-6">
+            {/* Risk Alert Card - Prominent placement at top */}
+            <RiskAlertCard 
               userId={user?.id} 
               className="mb-6"
             />
-          )}
 
-          {/* Notification Center and Achievements Section */}
-          <div className="grid lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-2">
-              <NotificationCenter />
+            {/* Genetic Risk Panel - Show if user has DNA data */}
+            {hasGeneticData && (
+              <GeneticRiskPanel 
+                userId={user?.id} 
+                className="mb-6"
+              />
+            )}
+
+            {/* Notification Center and Achievements Section */}
+            <div className="grid lg:grid-cols-3 gap-6 mb-6">
+              <div className="lg:col-span-2">
+                <NotificationCenter />
+              </div>
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Recent Achievements</h3>
+                {progressData?.achievements?.slice(0, 3).map((achievement: any) => (
+                  <AchievementCard 
+                    key={achievement.id} 
+                    achievement={achievement} 
+                    compact={true}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Recent Achievements</h3>
-              {progressData?.achievements?.slice(0, 3).map((achievement: any) => (
-                <AchievementCard 
-                  key={achievement.id} 
-                  achievement={achievement} 
-                  compact={true}
-                />
-              ))}
-            </div>
-          </div>
 
-          {/* Daily Health Tips */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Health Tips</CardTitle>
-              <CardDescription>
-                Personalized recommendations based on your health data
-              </CardDescription>
-            </CardHeader>
-              <CardContent>
-                <motion.ul className="space-y-4">
-                  {[
-                    "Take a 10-minute mindfulness break",
-                    "Drink 8 glasses of water",
-                    "Get 30 minutes of moderate exercise",
-                    "Practice good posture while working"
-                  ].map((tip, index) => (
-                    <motion.li
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-2"
-                    >
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                      {tip}
-                    </motion.li>
-                  ))}
-                </motion.ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-6 w-6 text-primary" />
-                  Weekly Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { label: "Exercise Goals", progress: 80 },
-                    { label: "Nutrition Goals", progress: 65 },
-                    { label: "Sleep Goals", progress: 90 },
-                    { label: "Mindfulness Goals", progress: 70 }
-                  ].map((goal, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>{goal.label}</span>
-                        <span>{goal.progress}%</span>
-                      </div>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: "100%" }}
-                        transition={{ duration: 1, delay: index * 0.2 }}
+            {/* Daily Health Tips */}
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Daily Health Tips</CardTitle>
+                  <CardDescription>
+                    Personalized recommendations based on your health data
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <motion.ul className="space-y-4">
+                    {[
+                      "Take a 10-minute mindfulness break",
+                      "Drink 8 glasses of water",
+                      "Get 30 minutes of moderate exercise",
+                      "Practice good posture while working"
+                    ].map((tip, index) => (
+                      <motion.li
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center gap-2"
                       >
-                        <Progress value={goal.progress} className="h-2" />
-                      </motion.div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                        {tip}
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-6 w-6 text-primary" />
+                    Weekly Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { label: "Exercise Goals", progress: 80 },
+                      { label: "Nutrition Goals", progress: 65 },
+                      { label: "Sleep Goals", progress: 90 },
+                      { label: "Mindfulness Goals", progress: 70 }
+                    ].map((goal, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>{goal.label}</span>
+                          <span>{goal.progress}%</span>
+                        </div>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 1, delay: index * 0.2 }}
+                        >
+                          <Progress value={goal.progress} className="h-2" />
+                        </motion.div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 

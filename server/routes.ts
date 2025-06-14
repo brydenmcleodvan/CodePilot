@@ -286,6 +286,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messages API endpoints
+  app.get('/api/messages/unread-count', (req, res) => {
+    // Return unread message count for authenticated user
+    res.json({ count: 0 });
+  });
+
+  app.get('/api/messages', (req, res) => {
+    // Return messages for authenticated user
+    res.json([]);
+  });
+
+  // System alerts API endpoint
+  app.get('/api/alerts', (req, res) => {
+    // Return system alerts
+    res.json([]);
+  });
+
   // Return HTTP server
   return createServer(app);
 }

@@ -85,6 +85,12 @@ const Profile = () => {
                 height={96}
                 priority={true}
               />
+              <h2 className="text-xl font-medium">{user.name}</h2>
+              <p className="text-gray-500">{user.email}</p>
+              <Link
+                href="/profile/edit"
+                className="mt-4 w-full bg-white text-primary border border-primary font-medium py-2 rounded-md hover:bg-primary/5 transition-colors duration-200 inline-block text-center"
+              >
                 Edit Profile
               </Link>
             </div>
@@ -346,7 +352,15 @@ const Profile = () => {
 
           {activeTab === "health-data" && (
             <div className="space-y-6">
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Health Data Overview</CardTitle>
+                  <CardDescription>Your connected health data and metrics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Health data integration coming soon</p>
+                </CardContent>
+              </Card>
             </div>
           )}
 

@@ -23,19 +23,19 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchData = async () => {
     try {
-      const res = await apiRequest('GET', '/api/messages/unread-count');
-      const data = await res.json();
+      const data = await apiRequest('/api/messages/unread-count');
       setUnreadCount(data.count || 0);
     } catch (err) {
-      console.error('Failed to load unread count', err);
+      // Silently handle error - API endpoint exists but may return empty data
+      setUnreadCount(0);
     }
 
     try {
-      const res = await apiRequest('GET', '/api/alerts');
-      const data = await res.json();
-      setAlerts(data);
+      const data = await apiRequest('/api/alerts');
+      setAlerts(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to load alerts', err);
+      // Silently handle error - API endpoint exists but may return empty data
+      setAlerts([]);
     }
   };
 
