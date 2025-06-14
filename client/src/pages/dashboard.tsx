@@ -149,7 +149,6 @@ export default function Dashboard() {
   };
 
   return (
-<<<<<<< HEAD
     <div className="clean-container py-10">
       <div className="clean-header mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
@@ -163,94 +162,13 @@ export default function Dashboard() {
         <div className="clean-tabs overflow-x-auto pb-2 mb-4">
           <TabsList className="bg-muted border border-light-blue-border rounded-lg p-1">
             <TabsTrigger value="overview" className="text-sm rounded-md">Overview</TabsTrigger>
-            <TabsTrigger value="journey" className="text-sm rounded-md">Health Journey</TabsTrigger>
-            <TabsTrigger value="challenges" className="text-sm rounded-md">Challenges</TabsTrigger>
-            <TabsTrigger value="coaching" className="text-sm rounded-md">Health Coaching</TabsTrigger>
-            <TabsTrigger value="nutrition" className="text-sm rounded-md">Nutrition</TabsTrigger>
-            <TabsTrigger value="mental" className="text-sm rounded-md">Mental Health</TabsTrigger>
-            <TabsTrigger value="library" className="text-sm rounded-md">Health Library</TabsTrigger>
-            {hasGeneticData && (
-              <TabsTrigger value="dna-health" className="text-sm rounded-md flex items-center">
-                <Dna className="h-4 w-4 mr-1 text-purple-500" />
-                DNA Health
-              </TabsTrigger>
-            )}
-            {hasActiveAlerts && (
-              <TabsTrigger value="alerts" className="text-sm rounded-md flex items-center">
-                <AlertTriangle className="h-4 w-4 mr-1 text-orange-500" />
-                Risk Alerts
-              </TabsTrigger>
-            )}
-            {hasGeneticData && (
-              <TabsTrigger value="dna" className="text-sm rounded-md flex items-center">
-                <Dna className="h-4 w-4 mr-1 text-purple-500" />
-                DNA Insights
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="habits" className="text-sm rounded-md">Habits</TabsTrigger>
-            <TabsTrigger value="progress" className="text-sm rounded-md flex items-center">
-              <BarChart3 className="h-4 w-4 mr-1 text-blue-500" />
-              Progress
-            </TabsTrigger>
-            <TabsTrigger value="marketplace" className="text-sm rounded-md">Shop</TabsTrigger>
-            <TabsTrigger value="privacy" className="text-sm rounded-md">
-              <Shield className="h-4 w-4 mr-1" />
-              Privacy
-            </TabsTrigger>
-            {isProviderUser && (
-              <TabsTrigger value="provider" className="text-sm rounded-md">
-                <Stethoscope className="h-4 w-4 mr-1" />
-                Provider
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="metrics" className="text-sm rounded-md">Health Metrics</TabsTrigger>
+            <TabsTrigger value="goals" className="text-sm rounded-md">Goals</TabsTrigger>
+            <TabsTrigger value="insights" className="text-sm rounded-md">AI Insights</TabsTrigger>
           </TabsList>
         </div>
 
-        {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <motion.h1 
-            className="text-3xl font-bold mb-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Wellness Dashboard
-          </motion.h1>
-=======
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Health Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {user?.name || user?.username}. Here's your health overview.
-        </p>
-      </div>
-
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="overflow-x-auto whitespace-nowrap">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="journey">Health Journey</TabsTrigger>
-          <TabsTrigger value="challenges">Challenges</TabsTrigger>
-          <TabsTrigger value="coaching">Health Coaching</TabsTrigger>
-          <TabsTrigger value="nutrition">Nutrition</TabsTrigger>
-          <TabsTrigger value="mental">Mental Health</TabsTrigger>
-          <TabsTrigger value="library">Health Library</TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Simplified stats section */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="flex flex-row items-center p-4">
-              <div className="rounded-full p-2 bg-primary/10 mr-3">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Health Journey</p>
-                <div className="text-xl font-bold">{journeyEntries.length}</div>
-              </div>
-            </Card>
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
-
           {/* Risk Alert Card - Prominent placement at top */}
           <RiskAlertCard 
             userId={user?.id} 
@@ -282,120 +200,14 @@ export default function Dashboard() {
             </div>
           </div>
 
-<<<<<<< HEAD
-          {/* Habit Tracker Dashboard - Always show for habit formation */}
-          <HabitTrackerDashboard 
-            userId={user?.id} 
-            className="mb-6"
-          />
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {metrics.map((metric) => (
-              <motion.div
-                key={metric.title}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onHoverStart={() => setHoveredCard(metric.title)}
-                onHoverEnd={() => setHoveredCard(null)}
-              >
-                <Card className="relative overflow-hidden">
-                  <motion.div
-                    className={`absolute inset-0 opacity-10 ${metric.color}`}
-                    initial={{ scale: 0 }}
-                    animate={{ 
-                      scale: hoveredCard === metric.title ? 1.5 : 1,
-                      opacity: hoveredCard === metric.title ? 0.2 : 0.1
-                    }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <motion.div
-                        animate={{ 
-                          rotate: hoveredCard === metric.title ? 360 : 0 
-                        }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        {metric.icon}
-                      </motion.div>
-                      {metric.title}
-                    </CardTitle>
-                  </CardHeader>
-
-                  <CardContent>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: "100%" }}
-                      transition={{ duration: 1, delay: 0.2 }}
-                    >
-                      <Progress value={metric.value} className="h-2" />
-                    </motion.div>
-                    <p className="text-2xl font-bold mt-2">{metric.value}%</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.div
-            className="mt-8 grid md:grid-cols-3 gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="md:col-span-1"
-            >
-              <LongevityScoreCard
-                biologicalAge={39.2}
-                chronologicalAge={43}
-                score={82}
-                trend={4}
-                isLoading={false}
-              />
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="md:col-span-1"
-            >
-              <GlucoseWidget 
-                currentValue={104}
-                previousValue={110}
-                lastUpdated="1 hour ago"
-                trend={-5.5}
-                isLoading={false}
-              />
-            </motion.div>
-            
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sun className="h-6 w-6 text-primary" />
-                  Daily Wellness Tips
-                </CardTitle>
-=======
-          {/* Main sections */}
-          <div className="grid gap-6 sm:grid-cols-2">
-            {/* Recent journey entries */}
-            <Card className="col-span-1">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle>Recent Health Journey</CardTitle>
-                  <Button variant="ghost" size="sm" asChild className="h-8">
-                    <Link to="#" onClick={() => setActiveTab("journey")}>
-                      View all <ChevronRight className="ml-1 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
-              </CardHeader>
+          {/* Daily Health Tips */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Health Tips</CardTitle>
+              <CardDescription>
+                Personalized recommendations based on your health data
+              </CardDescription>
+            </CardHeader>
               <CardContent>
                 <motion.ul className="space-y-4">
                   {[
@@ -451,52 +263,7 @@ export default function Dashboard() {
                 </div>
               </CardContent>
             </Card>
-<<<<<<< HEAD
-          </motion.div>
-=======
           </div>
-
-          {/* Articles preview */}
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-center">
-                <CardTitle>Health Articles</CardTitle>
-                <Button variant="ghost" size="sm" asChild className="h-8">
-                  <Link to="#" onClick={() => setActiveTab("library")}>
-                    View all <ChevronRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2">
-                {healthArticles.slice(0, 2).map((article: HealthArticle) => (
-                  <div key={article.id} className="flex space-x-4 items-start">
-                    {article.imageUrl && (
-                      <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                        <img 
-                          src={article.imageUrl} 
-                          alt={article.title}
-                          className="object-cover w-full h-full" 
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-medium text-sm mb-1">{article.title}</h3>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                        {article.summary}
-                      </p>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3 mr-1" />
-                        <span>{article.readTime} min read</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
         </TabsContent>
 
         {/* Health Journey Tab */}
