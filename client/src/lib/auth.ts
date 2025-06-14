@@ -14,11 +14,8 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<User>;
   register: (userData: InsertUser) => Promise<User>;
-<<<<<<< HEAD
   updateUser: (userData: Partial<User>) => Promise<User>;
-=======
   updateProfile: (data: Partial<User>) => Promise<User>;
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
   logout: () => void;
   isLoading: boolean;
   error: string | null;
@@ -46,7 +43,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
 
         // Fetch user data
-        const response = await fetch("/api/user", {
+        const response = await fetch("/api/user/profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -77,7 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     try {
       console.log("Attempting login with username:", username);
-      const response = await apiRequest("POST", "/api/login", {
+      const response = await apiRequest("POST", "/api/auth/login", {
         username,
         password,
       });
@@ -102,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setError(null);
 
     try {
-      const response = await apiRequest("POST", "/api/register", userData);
+      const response = await apiRequest("POST", "/api/auth/register", userData);
       const data = await response.json();
       localStorage.setItem("auth_token", data.token);
       setUser(data.user);
@@ -117,7 +114,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-<<<<<<< HEAD
   const updateUser = async (userData: Partial<User>): Promise<User> => {
     setIsLoading(true);
     setError(null);
@@ -135,7 +131,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return updatedUser;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to update user";
-=======
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateProfile = async (data: Partial<User>): Promise<User> => {
     setIsLoading(true);
     setError(null);
@@ -146,7 +148,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return updated;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Update failed";
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -165,11 +166,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     login,
     register,
-<<<<<<< HEAD
     updateUser,
-=======
     updateProfile,
->>>>>>> 11d7ecb (Add metrics logging and admin dashboard)
     logout,
     isLoading,
     error,
