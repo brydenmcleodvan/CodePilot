@@ -141,17 +141,17 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="clean-container p-4">
-      <div className="clean-header mb-6">
-        <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
-        <p className="text-muted-foreground text-body-text">
-          Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
-        </p>
-      </div>
+    <div className="container mx-auto px-4">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
+          <p className="text-muted-foreground text-body-text">
+            Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
+          </p>
+        </div>
 
-      {/* Clean tabs with consistent spacing */}
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="clean-tabs overflow-x-auto pb-2 mb-4">
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <div className="overflow-x-auto pb-2">
           <TabsList className="bg-muted border border-light-blue-border rounded-lg p-1">
             <TabsTrigger value="overview" className="text-sm rounded-md">Overview</TabsTrigger>
             <TabsTrigger value="journey" className="text-sm rounded-md">Health Journey</TabsTrigger>
@@ -769,7 +769,8 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 }

@@ -22,10 +22,10 @@ const Home = () => {
   });
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <section id="home" className="py-8">
+    <div className="container mx-auto px-4">
+      <section id="home" className="space-y-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl overflow-hidden shadow-lg mb-12">
+        <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl overflow-hidden shadow-lg">
           <div className="md:flex">
             <div className="p-8 md:w-1/2 flex flex-col justify-center">
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-white mb-4">
@@ -68,8 +68,6 @@ const Home = () => {
             </div>
           </div>
         </div>
-
-        {/* We've removed the Health Overview section from here */}
 
         {/* News & Updates */}
         <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
