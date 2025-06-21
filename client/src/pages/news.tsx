@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { NewsUpdate } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SharedCard } from "@/components/ui/shared-card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, TrendingUp } from "lucide-react";
 

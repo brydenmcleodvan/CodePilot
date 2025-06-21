@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { SharedCard } from "@/components/ui/shared-card";
 import { Link } from "wouter";
 
 interface NewsUpdatesProps {
@@ -53,9 +54,10 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {newsItems.map((news, index) => (
-          <article 
+          <SharedCard 
             key={news.id} 
-            className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+            hover={true}
+            className="overflow-hidden p-0"
           >
             <img
               src={news.thumbnail}
@@ -79,7 +81,7 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
                 <button className="text-primary hover:text-secondary">Read More</button>
               </div>
             </div>
-          </article>
+          </SharedCard>
         ))}
       </div>
     </div>

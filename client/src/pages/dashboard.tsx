@@ -367,8 +367,8 @@ export default function Dashboard() {
                   )}
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
         </TabsContent>
 
         {/* Challenges Tab */}
