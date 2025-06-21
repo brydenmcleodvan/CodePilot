@@ -39,7 +39,15 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Main navigation - better spacing and reduced visual noise */}
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden rounded-md px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 transition"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-8 h-full">
             <div className="flex items-center justify-center h-full">
               <Link
@@ -185,46 +193,57 @@ const Navbar = () => {
               </div>
             )}
 
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-700 hover:text-primary focus:outline-none"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+
           </div>
         </div>
 
-        {/* Mobile menu - cleaner organization */}
+        {/* Mobile menu overlay */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-light-blue-border">
-            <nav className="flex flex-col">
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-light-blue-border shadow-lg z-40">
+            <nav className="flex flex-col p-4">
               <Link
                 href="/"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Home
               </Link>
               <Link
-                href="/profile"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Profile
-              </Link>
-              <Link
                 href="/dashboard"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Dashboard
               </Link>
               <Link
+                href="/profile"
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                Profile
+              </Link>
+              <Link
+                href="/news"
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/news" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                News
+              </Link>
+              <Link
+                href="/family"
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                Family Health
+              </Link>
+              <Link
                 href="/health-coach"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/health-coach" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
@@ -232,23 +251,15 @@ const Navbar = () => {
               </Link>
               <Link
                 href="/connections"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/connections" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Connections
               </Link>
               <Link
-                href="/family"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Family Health
-              </Link>
-              <Link
                 href="/forum"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
@@ -256,7 +267,7 @@ const Navbar = () => {
               </Link>
               <Link
                 href="/messenger"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/messenger" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
@@ -264,12 +275,39 @@ const Navbar = () => {
               </Link>
               <Link
                 href="/marketplace"
-                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
                   location === "/marketplace" ? "text-primary bg-light-blue-bg font-semibold" : ""
                 }`}
               >
                 Marketplace
               </Link>
+              
+              {/* Mobile auth buttons */}
+              {user ? (
+                <div className="border-t border-light-blue-border pt-4 mt-4">
+                  <button
+                    onClick={handleLogout}
+                    className="h-12 w-full flex items-center px-4 text-red-600 hover:bg-red-50 transition-colors duration-200 font-medium rounded-md"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-light-blue-border pt-4 mt-4 space-y-2">
+                  <Link
+                    href="/auth/login"
+                    className="h-12 w-full flex items-center justify-center px-4 text-primary border border-light-blue-border hover:bg-light-blue-bg transition-colors duration-200 font-medium rounded-md"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="h-12 w-full flex items-center justify-center px-4 bg-primary text-white hover:bg-primary-blue-hover transition-colors duration-200 font-medium rounded-md"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </nav>
           </div>
         )}
