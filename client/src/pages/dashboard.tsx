@@ -236,7 +236,7 @@ export default function Dashboard() {
                     </CardTitle>
                   </CardHeader>
 
-                  <CardContent>
+                  <div>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
@@ -316,18 +316,16 @@ export default function Dashboard() {
 
         {/* Health Journey Tab */}
         <TabsContent value="journey" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Health Journey</CardTitle>
-              <CardDescription className="mb-4">
-                Track your health milestones and progress over time
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex justify-end">
-                <Button variant="outline" size="sm">Add New Entry</Button>
-              </div>
-              
+          <SharedCard>
+            <h2 className="text-xl font-semibold mb-2 tracking-tight">Your Health Journey</h2>
+            <p className="text-gray-600 mb-4">
+              Track your health milestones and progress over time
+            </p>
+            <div className="flex justify-end mb-6">
+              <Button variant="outline" size="sm">Add New Entry</Button>
+            </div>
+            
+            <div className="space-y-6">
               {journeyEntries.map((entry: HealthJourneyEntry) => (
                 <div key={entry.id} className="border rounded-lg p-4 space-y-2">
                   <div className="flex items-start justify-between">
@@ -375,15 +373,12 @@ export default function Dashboard() {
 
         {/* Challenges Tab */}
         <TabsContent value="challenges" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Active Challenges</CardTitle>
-                <CardDescription className="mb-4">
-                  Track your progress on current wellness challenges
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <SharedCard>
+              <h2 className="text-xl font-semibold mb-2 tracking-tight">Your Active Challenges</h2>
+                Track your progress on current wellness challenges
+              </p>
+              <div className="space-y-6">
                 {challengeProgress.map((progress: UserChallengeProgress & { challenge: WellnessChallenge }) => (
                   <div key={progress.id} className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -417,16 +412,14 @@ export default function Dashboard() {
                     <Separator />
                   </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </SharedCard>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Available Challenges</CardTitle>
-                <CardDescription className="mb-4">
-                  Discover new challenges to boost your health
-                </CardDescription>
-              </CardHeader>
+            <SharedCard>
+              <h2 className="text-xl font-semibold mb-2 tracking-tight">Available Challenges</h2>
+              <p className="text-gray-600 mb-4">
+                Discover new challenges to boost your health
+              </p>
               <CardContent className="space-y-4">
                 {challenges
                   .filter((challenge: WellnessChallenge) => !challengeProgress.some((p: UserChallengeProgress) => p.challengeId === challenge.id))
@@ -758,9 +751,8 @@ export default function Dashboard() {
                     </CardFooter>
                   </Card>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
         </TabsContent>
         </Tabs>
       </div>
