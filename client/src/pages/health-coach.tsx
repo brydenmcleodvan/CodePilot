@@ -258,7 +258,8 @@ export function HealthCoach() {
           
           {/* Suggested questions */}
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Suggested Questions</h3>
+            <h3 className="text-xl font-semibold mb-2 tracking-tight">Suggested Questions</h3>
+            <div className="mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 "How much sleep should I get each night?",
@@ -290,7 +291,8 @@ export function HealthCoach() {
       <div className="bg-white p-6 rounded-lg shadow mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Lightbulb className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold">AI Recommendations</h2>
+          <h2 className="text-xl font-semibold mb-2 tracking-tight">AI Recommendations</h2>
+          <div className="mb-4"></div>
         </div>
         
         {recommendationsLoading ? (
@@ -327,7 +329,8 @@ export function HealthCoach() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Your Assigned Coach</h2>
+          <h2 className="text-xl font-semibold mb-2 tracking-tight">Your Assigned Coach</h2>
+          <div className="mb-4"></div>
           <div className="flex items-center gap-6 mb-6">
             <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center">
               <span className="text-2xl font-bold text-primary">AC</span>
@@ -363,7 +366,8 @@ export function HealthCoach() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Upcoming Sessions</h2>
+          <h2 className="text-xl font-semibold mb-2 tracking-tight">Upcoming Sessions</h2>
+          <div className="mb-4"></div>
 
           <div className="space-y-4">
             <div className="p-4 border rounded-md">
@@ -397,7 +401,8 @@ export function HealthCoach() {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Your Coaching Plan</h2>
+        <h2 className="text-xl font-semibold mb-2 tracking-tight">Your Coaching Plan</h2>
+        <div className="mb-4"></div>
         <div className="mb-6">
           <h3 className="font-semibold mb-3">Current Focus Areas:</h3>
           <div className="grid md:grid-cols-3 gap-4">

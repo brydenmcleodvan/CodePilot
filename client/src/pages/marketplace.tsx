@@ -65,7 +65,8 @@ const Marketplace = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Health Marketplace</h1>
+              <h1 className="text-xl font-semibold mb-2 tracking-tight text-gray-900">Health Marketplace</h1>
+              <div className="mb-4"></div>
               <p className="text-gray-600 mt-2 text-sm sm:text-base">Discover products tailored to your health needs</p>
             </div>
             <div className="flex items-center space-x-4">
