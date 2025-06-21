@@ -83,8 +83,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col lg:flex-row gap-4">
+    <div className="container mx-auto px-4">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Profile Sidebar */}
         <div className="lg:w-1/3 xl:w-1/4">
           <div className="bg-white rounded-xl shadow-md p-4 lg:p-6 mb-6 lg:sticky lg:top-24">

@@ -79,8 +79,8 @@ export default function News() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="text-center mb-8">
+    <div className="container mx-auto px-4">
+      <div className="text-center space-y-6">
         <h1 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h1>
         <div className="mb-4"></div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -88,7 +88,7 @@ export default function News() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {allArticles.map((article) => (
           <Card key={article.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
