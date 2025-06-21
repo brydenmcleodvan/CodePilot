@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils } from "lucide-react";
+import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   HealthJourneyEntry,
@@ -32,6 +32,13 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+
+  // Fetch health alerts
+  const { data: alertsData, isLoading: alertsLoading } = useQuery({
+    queryKey: ["/api/alerts"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user,
+  });
 
   // Fetch health journey entries
   const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
@@ -150,6 +157,32 @@ export default function Dashboard() {
           >
             Wellness Dashboard
           </motion.h1>
+
+          {/* Health Alerts Section */}
+          {!alertsLoading && alertsData?.alerts && alertsData.alerts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="bg-red-100 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <AlertTriangle className="text-red-600 w-5 h-5 mt-0.5 mr-3 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-red-800 font-semibold mb-2">Health Alerts</h3>
+                    <div className="space-y-2">
+                      {alertsData.alerts.map((alert: string, index: number) => (
+                        <div key={index} className="text-red-800 text-sm bg-red-50 rounded p-2 border border-red-200">
+                          {alert}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (

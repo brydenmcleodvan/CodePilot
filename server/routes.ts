@@ -877,6 +877,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Health alerts route
+  app.get(`${apiRouter}/alerts`, (req, res) => {
+    res.json({
+      alerts: [
+        "Zinc Deficiency detected",
+        "Low sleep quality for 3 consecutive days"
+      ]
+    });
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {
