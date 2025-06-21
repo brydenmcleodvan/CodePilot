@@ -194,6 +194,105 @@ const Marketplace = () => {
             </Button>
           </div>
         </div>
+
+        {/* Insurance Information Section */}
+        <div className="mt-12">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-blue-600" />
+                Your Insurance Info
+              </CardTitle>
+              <CardDescription>
+                Review your coverage details and see which products may be covered
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {insuranceLoading ? (
+                <div className="space-y-4">
+                  <div className="h-6 bg-blue-200 rounded animate-pulse"></div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-20 bg-blue-200 rounded animate-pulse"></div>
+                    ))}
+                  </div>
+                </div>
+              ) : insuranceData ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-blue-900">{insuranceData.provider}</h3>
+                      <p className="text-blue-700">{insuranceData.planName}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-green-700 font-medium">{insuranceData.status}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium text-blue-900">Plan Type</span>
+                      </div>
+                      <p className="text-blue-700 font-semibold">{insuranceData.planType}</p>
+                      <p className="text-sm text-blue-600">{insuranceData.network} Network</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CreditCard className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium text-blue-900">Coverage Details</span>
+                      </div>
+                      <p className="text-blue-700">Deductible: <span className="font-semibold">${insuranceData.deductible.toLocaleString()}</span></p>
+                      <p className="text-blue-700">Copay: <span className="font-semibold">${insuranceData.copay}</span></p>
+                      <p className="text-blue-700">Coinsurance: <span className="font-semibold">{insuranceData.coinsurance}%</span></p>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium text-blue-900">Plan Expiry</span>
+                      </div>
+                      <p className="text-blue-700 font-semibold">
+                        {new Date(insuranceData.expiryDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-sm text-blue-600">Member ID: {insuranceData.memberId}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-amber-800 mb-1">Coverage Note</h4>
+                        <p className="text-sm text-amber-700">
+                          Some health products and supplements may be covered under your plan's preventive care benefits. 
+                          Contact your provider to verify coverage before purchasing.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Shield className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+                  <p className="text-blue-700">No insurance information available</p>
+                  <Button variant="outline" className="mt-4">
+                    Add Insurance Info
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -221,6 +221,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User insurance endpoint
+  app.get(`${apiRouter}/user/insurance`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const insurance = await storage.getUserInsurance(userId);
+      res.json(insurance);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching insurance information' });
+    }
+  });
+
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
     try {
