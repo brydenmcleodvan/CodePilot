@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { getQueryFn } from "@/lib/queryClient";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { SharedCard } from "@/components/ui/shared-card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -256,14 +257,11 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sun className="h-6 w-6 text-primary" />
-                  Daily Wellness Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <SharedCard>
+              <div className="flex items-center gap-2 mb-4">
+                <Sun className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-semibold">Daily Wellness Tips</h3>
+              </div>
                 <motion.ul className="space-y-4">
                   {[
                     "Take a 10-minute mindfulness break",
@@ -283,17 +281,13 @@ export default function Dashboard() {
                     </motion.li>
                   ))}
                 </motion.ul>
-              </CardContent>
-            </Card>
+            </SharedCard>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-6 w-6 text-primary" />
-                  Weekly Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <SharedCard>
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-semibold">Weekly Progress</h3>
+              </div>
                 <div className="space-y-4">
                   {[
                     { label: "Exercise Goals", progress: 80 },
@@ -316,8 +310,7 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+            </SharedCard>
           </motion.div>
         </TabsContent>
 
