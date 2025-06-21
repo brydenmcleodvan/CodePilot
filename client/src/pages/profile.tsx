@@ -1105,4 +1105,184 @@ const Profile = () => {
   );
 };
 
+// Connected Devices Tab Component
+function ConnectedDevicesTab() {
+  const { data: devicesData, isLoading } = useQuery({
+    queryKey: ['/api/user/devices'],
+  });
+
+  const getDeviceIcon = (type: string) => {
+    switch (type) {
+      case 'smartwatch':
+        return <Watch className="h-6 w-6" />;
+      case 'fitness_tracker':
+        return <Activity className="h-6 w-6" />;
+      case 'smart_ring':
+        return <Zap className="h-6 w-6" />;
+      case 'smart_scale':
+        return <Weight className="h-6 w-6" />;
+      case 'recovery_tracker':
+        return <Heart className="h-6 w-6" />;
+      default:
+        return <Smartphone className="h-6 w-6" />;
+    }
+  };
+
+  const getStatusIndicator = (status: string) => {
+    switch (status) {
+      case 'connected':
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-green-700 text-sm font-medium">Connected</span>
+          </div>
+        );
+      case 'disconnected':
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span className="text-red-700 text-sm font-medium">Disconnected</span>
+          </div>
+        );
+      case 'syncing':
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-yellow-700 text-sm font-medium">Syncing</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+            <span className="text-gray-600 text-sm font-medium">Unknown</span>
+          </div>
+        );
+    }
+  };
+
+  const formatLastSync = (lastSync: string) => {
+    const date = new Date(lastSync);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="h-6 w-6" />
+            Connected Devices
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Smartphone className="h-6 w-6" />
+          Connected Devices
+        </CardTitle>
+        <p className="text-muted-foreground">
+          Manage your health and fitness devices to sync data automatically
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {devicesData?.devices?.length === 0 ? (
+            <div className="text-center py-8">
+              <Wifi className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">No devices connected</p>
+              <Button className="mt-4" variant="outline">
+                Connect Device
+              </Button>
+            </div>
+          ) : (
+            devicesData?.devices?.map((device: any, index: number) => (
+              <motion.div
+                key={device.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-blue-600">
+                    {getDeviceIcon(device.type)}
+                  </div>
+                  
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{device.name}</h3>
+                    <div className="flex items-center gap-4 mt-1">
+                      {getStatusIndicator(device.status)}
+                      <span className="text-gray-500 text-sm">
+                        Last sync: {formatLastSync(device.lastSync)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {device.features.map((feature: string) => (
+                        <Badge key={feature} variant="secondary" className="text-xs">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {device.batteryLevel !== null && (
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Battery className="h-4 w-4" />
+                      <span>{device.batteryLevel}%</span>
+                    </div>
+                  )}
+                  
+                  <Button size="sm" variant="outline" className="flex items-center gap-1">
+                    <RotateCcw className="h-3 w-3" />
+                    Sync
+                  </Button>
+                  
+                  <Button size="sm" variant="ghost">
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+
+        <div className="mt-6 pt-6 border-t">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-gray-900">Add New Device</h4>
+              <p className="text-sm text-gray-600">Connect more devices to get comprehensive health insights</p>
+            </div>
+            <Button>
+              <Wifi className="h-4 w-4 mr-2" />
+              Connect Device
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default Profile;

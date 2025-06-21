@@ -134,6 +134,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User devices route
+  app.get(`${apiRouter}/user/devices`, authenticateToken, async (req, res) => {
+    try {
+      const mockDevices = [
+        {
+          id: 1,
+          name: "Apple Watch Series 9",
+          type: "smartwatch",
+          status: "connected",
+          lastSync: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
+          batteryLevel: 85,
+          features: ["Heart Rate", "Steps", "Sleep Tracking", "ECG"]
+        },
+        {
+          id: 2,
+          name: "Fitbit Charge 5",
+          type: "fitness_tracker",
+          status: "disconnected",
+          lastSync: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+          batteryLevel: 42,
+          features: ["Heart Rate", "Steps", "Sleep Tracking", "Stress"]
+        },
+        {
+          id: 3,
+          name: "Oura Ring Gen3",
+          type: "smart_ring",
+          status: "connected",
+          lastSync: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
+          batteryLevel: 68,
+          features: ["Sleep Tracking", "Heart Rate Variability", "Temperature", "Recovery"]
+        },
+        {
+          id: 4,
+          name: "Withings Body+",
+          type: "smart_scale",
+          status: "connected",
+          lastSync: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+          batteryLevel: null,
+          features: ["Weight", "Body Fat", "Muscle Mass", "BMI"]
+        },
+        {
+          id: 5,
+          name: "WHOOP 4.0",
+          type: "recovery_tracker",
+          status: "syncing",
+          lastSync: new Date().toISOString(),
+          batteryLevel: 23,
+          features: ["Recovery Score", "Strain", "Sleep", "HRV"]
+        }
+      ];
+      
+      res.json({ devices: mockDevices });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching devices' });
+    }
+  });
+
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
     try {
