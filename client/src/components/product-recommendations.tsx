@@ -5,6 +5,7 @@ import { Product, User } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { SharedCard } from "@/components/ui/shared-card";
 import { Link } from "wouter";
 import ConnectHealthDataButton from "@/components/connect-health-data";
 
@@ -113,9 +114,10 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
             const isRecommended = Array.isArray(product.tags) && product.tags.includes("recommended");
             
             return (
-              <div
+              <SharedCard
                 key={product.id}
-                className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:scale-105 duration-200"
+                hover={true}
+                className="overflow-hidden p-0"
               >
                 <img
                   src={imageUrl}
@@ -133,7 +135,7 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
                     Add to Cart
                   </button>
                 </div>
-              </div>
+              </SharedCard>
             );
           })}
         </div>
