@@ -300,7 +300,7 @@ export function HealthCoach() {
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {aiRecommendations?.tips?.map((tip: string, index: number) => (
               <motion.div
                 key={index}
@@ -325,7 +325,7 @@ export function HealthCoach() {
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-12">
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Your Assigned Coach</h2>
           <div className="flex items-center gap-6 mb-6">

@@ -63,15 +63,15 @@ const Marketplace = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Health Marketplace</h1>
-              <p className="text-gray-600 mt-2">Discover products tailored to your health needs</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Health Marketplace</h1>
+              <p className="text-gray-600 mt-2 text-sm sm:text-base">Discover products tailored to your health needs</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" size="sm">
                 <ShoppingCart className="w-4 h-4 mr-2" />
-                Cart (0)
+                <span className="hidden sm:inline">Cart </span>(0)
               </Button>
             </div>
           </div>
@@ -81,7 +81,7 @@ const Marketplace = () => {
       {/* Trust indicators */}
       <div className="bg-primary/5 py-4">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
+          <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-xs sm:text-sm text-gray-600">
             <div className="flex items-center">
               <Truck className="w-4 h-4 mr-2 text-primary" />
               Free shipping on orders over $50
@@ -100,7 +100,7 @@ const Marketplace = () => {
 
       {/* Products Grid */}
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {products.map((product: Product) => (
             <Card key={product.id} className="hover:shadow-lg transition-shadow duration-200">
               <CardHeader className="pb-4">

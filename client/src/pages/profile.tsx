@@ -372,7 +372,7 @@ const Profile = () => {
                       </p>
                     </div>
                     
-                    <div className="border border-brown-200 rounded-lg p-6 bg-amber-50">
+                    <div className="border border-brown-200 rounded-lg p-4 md:p-6 bg-amber-50">
                       <div className="flex items-center space-x-3 mb-4">
                         <Coffee className="text-amber-600 w-8 h-8" />
                         <div>
@@ -388,7 +388,7 @@ const Profile = () => {
                       </p>
                     </div>
                     
-                    <div className="border border-red-200 rounded-lg p-6 bg-red-50">
+                    <div className="border border-red-200 rounded-lg p-4 md:p-6 bg-red-50">
                       <div className="flex items-center space-x-3 mb-4">
                         <Brain className="text-red-500 w-8 h-8" />
                         <div>
