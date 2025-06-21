@@ -236,7 +236,7 @@ export default function Dashboard() {
                     </CardTitle>
                   </CardHeader>
 
-                  <div>
+                  <CardContent>
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
@@ -376,6 +376,7 @@ export default function Dashboard() {
           <div className="grid gap-6 md:grid-cols-2">
             <SharedCard>
               <h2 className="text-xl font-semibold mb-2 tracking-tight">Your Active Challenges</h2>
+              <p className="text-gray-600 mb-4">
                 Track your progress on current wellness challenges
               </p>
               <div className="space-y-6">
@@ -420,7 +421,7 @@ export default function Dashboard() {
               <p className="text-gray-600 mb-4">
                 Discover new challenges to boost your health
               </p>
-              <CardContent className="space-y-4">
+              <div className="space-y-4">
                 {challenges
                   .filter((challenge: WellnessChallenge) => !challengeProgress.some((p: UserChallengeProgress) => p.challengeId === challenge.id))
                   .map((challenge: WellnessChallenge) => (
@@ -458,8 +459,8 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))}
-              </CardContent>
-            </Card>
+              </div>
+            </SharedCard>
           </div>
         </TabsContent>
 
@@ -695,15 +696,12 @@ export default function Dashboard() {
 
         {/* Health Library Tab */}
         <TabsContent value="library" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Health Knowledge Library</CardTitle>
-              <CardDescription className="mb-4">
-                Explore curated health articles and resources
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <SharedCard>
+            <h2 className="text-xl font-semibold mb-2 tracking-tight">Health Knowledge Library</h2>
+            <p className="text-gray-600 mb-4">
+              Explore curated health articles and resources
+            </p>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {healthArticles.map((article: HealthArticle) => (
                   <Card key={article.id} className="overflow-hidden">
                     {article.imageUrl && (
