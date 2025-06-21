@@ -164,6 +164,42 @@ const Profile = () => {
                   <span>Neural Profile</span>
                 </a>
                 <a
+                  href="#devices"
+                  onClick={() => setActiveTab("devices")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "devices"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-smartphone-line"></i>
+                  <span>Connected Devices</span>
+                </a>
+                <a
+                  href="#achievements"
+                  onClick={() => setActiveTab("achievements")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "achievements"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-trophy-line"></i>
+                  <span>Health Achievements</span>
+                </a>
+                <a
+                  href="#data-sharing"
+                  onClick={() => setActiveTab("data-sharing")}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+                    activeTab === "data-sharing"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                  }`}
+                >
+                  <i className="ri-share-line"></i>
+                  <span>Data Sharing</span>
+                </a>
+                <a
                   href="#settings"
                   onClick={() => setActiveTab("settings")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
@@ -662,6 +698,396 @@ const Profile = () => {
                   <button className="bg-white text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition-colors duration-200">
                     Delete Account
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "devices" && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-heading font-semibold mb-6">Connected Devices</h2>
+                <p className="text-gray-600 mb-6">
+                  Manage your health tracking devices and data synchronization settings.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Apple Watch */}
+                  <Card className="border-2 border-green-200 bg-green-50">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-black rounded-lg flex items-center justify-center">
+                            <i className="ri-apple-line text-white text-xl"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Apple Watch Series 8</CardTitle>
+                            <p className="text-sm text-gray-600">Connected via HealthKit</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">Active</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Last Sync:</span>
+                          <span className="font-medium">2 minutes ago</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Data Types:</span>
+                          <span className="font-medium">Heart Rate, Steps, Sleep</span>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Configure Sync
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Fitbit */}
+                  <Card className="border-2 border-blue-200 bg-blue-50">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <i className="ri-pulse-line text-white text-xl"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Fitbit Charge 5</CardTitle>
+                            <p className="text-sm text-gray-600">Connected via API</p>
+                          </div>
+                        </div>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">Active</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Last Sync:</span>
+                          <span className="font-medium">15 minutes ago</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Data Types:</span>
+                          <span className="font-medium">Activity, Stress, SpO2</span>
+                        </div>
+                        <Button variant="outline" size="sm" className="w-full">
+                          Configure Sync
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Smart Scale */}
+                  <Card className="border-2 border-gray-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gray-400 rounded-lg flex items-center justify-center">
+                            <i className="ri-scales-3-line text-white text-xl"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Withings Body+</CardTitle>
+                            <p className="text-sm text-gray-600">Not connected</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-gray-100 text-gray-600">Inactive</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600">
+                          Connect your smart scale to track weight, body composition, and health trends.
+                        </p>
+                        <Button size="sm" className="w-full">
+                          Connect Device
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Blood Pressure Monitor */}
+                  <Card className="border-2 border-gray-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gray-400 rounded-lg flex items-center justify-center">
+                            <i className="ri-heart-pulse-line text-white text-xl"></i>
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">Omron Blood Pressure</CardTitle>
+                            <p className="text-sm text-gray-600">Not connected</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-gray-100 text-gray-600">Inactive</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600">
+                          Monitor blood pressure trends and cardiovascular health metrics.
+                        </p>
+                        <Button size="sm" className="w-full">
+                          Connect Device
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-blue-900 mb-2">Add New Device</h3>
+                  <p className="text-blue-800 text-sm mb-4">
+                    Connect additional health tracking devices to get a comprehensive view of your wellness data.
+                  </p>
+                  <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                    Browse Compatible Devices
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "achievements" && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-heading font-semibold mb-6">Health Achievements</h2>
+                <p className="text-gray-600 mb-6">
+                  Track your health milestones and celebrate your wellness journey progress.
+                </p>
+
+                {/* Achievement Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold text-yellow-700 mb-2">12</div>
+                      <div className="text-yellow-600 font-medium">Total Achievements</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold text-green-700 mb-2">847</div>
+                      <div className="text-green-600 font-medium">Points Earned</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-3xl font-bold text-purple-700 mb-2">23</div>
+                      <div className="text-purple-600 font-medium">Day Streak</div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Achievements */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4">Recent Achievements</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                        <i className="ri-trophy-line text-white text-xl"></i>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-green-800">10K Steps Master</h4>
+                        <p className="text-green-700 text-sm">Achieved 10,000+ steps for 7 consecutive days</p>
+                        <p className="text-green-600 text-xs">Earned 3 days ago • +50 points</p>
+                      </div>
+                      <Badge className="bg-green-200 text-green-800">New</Badge>
+                    </div>
+
+                    <div className="flex items-center space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i className="ri-heart-line text-white text-xl"></i>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-blue-800">Heart Health Champion</h4>
+                        <p className="text-blue-700 text-sm">Maintained resting heart rate in healthy range</p>
+                        <p className="text-blue-600 text-xs">Earned 1 week ago • +75 points</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                        <i className="ri-moon-line text-white text-xl"></i>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-purple-800">Sleep Optimizer</h4>
+                        <p className="text-purple-700 text-sm">Consistent 7+ hours sleep for 14 days</p>
+                        <p className="text-purple-600 text-xs">Earned 2 weeks ago • +100 points</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Towards Next Achievement */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">Progress Towards Next Achievement</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium">Hydration Hero</span>
+                        <span className="text-sm text-gray-600">6/8 days</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Track water intake for 8 consecutive days</p>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium">Meditation Master</span>
+                        <span className="text-sm text-gray-600">12/21 sessions</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: '57%' }}></div>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">Complete 21 meditation sessions</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "data-sharing" && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-2xl font-heading font-semibold mb-6">Data Sharing Preferences</h2>
+                <p className="text-gray-600 mb-6">
+                  Control how your health data is shared with healthcare providers, family members, and research initiatives.
+                </p>
+
+                {/* Healthcare Providers */}
+                <div className="border-b border-gray-200 pb-6 mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Healthcare Providers</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                          <i className="ri-user-heart-line text-white"></i>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Dr. Sarah Johnson</h4>
+                          <p className="text-sm text-gray-600">Primary Care Physician</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Badge className="bg-green-100 text-green-800">Full Access</Badge>
+                        <Button variant="outline" size="sm">Manage</Button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                          <i className="ri-brain-line text-white"></i>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Dr. Michael Chen</h4>
+                          <p className="text-sm text-gray-600">Neurologist</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800">Limited Access</Badge>
+                        <Button variant="outline" size="sm">Manage</Button>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" className="w-full border-dashed">
+                      <i className="ri-add-line mr-2"></i>
+                      Add Healthcare Provider
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Family & Emergency Contacts */}
+                <div className="border-b border-gray-200 pb-6 mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Family & Emergency Contacts</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Share with Emergency Contacts</h4>
+                        <p className="text-sm text-gray-600">Allow emergency contacts to access critical health data</p>
+                      </div>
+                      <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full">
+                        <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white"></span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Family Wellness Sharing</h4>
+                        <p className="text-sm text-gray-600">Share basic wellness metrics with family members</p>
+                      </div>
+                      <button className="bg-gray-200 relative inline-flex h-6 w-11 items-center rounded-full">
+                        <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white"></span>
+                      </button>
+                    </div>
+
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                      <h4 className="font-medium text-orange-800 mb-2">Emergency Contact</h4>
+                      <p className="text-sm text-orange-700">Jane Smith (Spouse) - Full emergency access enabled</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Research & Analytics */}
+                <div className="border-b border-gray-200 pb-6 mb-6">
+                  <h3 className="text-lg font-semibold mb-4">Research & Analytics</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Contribute to Health Research</h4>
+                        <p className="text-sm text-gray-600">Share anonymized data for medical research initiatives</p>
+                      </div>
+                      <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full">
+                        <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white"></span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Platform Analytics</h4>
+                        <p className="text-sm text-gray-600">Help improve our platform with usage analytics</p>
+                      </div>
+                      <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full">
+                        <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white"></span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Personalized Recommendations</h4>
+                        <p className="text-sm text-gray-600">Use data to provide personalized health insights</p>
+                      </div>
+                      <button className="bg-primary relative inline-flex h-6 w-11 items-center rounded-full">
+                        <span className="translate-x-5 inline-block h-4 w-4 transform rounded-full bg-white"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Data Export & Control */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Data Control</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Button variant="outline" className="justify-start">
+                      <i className="ri-download-line mr-2"></i>
+                      Export My Data
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <i className="ri-file-text-line mr-2"></i>
+                      View Data Usage Log
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <i className="ri-shield-check-line mr-2"></i>
+                      Privacy Policy
+                    </Button>
+                    <Button variant="outline" className="justify-start text-red-600 border-red-300 hover:bg-red-50">
+                      <i className="ri-delete-bin-line mr-2"></i>
+                      Delete All Data
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
