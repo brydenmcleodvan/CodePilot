@@ -57,23 +57,21 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold mb-2 tracking-tight">
           {user ? "Personalized Recommendations" : "Health Products"}
         </h2>
-        <div className="mb-4"></div>
         <button className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>
         </button>
       </div>
 
-      <div className="relative bg-white rounded-xl shadow-lg p-8 mb-6">
-        <div className="lg:w-2/3">
+      <div className="relative bg-white rounded-xl shadow-lg p-8">
+        <div className="lg:w-2/3 space-y-6">
           <h3 className="text-xl font-semibold mb-2 tracking-tight">Personalized Health Store</h3>
-          <div className="mb-4"></div>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600">
             {user 
               ? "Based on your nutrient status, we've curated products that may help address your specific health needs."
               : "Connect your health data to receive personalized product recommendations tailored to your needs."}
