@@ -201,7 +201,7 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (
               <motion.div
                 key={metric.title}
@@ -251,7 +251,7 @@ export default function Dashboard() {
           </div>
 
           <motion.div
-            className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
+            className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}

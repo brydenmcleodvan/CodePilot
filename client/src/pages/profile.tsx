@@ -313,7 +313,7 @@ const Profile = () => {
               {connectionsLoading ? (
                 <div className="text-center py-10">Loading connections...</div>
               ) : connections && connections.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {connections.map((connection, index) => (
                     <ConnectionCard 
                       key={index}
@@ -628,7 +628,7 @@ const Profile = () => {
               
               <div className="border-b border-gray-200 pb-6 mb-6">
                 <h3 className="text-lg font-medium mb-4">Account Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                     <input
@@ -1077,7 +1077,7 @@ const Profile = () => {
                 {/* Data Export & Control */}
                 <div>
                   <h3 className="text-lg font-semibold mb-4">Data Control</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Button variant="outline" className="justify-start">
                       <i className="ri-download-line mr-2"></i>
                       Export My Data

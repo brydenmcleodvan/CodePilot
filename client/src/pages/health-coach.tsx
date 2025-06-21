@@ -260,7 +260,7 @@ export function HealthCoach() {
           <div className="mt-8">
             <h3 className="text-xl font-semibold mb-2 tracking-tight">Suggested Questions</h3>
             <div className="mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 "How much sleep should I get each night?",
                 "What foods can help reduce inflammation?",
