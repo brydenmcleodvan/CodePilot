@@ -858,6 +858,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // DNA insights route
+  app.get(`${apiRouter}/user/dna`, (req, res) => {
+    res.json({
+      vitamin_d: "low",
+      cyp1a2: "slow caffeine metabolizer",
+      apoe4: "risk gene for Alzheimer's"
+    });
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {

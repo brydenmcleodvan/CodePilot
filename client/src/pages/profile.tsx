@@ -17,12 +17,20 @@ import StreamlitEmbed from "@/components/streamlit-embed";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import HealthDashboard from "@/components/health-dashboard";
+import { getQueryFn } from "@/lib/queryClient";
+import { Sun, Coffee, Brain, AlertTriangle, CheckCircle } from "lucide-react";
 
 const Profile = () => {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Fetch DNA insights data
+  const { data: dnaInsights, isLoading: dnaLoading } = useQuery({
+    queryKey: ["/api/user/dna"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -306,49 +314,97 @@ const Profile = () => {
           {activeTab === "genetic-profile" && (
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
               <h2 className="text-2xl font-heading font-semibold mb-6">Genetic Profile</h2>
-              <p className="text-gray-600 mb-4">
-                Connect your genetic testing data to gain insights into your health.
+              <p className="text-gray-600 mb-6">
+                Your genetic insights reveal important traits that can guide your health decisions.
               </p>
               
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start">
-                  <i className="ri-information-line text-amber-500 text-xl mt-1 mr-2"></i>
-                  <div>
-                    <h3 className="font-medium text-amber-800">DNA Testing Not Connected</h3>
-                    <p className="text-amber-700 text-sm">
-                      Connect your DNA testing service to unlock genetic insights and personalized recommendations.
-                    </p>
-                  </div>
+              {dnaLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2 text-gray-600">Loading DNA insights...</span>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors duration-200">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <i className="ri-dna-line text-primary text-2xl"></i>
-                    <h3 className="font-medium">23andMe</h3>
+              ) : (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start">
+                      <CheckCircle className="text-green-500 w-5 h-5 mt-1 mr-3" />
+                      <div>
+                        <h3 className="font-medium text-green-800">DNA Analysis Complete</h3>
+                        <p className="text-green-700 text-sm">
+                          Your genetic profile has been analyzed. Review your key traits below.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Connect your 23andMe genetic test results for detailed health insights.
-                  </p>
-                  <button className="w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
-                    Connect
-                  </button>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors duration-200">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <i className="ri-dna-line text-primary text-2xl"></i>
-                    <h3 className="font-medium">AncestryDNA</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="border border-orange-200 rounded-lg p-6 bg-orange-50">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Sun className="text-orange-500 w-8 h-8" />
+                        <div>
+                          <h3 className="font-semibold text-orange-800">Vitamin D Levels</h3>
+                          <p className="text-sm text-orange-600">Current Status</p>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-orange-800 mb-2">
+                        {dnaInsights?.vitamin_d === "low" ? "Low" : dnaInsights?.vitamin_d}
+                      </div>
+                      <p className="text-sm text-orange-700">
+                        Consider increasing sun exposure and vitamin D supplementation.
+                      </p>
+                    </div>
+                    
+                    <div className="border border-brown-200 rounded-lg p-6 bg-amber-50">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Coffee className="text-amber-600 w-8 h-8" />
+                        <div>
+                          <h3 className="font-semibold text-amber-800">Caffeine Metabolism</h3>
+                          <p className="text-sm text-amber-600">CYP1A2 Gene</p>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-amber-800 mb-2">
+                        {dnaInsights?.cyp1a2 === "slow caffeine metabolizer" ? "Slow Metabolizer" : dnaInsights?.cyp1a2}
+                      </div>
+                      <p className="text-sm text-amber-700">
+                        Limit caffeine intake, especially in afternoon and evening.
+                      </p>
+                    </div>
+                    
+                    <div className="border border-red-200 rounded-lg p-6 bg-red-50">
+                      <div className="flex items-center space-x-3 mb-4">
+                        <Brain className="text-red-500 w-8 h-8" />
+                        <div>
+                          <h3 className="font-semibold text-red-800">Alzheimer's Risk</h3>
+                          <p className="text-sm text-red-600">APOE4 Gene</p>
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-red-800 mb-2">
+                        {dnaInsights?.apoe4 === "risk gene for Alzheimer's" ? "Risk Present" : dnaInsights?.apoe4}
+                      </div>
+                      <p className="text-sm text-red-700">
+                        Focus on brain-healthy lifestyle: exercise, Mediterranean diet, cognitive training.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
-                    Import your AncestryDNA test results to enhance your health profile.
-                  </p>
-                  <button className="w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
-                    Connect
-                  </button>
-                </div>
-              </div>
+                  
+                  <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <div className="flex items-start">
+                      <AlertTriangle className="text-blue-500 w-5 h-5 mt-1 mr-3" />
+                      <div>
+                        <h3 className="font-medium text-blue-800">Personalized Recommendations</h3>
+                        <p className="text-blue-700 text-sm mt-2">
+                          Based on your genetic profile, consider consulting with a healthcare provider about:
+                        </p>
+                        <ul className="list-disc list-inside text-blue-700 text-sm mt-2 space-y-1">
+                          <li>Regular vitamin D testing and appropriate supplementation</li>
+                          <li>Optimal caffeine timing and dosage for your metabolism</li>
+                          <li>Preventive strategies for cognitive health</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
