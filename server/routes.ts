@@ -887,6 +887,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Analytics logging route
+  app.post(`${apiRouter}/analytics`, (req, res) => {
+    const { event } = req.body;
+    console.log("Analytics Event:", event);
+    res.sendStatus(200);
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {

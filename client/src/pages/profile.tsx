@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import HealthDashboard from "@/components/health-dashboard";
 import { getQueryFn } from "@/lib/queryClient";
 import { Sun, Coffee, Brain, AlertTriangle, CheckCircle } from "lucide-react";
+import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -36,8 +37,25 @@ const Profile = () => {
   useEffect(() => {
     if (!user) {
       setLocation("/auth/login");
+    } else {
+      // Track profile page view
+      trackEvent(ANALYTICS_EVENTS.PROFILE_VIEWED, { userId: user.id });
     }
   }, [user, setLocation]);
+
+  // Track tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    trackEvent(ANALYTICS_EVENTS.PROFILE_TAB_CHANGED, { 
+      tab, 
+      userId: user?.id 
+    });
+    
+    // Track specific interactions
+    if (tab === "genetic-profile" && dnaInsights) {
+      trackEvent(ANALYTICS_EVENTS.DNA_INSIGHTS_VIEWED, { userId: user?.id });
+    }
+  };
 
   // Match hash from URL and set active tab
   useEffect(() => {
@@ -87,7 +105,7 @@ const Profile = () => {
               <nav className="flex flex-col space-y-2">
                 <a
                   href="#profile-overview"
-                  onClick={() => setActiveTab("overview")}
+                  onClick={() => handleTabChange("overview")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "overview"
                       ? "bg-primary/10 text-primary font-medium"
@@ -99,7 +117,7 @@ const Profile = () => {
                 </a>
                 <a
                   href="#health-data"
-                  onClick={() => setActiveTab("health-data")}
+                  onClick={() => handleTabChange("health-data")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "health-data"
                       ? "bg-primary/10 text-primary font-medium"
@@ -111,7 +129,7 @@ const Profile = () => {
                 </a>
                 <a
                   href="#genetic-profile"
-                  onClick={() => setActiveTab("genetic-profile")}
+                  onClick={() => handleTabChange("genetic-profile")}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
                     activeTab === "genetic-profile"
                       ? "bg-primary/10 text-primary font-medium"

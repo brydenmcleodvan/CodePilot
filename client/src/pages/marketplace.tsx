@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Star, Truck, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
+import { useAuth } from "@/lib/auth";
+import { useEffect } from "react";
 
 interface Product {
   id: number;
@@ -14,12 +17,26 @@ interface Product {
 
 const Marketplace = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: marketData, isLoading } = useQuery({
     queryKey: ["/api/market"],
   });
 
+  // Track marketplace visit
+  useEffect(() => {
+    if (user) {
+      trackEvent(ANALYTICS_EVENTS.MARKETPLACE_VISITED, { userId: user.id });
+    }
+  }, [user]);
+
   const handlePurchase = (productName: string) => {
+    // Track product added to cart
+    trackEvent(ANALYTICS_EVENTS.PRODUCT_ADDED_TO_CART, { 
+      productName, 
+      userId: user?.id 
+    });
+    
     toast({
       title: "Added to Cart",
       description: `${productName} has been added to your shopping cart.`,
