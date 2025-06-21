@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { healthResponses, queryPerplexityAPI } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useQuery } from "@tanstack/react-query";
-import { getQueryFn } from "@/lib/queryClient";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getQueryFn, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 // Define type for chat messages
 interface ChatMessage {
@@ -120,27 +121,25 @@ export function HealthCoach() {
         <h1 className="text-3xl font-bold">Health Coach</h1>
       </div>
 
-      <Tabs defaultValue="coach" className="mb-8">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="coach" className="flex items-center gap-2">
-            <HeadphonesIcon className="w-4 h-4" />
-            <span>Human Coach</span>
-          </TabsTrigger>
+      <Tabs defaultValue="ai" className="mb-8">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Bot className="w-4 h-4" />
-            <span>AI Assistant</span>
+            <span>AI Coach</span>
+          </TabsTrigger>
+          <TabsTrigger value="sleep" className="flex items-center gap-2">
+            <Moon className="w-4 h-4" />
+            <span>Sleep Coach</span>
+          </TabsTrigger>
+          <TabsTrigger value="telehealth" className="flex items-center gap-2">
+            <HeadphonesIcon className="w-4 h-4" />
+            <span>Talk to a Doctor</span>
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="coach">
-          <p className="text-lg mb-8">
-            Get personalized guidance from certified health professionals to achieve your wellness goals.
-          </p>
-        </TabsContent>
-        
         <TabsContent value="ai">
           <p className="text-lg mb-8">
-            Need quick health guidance? Chat with our AI Health Assistant for instant answers and wellness tips.
+            Get instant health guidance and personalized wellness tips from our AI Health Assistant.
           </p>
           
           {/* AI Assistant Chat UI */}
@@ -289,6 +288,16 @@ export function HealthCoach() {
         {/* Sleep Coach Tab */}
         <TabsContent value="sleep" className="space-y-6">
           <SleepCoachTab />
+        </TabsContent>
+
+        {/* Sleep Coach Tab - moved from separate implementation */}
+        <TabsContent value="sleep" className="space-y-6">
+          <SleepCoachTab />
+        </TabsContent>
+
+        {/* Telehealth Tab */}
+        <TabsContent value="telehealth" className="space-y-6">
+          <TelehealthTab />
         </TabsContent>
       </Tabs>
 
@@ -783,6 +792,220 @@ export function HealthCoach() {
             </div>
           </CollapsibleContent>
         </Collapsible>
+      </div>
+    </div>
+  );
+}
+
+// Telehealth Tab Component
+function TelehealthTab() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [bookedAppointment, setBookedAppointment] = useState<any>(null);
+
+  const { data: telehealthSessions, isLoading } = useQuery({
+    queryKey: ['/api/telehealth/sessions'],
+  });
+
+  const bookAppointment = useMutation({
+    mutationFn: ({ sessionId, appointmentTime }: { sessionId: string, appointmentTime: string }) =>
+      apiRequest("/api/telehealth/book", {
+        method: "POST",
+        body: JSON.stringify({ sessionId, appointmentTime }),
+      }),
+    onSuccess: (data) => {
+      setBookedAppointment(data.booking);
+      setShowConfirmation(true);
+      toast({
+        title: "Appointment Booked!",
+        description: "Your telehealth consultation has been confirmed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/telehealth/sessions"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to book appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const groupedSessions = telehealthSessions?.reduce((acc: any, session: any) => {
+    if (!acc[session.doctor.id]) {
+      acc[session.doctor.id] = {
+        doctor: session.doctor,
+        sessions: []
+      };
+    }
+    acc[session.doctor.id].sessions.push(session);
+    return acc;
+  }, {}) || {};
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-64 bg-gray-200 rounded-lg animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {showConfirmation && bookedAppointment && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-6 w-6 text-green-600 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-green-800">Appointment Confirmed!</h3>
+              <p className="text-green-700 mt-1">
+                Your consultation with {bookedAppointment.doctorName} is scheduled for{' '}
+                {new Date(bookedAppointment.appointmentDate).toLocaleDateString()} at{' '}
+                {bookedAppointment.appointmentTime}.
+              </p>
+              <p className="text-sm text-green-600 mt-2">
+                You'll receive a meeting link and reminder before your appointment.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Talk to a Doctor</h2>
+        <p className="text-gray-600 mb-6">
+          Connect with licensed healthcare professionals for personalized medical advice and consultations.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Object.values(groupedSessions).map((doctorGroup: any) => (
+          <div key={doctorGroup.doctor.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <img
+                  src={doctorGroup.doctor.image}
+                  alt={doctorGroup.doctor.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="font-semibold text-lg">{doctorGroup.doctor.name}</h3>
+                  <p className="text-blue-600 text-sm">{doctorGroup.doctor.specialty}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span className="text-sm text-gray-600">{doctorGroup.doctor.rating}</span>
+                    <span className="text-xs text-gray-500">• {doctorGroup.doctor.experience}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-4">
+                <div className="text-sm">
+                  <span className="font-medium">Education:</span>
+                  <p className="text-gray-600">{doctorGroup.doctor.education}</p>
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Languages:</span>
+                  <p className="text-gray-600">{doctorGroup.doctor.languages.join(", ")}</p>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-sm mb-3">Available Time Slots</h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {doctorGroup.sessions.slice(0, 4).map((session: any) => (
+                    <div key={session.id} className="flex items-center justify-between text-sm">
+                      <div>
+                        <span className="text-gray-700">
+                          {new Date(session.date).toLocaleDateString('en-US', { 
+                            month: 'short', day: 'numeric' 
+                          })}
+                        </span>
+                        <span className="text-gray-500 ml-2">{session.time}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-green-600 font-medium">${session.cost}</span>
+                        <button
+                          onClick={() => bookAppointment.mutate({ 
+                            sessionId: session.id, 
+                            appointmentTime: `${session.date} ${session.time}` 
+                          })}
+                          disabled={bookAppointment.isPending}
+                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          Book
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {doctorGroup.sessions.length > 4 && (
+                  <button 
+                    onClick={() => setSelectedDoctor(
+                      selectedDoctor === doctorGroup.doctor.id ? null : doctorGroup.doctor.id
+                    )}
+                    className="text-blue-600 text-sm mt-2 hover:underline"
+                  >
+                    {selectedDoctor === doctorGroup.doctor.id ? 'Show less' : `View all ${doctorGroup.sessions.length} slots`}
+                  </button>
+                )}
+
+                {selectedDoctor === doctorGroup.doctor.id && (
+                  <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+                    {doctorGroup.sessions.slice(4).map((session: any) => (
+                      <div key={session.id} className="flex items-center justify-between text-sm">
+                        <div>
+                          <span className="text-gray-700">
+                            {new Date(session.date).toLocaleDateString('en-US', { 
+                              month: 'short', day: 'numeric' 
+                            })}
+                          </span>
+                          <span className="text-gray-500 ml-2">{session.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600 font-medium">${session.cost}</span>
+                          <button
+                            onClick={() => bookAppointment.mutate({ 
+                              sessionId: session.id, 
+                              appointmentTime: `${session.date} ${session.time}` 
+                            })}
+                            disabled={bookAppointment.isPending}
+                            className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            Book
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <VideoIcon className="h-6 w-6 text-blue-600 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-blue-800">How Telehealth Works</h3>
+            <ul className="text-sm text-blue-700 mt-2 space-y-1">
+              <li>• Book an appointment with a licensed doctor</li>
+              <li>• Join the video call at your scheduled time</li>
+              <li>• Discuss your health concerns and get professional advice</li>
+              <li>• Receive prescriptions or referrals if needed</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

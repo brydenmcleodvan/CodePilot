@@ -232,6 +232,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Telehealth endpoints
+  app.get(`${apiRouter}/telehealth/sessions`, authenticateToken, async (req, res) => {
+    try {
+      const sessions = await storage.getTelehealthSessions();
+      res.json(sessions);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching telehealth sessions' });
+    }
+  });
+
+  app.post(`${apiRouter}/telehealth/book`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const { sessionId, appointmentTime } = req.body;
+      
+      if (!sessionId || !appointmentTime) {
+        return res.status(400).json({ message: 'Session ID and appointment time are required' });
+      }
+      
+      const booking = await storage.bookTelehealthSession(userId, sessionId, appointmentTime);
+      res.json({
+        message: 'Appointment booked successfully',
+        booking
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error booking telehealth session' });
+    }
+  });
+
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
     try {

@@ -85,6 +85,10 @@ export interface IStorage {
   // User Insurance
   getUserInsurance(userId: number): Promise<any>;
   
+  // Telehealth
+  getTelehealthSessions(): Promise<any[]>;
+  bookTelehealthSession(userId: number, sessionId: string, appointmentTime: string): Promise<any>;
+  
   // Medications
   getUserMedications(userId: number): Promise<Medication[]>;
   addMedication(medication: InsertMedication): Promise<Medication>;
