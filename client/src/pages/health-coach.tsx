@@ -3,7 +3,8 @@ import {
   HeadphonesIcon, Calendar, MessageSquare, VideoIcon, 
   Bot, Send, Mic, RefreshCw, Sparkles, AlertCircle,
   ChevronUp, ChevronDown, LineChart, Users, Award,
-  Utensils, FileText, Play, BookOpen, Target, ScrollText
+  Utensils, FileText, Play, BookOpen, Target, ScrollText,
+  Lightbulb
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { healthResponses, queryPerplexityAPI } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryFn } from "@/lib/queryClient";
 
 // Define type for chat messages
 interface ChatMessage {
@@ -33,6 +36,12 @@ export function HealthCoach() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<ApiStatus>('loading');
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Fetch AI recommendations from the API
+  const { data: aiRecommendations, isLoading: recommendationsLoading } = useQuery({
+    queryKey: ["/api/coach/ai"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+  });
   
   // Set API status to unavailable for demo purposes
   useEffect(() => {
@@ -276,6 +285,45 @@ export function HealthCoach() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* AI Recommendations Section */}
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <Lightbulb className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-semibold">AI Recommendations</h2>
+        </div>
+        
+        {recommendationsLoading ? (
+          <div className="grid md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded-md animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {aiRecommendations?.tips?.map((tip: string, index: number) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">{tip}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+        
+        {!recommendationsLoading && (!aiRecommendations?.tips || aiRecommendations.tips.length === 0) && (
+          <p className="text-gray-500 text-center py-8">No AI recommendations available at the moment.</p>
+        )}
+      </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-12">
         <div className="bg-white p-6 rounded-lg shadow">

@@ -834,6 +834,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Health Coach route
+  app.get(`${apiRouter}/coach/ai`, (req, res) => {
+    const tips = [
+      "Drink more water - aim for 8 glasses daily",
+      "Stretch after walking to improve flexibility",
+      "Limit screen time before bed for better sleep",
+      "Take breaks every hour when working at a computer",
+      "Practice deep breathing for 5 minutes daily",
+      "Include more colorful vegetables in your meals",
+      "Walk for 10 minutes after meals to aid digestion",
+      "Keep a consistent sleep schedule"
+    ];
+    res.json({ tips });
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {
