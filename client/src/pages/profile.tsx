@@ -96,7 +96,7 @@ const Profile = () => {
               />
               <h2 className="text-xl font-medium">{user.name}</h2>
               <p className="text-gray-500">{user.email}</p>
-              <button className="mt-4 w-full bg-white text-primary border border-primary font-medium py-2 rounded-md hover:bg-primary/5 transition-colors duration-200">
+              <button className="mt-4 w-full rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition">
                 Edit Profile
               </button>
             </div>
@@ -650,7 +650,7 @@ const Profile = () => {
                     />
                   </div>
                 </div>
-                <button className="mt-4 bg-primary text-white px-4 py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                <button className="mt-4 rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition">
                   Edit Account Information
                 </button>
               </div>
@@ -695,7 +695,7 @@ const Profile = () => {
                   <p className="text-sm text-red-700 mb-4">
                     Once you delete your account, there is no going back. Please be certain.
                   </p>
-                  <button className="bg-white text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition-colors duration-200">
+                  <button className="rounded-md px-4 py-2 bg-red-600 hover:bg-red-700 text-white transition border border-red-600">
                     Delete Account
                   </button>
                 </div>

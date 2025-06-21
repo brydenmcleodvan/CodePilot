@@ -155,13 +155,13 @@ const Marketplace = () => {
                   </div>
 
                   {/* Purchase Button */}
-                  <Button 
-                    className="w-full mt-4"
+                  <button 
+                    className="w-full mt-4 rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition flex items-center justify-center"
                     onClick={() => handlePurchase(product.name)}
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
                     Add to Cart
-                  </Button>
+                  </button>
                 </div>
               </CardContent>
             </Card>
