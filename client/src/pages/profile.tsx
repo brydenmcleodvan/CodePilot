@@ -84,10 +84,10 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
         {/* Profile Sidebar */}
-        <div className="md:w-1/3 lg:w-1/4">
-          <div className="bg-white rounded-xl shadow-md p-6 mb-6 sticky top-24">
+        <div className="lg:w-1/3 xl:w-1/4">
+          <div className="bg-white rounded-xl shadow-md p-4 lg:p-6 mb-6 lg:sticky lg:top-24">
             <div className="flex flex-col items-center text-center mb-6">
               <img
                 src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
@@ -181,7 +181,7 @@ const Profile = () => {
         </div>
 
         {/* Profile Content */}
-        <div className="md:w-2/3 lg:w-3/4">
+        <div className="lg:w-2/3 xl:w-3/4">
           {activeTab === "overview" && (
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
               <h2 className="text-2xl font-heading font-semibold mb-6">Profile Overview</h2>
@@ -355,8 +355,8 @@ const Profile = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="border border-orange-200 rounded-lg p-6 bg-orange-50">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="border border-orange-200 rounded-lg p-4 md:p-6 bg-orange-50">
                       <div className="flex items-center space-x-3 mb-4">
                         <Sun className="text-orange-500 w-8 h-8" />
                         <div>
