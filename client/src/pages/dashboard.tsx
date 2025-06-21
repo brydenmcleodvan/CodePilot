@@ -165,14 +165,15 @@ export default function Dashboard() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
-          <motion.h1 
-            className="text-3xl font-bold mb-6"
+          <motion.h2 
+            className="text-xl font-semibold mb-2 tracking-tight"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             Wellness Dashboard
-          </motion.h1>
+          </motion.h2>
+          <div className="mb-4"></div>
 
           {/* Health Alerts Section */}
           {!alertsLoading && alertsData?.alerts && alertsData.alerts.length > 0 && (
@@ -324,8 +325,8 @@ export default function Dashboard() {
         <TabsContent value="journey" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Your Health Journey</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Health Journey</CardTitle>
+              <CardDescription className="mb-4">
                 Track your health milestones and progress over time
               </CardDescription>
             </CardHeader>
@@ -384,8 +385,8 @@ export default function Dashboard() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Your Active Challenges</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Active Challenges</CardTitle>
+                <CardDescription className="mb-4">
                   Track your progress on current wellness challenges
                 </CardDescription>
               </CardHeader>
@@ -428,8 +429,8 @@ export default function Dashboard() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Available Challenges</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Available Challenges</CardTitle>
+                <CardDescription className="mb-4">
                   Discover new challenges to boost your health
                 </CardDescription>
               </CardHeader>
@@ -480,8 +481,8 @@ export default function Dashboard() {
         <TabsContent value="coaching" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Your Health Coaching Plans</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Health Coaching Plans</CardTitle>
+              <CardDescription className="mb-4">
                 Personalized plans to achieve your health goals
               </CardDescription>
             </CardHeader>
@@ -550,8 +551,8 @@ export default function Dashboard() {
         <TabsContent value="nutrition" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Your Meal Plans</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Your Meal Plans</CardTitle>
+              <CardDescription className="mb-4">
                 Nutritional plans customized for your health goals
               </CardDescription>
             </CardHeader>
@@ -635,8 +636,8 @@ export default function Dashboard() {
         <TabsContent value="mental" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Mental Health Assessments</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Mental Health Assessments</CardTitle>
+              <CardDescription className="mb-4">
                 Track your mental wellbeing over time
               </CardDescription>
             </CardHeader>
@@ -710,8 +711,8 @@ export default function Dashboard() {
         <TabsContent value="library" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Health Knowledge Library</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl font-semibold mb-2 tracking-tight">Health Knowledge Library</CardTitle>
+              <CardDescription className="mb-4">
                 Explore curated health articles and resources
               </CardDescription>
             </CardHeader>
