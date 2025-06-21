@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Heart, Brain, Sun, Moon, Clock, Dumbbell, Award, BookOpen, ChevronRight, Calendar, Utensils, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
 import {
   HealthJourneyEntry,
   HealthCoachingPlan,
@@ -39,6 +40,21 @@ export default function Dashboard() {
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
+
+  // Track dashboard visit and health alerts view
+  useEffect(() => {
+    if (user) {
+      trackEvent(ANALYTICS_EVENTS.DASHBOARD_VISITED, { userId: user.id });
+      
+      if (alertsData?.alerts && alertsData.alerts.length > 0) {
+        trackEvent(ANALYTICS_EVENTS.HEALTH_ALERTS_VIEWED, { 
+          userId: user.id,
+          alertCount: alertsData.alerts.length,
+          alerts: alertsData.alerts
+        });
+      }
+    }
+  }, [user, alertsData]);
 
   // Fetch health journey entries
   const { data: journeyEntries = [] } = useQuery<HealthJourneyEntry[]>({
