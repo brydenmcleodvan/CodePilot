@@ -78,6 +78,10 @@ export interface IStorage {
   getUserHealthStats(userId: number): Promise<HealthStat[]>;
   addHealthStat(stat: InsertHealthStat): Promise<HealthStat>;
   
+  // User Goals
+  getUserGoals(userId: number): Promise<any>;
+  updateUserGoalProgress(userId: number, goalType: string, progress: number): Promise<any>;
+  
   // Medications
   getUserMedications(userId: number): Promise<Medication[]>;
   addMedication(medication: InsertMedication): Promise<Medication>;

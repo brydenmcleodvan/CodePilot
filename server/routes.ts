@@ -191,6 +191,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User goals routes
+  app.get(`${apiRouter}/user/goals`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const goals = await storage.getUserGoals(userId);
+      res.json(goals);
+    } catch (error) {
+      res.status(500).json({ message: 'Server error fetching goals' });
+    }
+  });
+
+  app.post(`${apiRouter}/user/goals/update`, authenticateToken, async (req, res) => {
+    try {
+      const userId = req.body.user.id;
+      const { goalType, progress } = req.body;
+      
+      if (!goalType || progress === undefined) {
+        return res.status(400).json({ message: 'Goal type and progress are required' });
+      }
+      
+      const updatedGoal = await storage.updateUserGoalProgress(userId, goalType, progress);
+      res.json({ 
+        message: 'Goal progress updated successfully',
+        goal: updatedGoal 
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error updating goal progress' });
+    }
+  });
+
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
     try {
