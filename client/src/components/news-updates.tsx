@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Link } from "wouter";
 
 interface NewsUpdatesProps {
   newsItems: NewsUpdate[];
@@ -44,10 +45,10 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-heading font-semibold">Health News & Updates</h2>
-        <button className="text-primary hover:text-secondary flex items-center space-x-1">
+        <Link to="/news" className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

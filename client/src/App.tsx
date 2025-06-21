@@ -20,6 +20,7 @@ import FamilyTreePage from "@/pages/family-tree";
 import MessengerPage from "@/pages/messenger";
 import Admin from "@/pages/admin";
 import Marketplace from "@/pages/marketplace";
+import News from "@/pages/news";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -54,6 +55,7 @@ function Router() {
             <Route path="/messenger" component={MessengerPage} />
             <Route path="/admin" component={Admin} />
             <Route path="/marketplace" component={Marketplace} />
+            <Route path="/news" component={News} />
             <Route component={NotFound} />
           </Switch>
         </div>
