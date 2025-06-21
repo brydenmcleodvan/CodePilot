@@ -285,6 +285,11 @@ export function HealthCoach() {
             </div>
           </div>
         </TabsContent>
+
+        {/* Sleep Coach Tab */}
+        <TabsContent value="sleep" className="space-y-6">
+          <SleepCoachTab />
+        </TabsContent>
       </Tabs>
 
       {/* AI Recommendations Section */}
