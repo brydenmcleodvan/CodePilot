@@ -849,6 +849,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ tips });
   });
 
+  // Admin metrics route
+  app.get(`${apiRouter}/admin/metrics`, (req, res) => {
+    res.json({
+      totalUsers: 2187,
+      topModules: ["Dashboard", "Profile", "Messenger"],
+      errorLogs: ["GET /api/user failed", "POST /api/coach/ai timeout"]
+    });
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {
