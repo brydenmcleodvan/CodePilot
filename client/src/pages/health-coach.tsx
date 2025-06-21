@@ -351,14 +351,14 @@ export function HealthCoach() {
           </p>
 
           <div className="flex gap-3">
-            <Button className="flex items-center gap-2">
+            <button className="rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
               Message
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            </button>
+            <button className="rounded-md px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 transition flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Schedule
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -373,11 +373,11 @@ export function HealthCoach() {
               </div>
               <p className="text-sm text-muted-foreground mb-3">10:00 AM - 10:30 AM</p>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex items-center gap-2">
+                <button className="rounded-md px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white transition flex items-center gap-2 text-sm">
                   <VideoIcon className="w-3 h-3" />
                   Join
-                </Button>
-                <Button size="sm" variant="outline">Reschedule</Button>
+                </button>
+                <button className="rounded-md px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 transition text-sm">Reschedule</button>
               </div>
             </div>
 

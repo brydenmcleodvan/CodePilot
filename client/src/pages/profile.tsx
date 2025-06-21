@@ -738,9 +738,9 @@ const Profile = () => {
                           <span className="text-gray-600">Data Types:</span>
                           <span className="font-medium">Heart Rate, Steps, Sleep</span>
                         </div>
-                        <Button variant="outline" size="sm" className="w-full">
+                        <button className="w-full rounded-md px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 transition text-sm">
                           Configure Sync
-                        </Button>
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
@@ -799,9 +799,9 @@ const Profile = () => {
                         <p className="text-sm text-gray-600">
                           Connect your smart scale to track weight, body composition, and health trends.
                         </p>
-                        <Button size="sm" className="w-full">
+                        <button className="w-full rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition text-sm">
                           Connect Device
-                        </Button>
+                        </button>
                       </div>
                     </CardContent>
                   </Card>
