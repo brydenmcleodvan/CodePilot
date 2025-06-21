@@ -83,8 +83,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+    <div className="container mx-auto p-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Profile Sidebar */}
         <div className="lg:w-1/3 xl:w-1/4">
           <div className="bg-white rounded-xl shadow-md p-4 lg:p-6 mb-6 lg:sticky lg:top-24">
@@ -857,7 +857,7 @@ const Profile = () => {
                 </p>
 
                 {/* Achievement Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
                     <CardContent className="p-6 text-center">
                       <div className="text-3xl font-bold text-yellow-700 mb-2">12</div>

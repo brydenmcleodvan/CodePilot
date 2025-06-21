@@ -141,8 +141,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="clean-container py-10">
-      <div className="clean-header mb-8">
+    <div className="clean-container p-4">
+      <div className="clean-header mb-6">
         <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
         <p className="text-muted-foreground text-body-text">
           Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
@@ -200,7 +200,7 @@ export default function Dashboard() {
             </motion.div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {metrics.map((metric) => (
               <motion.div
                 key={metric.title}
