@@ -262,14 +262,16 @@ const Profile = () => {
               </div>
 
               <div className="mb-8">
-                <h3 className="text-xl font-medium mb-4">Medication Schedule</h3>
+                <h3 className="text-xl font-semibold mb-2 tracking-tight">Medication Schedule</h3>
+                <div className="mb-4"></div>
                 <div className="bg-white rounded-lg border border-gray-200">
                   <MedicationTracker />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-xl font-medium mb-4">Connected Data Sources</h3>
+                <h3 className="text-xl font-semibold mb-2 tracking-tight">Connected Data Sources</h3>
+                <div className="mb-4"></div>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center space-x-2">
@@ -300,7 +302,8 @@ const Profile = () => {
           {activeTab === "family-connections" && (
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-heading font-semibold">Family & Friends</h2>
+                <h2 className="text-xl font-semibold mb-2 tracking-tight">Family & Friends</h2>
+                <div className="mb-4"></div>
                 <button className="text-primary hover:text-secondary flex items-center space-x-1">
                   <i className="ri-user-add-line"></i>
                   <span>Add Connection</span>
@@ -342,7 +345,8 @@ const Profile = () => {
               <div className="bg-white rounded-xl shadow-md p-6">
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-heading font-semibold">Health Data</h2>
+                    <h2 className="text-xl font-semibold mb-2 tracking-tight">Health Data</h2>
+                    <div className="mb-4"></div>
                     <div className="flex space-x-2">
                       <Button variant="outline" size="sm">
                         <i className="ri-refresh-line mr-1"></i> Sync Devices
@@ -367,7 +371,8 @@ const Profile = () => {
 
           {activeTab === "genetic-profile" && (
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-              <h2 className="text-2xl font-heading font-semibold mb-6">Genetic Profile</h2>
+              <h2 className="text-xl font-semibold mb-2 tracking-tight">Genetic Profile</h2>
+              <div className="mb-4"></div>
               <p className="text-gray-600 mb-6">
                 Your genetic insights reveal important traits that can guide your health decisions.
               </p>
@@ -493,7 +498,8 @@ const Profile = () => {
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Neurological History</h3>
+                  <h3 className="text-xl font-semibold mb-2 tracking-tight">Neurological History</h3>
+                  <div className="mb-4"></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">
@@ -531,7 +537,8 @@ const Profile = () => {
                 </div>
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-medium mb-4">Diagnostic Tests</h3>
+                  <h3 className="text-xl font-semibold mb-2 tracking-tight">Diagnostic Tests</h3>
+                  <div className="mb-4"></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center mb-3">

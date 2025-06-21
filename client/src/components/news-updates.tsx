@@ -29,7 +29,8 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (!newsItems || newsItems.length === 0) {
     return (
       <div className="mb-12">
-        <h2 className="text-2xl font-heading font-semibold mb-6">Health News & Updates</h2>
+        <h2 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h2>
+        <div className="mb-4"></div>
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
@@ -44,7 +45,8 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   return (
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-heading font-semibold">Health News & Updates</h2>
+        <h2 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h2>
+        <div className="mb-4"></div>
         <Link to="/news" className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>
