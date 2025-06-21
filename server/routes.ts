@@ -867,6 +867,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Health marketplace route
+  app.get(`${apiRouter}/market`, (req, res) => {
+    res.json({
+      products: [
+        { id: 1, name: "Zinc Supplement", price: "$9.99", discount: "20%" },
+        { id: 2, name: "Sleep Tracker Band", price: "$49.99", discount: "15%" }
+      ]
+    });
+  });
+
   // Wellness Challenges
   app.get(`${apiRouter}/challenges`, async (req, res) => {
     try {

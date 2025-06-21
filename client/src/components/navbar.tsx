@@ -109,6 +109,11 @@ const Navbar = () => {
                       Messenger
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/marketplace" className={`cursor-pointer w-full ${location === "/marketplace" ? "text-primary" : ""}`}>
+                      Marketplace
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -256,6 +261,14 @@ const Navbar = () => {
                 }`}
               >
                 Messenger
+              </Link>
+              <Link
+                href="/marketplace"
+                className={`py-3 px-2 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                  location === "/marketplace" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                }`}
+              >
+                Marketplace
               </Link>
             </nav>
           </div>
