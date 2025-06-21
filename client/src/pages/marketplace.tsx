@@ -46,7 +46,7 @@ const Marketplace = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto p-4">
           <div className="flex items-center justify-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2 text-gray-600">Loading marketplace...</span>
@@ -99,8 +99,8 @@ const Marketplace = () => {
       </div>
 
       {/* Products Grid */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((product: Product) => (
             <Card key={product.id} className="hover:shadow-lg transition-shadow duration-200">
               <CardHeader className="pb-4">
