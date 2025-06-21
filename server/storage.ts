@@ -195,6 +195,20 @@ export interface IStorage {
   getMealPlanEntryById(id: number): Promise<MealPlanEntry | undefined>;
   createMealPlanEntry(entry: InsertMealPlanEntry): Promise<MealPlanEntry>;
   updateMealPlanEntry(id: number, entryData: Partial<MealPlanEntry>): Promise<MealPlanEntry | undefined>;
+  
+  // Sleep Coach
+  getSleepTips(): Promise<any[]>;
+  
+  // User Goals
+  getUserGoals(userId: number): Promise<any[]>;
+  updateUserGoalProgress(userId: number, goalType: string, progress: number): Promise<any>;
+  
+  // User Insurance
+  getUserInsurance(userId: number): Promise<any>;
+  
+  // Telehealth
+  getTelehealthSessions(): Promise<any[]>;
+  bookTelehealthSession(userId: number, sessionId: string, appointmentTime: string): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -1429,6 +1443,229 @@ export class MemStorage implements IStorage {
     const updatedEntry = { ...entry, ...entryData };
     this.mealPlanEntries.set(id, updatedEntry);
     return updatedEntry;
+  }
+
+  // Sleep Coach
+  async getSleepTips(): Promise<any[]> {
+    return [
+      {
+        id: 1,
+        title: "Maintain a Consistent Sleep Schedule",
+        description: "Go to bed and wake up at the same time every day, even on weekends",
+        category: "schedule",
+        priority: "high"
+      },
+      {
+        id: 2,
+        title: "Create a Relaxing Bedtime Routine",
+        description: "Develop calming activities 30-60 minutes before bed like reading or gentle stretching",
+        category: "routine",
+        priority: "high"
+      },
+      {
+        id: 3,
+        title: "Optimize Your Sleep Environment",
+        description: "Keep your bedroom cool (60-67°F), dark, and quiet for better sleep quality",
+        category: "environment",
+        priority: "medium"
+      },
+      {
+        id: 4,
+        title: "Limit Screen Time Before Bed",
+        description: "Avoid phones, tablets, and TV at least 1 hour before bedtime",
+        category: "digital wellness",
+        priority: "high"
+      },
+      {
+        id: 5,
+        title: "Watch Your Caffeine Intake",
+        description: "Avoid caffeine 6-8 hours before bedtime as it can interfere with sleep",
+        category: "nutrition",
+        priority: "medium"
+      },
+      {
+        id: 6,
+        title: "Get Regular Exercise",
+        description: "Regular physical activity can help you fall asleep faster and enjoy deeper sleep",
+        category: "exercise",
+        priority: "medium"
+      },
+      {
+        id: 7,
+        title: "Manage Stress and Anxiety",
+        description: "Practice meditation, deep breathing, or journaling to calm your mind",
+        category: "mental health",
+        priority: "high"
+      },
+      {
+        id: 8,
+        title: "Consider Light Exposure",
+        description: "Get bright light in the morning and dim lights in the evening",
+        category: "circadian rhythm",
+        priority: "medium"
+      },
+      {
+        id: 9,
+        title: "Avoid Large Meals Before Bed",
+        description: "Stop eating heavy meals 2-3 hours before bedtime",
+        category: "nutrition",
+        priority: "medium"
+      },
+      {
+        id: 10,
+        title: "Create a Comfortable Sleep Surface",
+        description: "Invest in a supportive mattress and comfortable pillows",
+        category: "comfort",
+        priority: "low"
+      }
+    ];
+  }
+
+  // User Goals
+  async getUserGoals(userId: number): Promise<any[]> {
+    return [
+      {
+        id: 1,
+        userId: userId,
+        goalType: "steps",
+        target: 10000,
+        current: 7500,
+        unit: "steps",
+        progress: 75,
+        lastUpdated: new Date()
+      },
+      {
+        id: 2,
+        userId: userId,
+        goalType: "water",
+        target: 8,
+        current: 6,
+        unit: "glasses",
+        progress: 75,
+        lastUpdated: new Date()
+      },
+      {
+        id: 3,
+        userId: userId,
+        goalType: "sleep",
+        target: 8,
+        current: 7.2,
+        unit: "hours",
+        progress: 90,
+        lastUpdated: new Date()
+      },
+      {
+        id: 4,
+        userId: userId,
+        goalType: "exercise",
+        target: 30,
+        current: 25,
+        unit: "minutes",
+        progress: 83,
+        lastUpdated: new Date()
+      }
+    ];
+  }
+
+  async updateUserGoalProgress(userId: number, goalType: string, progress: number): Promise<any> {
+    return {
+      id: Date.now(),
+      userId: userId,
+      goalType: goalType,
+      progress: progress,
+      updated: true,
+      timestamp: new Date()
+    };
+  }
+
+  // User Insurance
+  async getUserInsurance(userId: number): Promise<any> {
+    return {
+      id: 1,
+      userId: userId,
+      provider: "Blue Cross Blue Shield",
+      planName: "Premium Health Plan",
+      memberId: "BC123456789",
+      groupNumber: "GRP001",
+      effectiveDate: "2024-01-01",
+      deductible: "$1,500",
+      copay: "$25",
+      outOfPocketMax: "$6,000",
+      coverageDetails: {
+        preventiveCare: "100% covered",
+        primaryCare: "$25 copay",
+        specialist: "$50 copay",
+        urgentCare: "$75 copay",
+        emergency: "$300 copay",
+        prescription: "Generic: $10, Brand: $35"
+      },
+      status: "active"
+    };
+  }
+
+  // Telehealth
+  async getTelehealthSessions(): Promise<any[]> {
+    return [
+      {
+        id: "session-1",
+        doctorName: "Dr. Sarah Johnson",
+        specialty: "Family Medicine",
+        rating: 4.9,
+        experience: "15 years",
+        availability: [
+          "Today 2:00 PM",
+          "Today 4:30 PM",
+          "Tomorrow 9:00 AM",
+          "Tomorrow 11:30 AM"
+        ],
+        consultationFee: "$75",
+        languages: ["English", "Spanish"],
+        image: "/api/placeholder/100/100"
+      },
+      {
+        id: "session-2",
+        doctorName: "Dr. Michael Chen",
+        specialty: "Internal Medicine",
+        rating: 4.8,
+        experience: "12 years",
+        availability: [
+          "Today 3:00 PM",
+          "Tomorrow 10:00 AM",
+          "Tomorrow 2:00 PM"
+        ],
+        consultationFee: "$80",
+        languages: ["English", "Mandarin"],
+        image: "/api/placeholder/100/100"
+      },
+      {
+        id: "session-3",
+        doctorName: "Dr. Emily Rodriguez",
+        specialty: "Dermatology",
+        rating: 4.9,
+        experience: "10 years",
+        availability: [
+          "Tomorrow 1:00 PM",
+          "Day after tomorrow 9:00 AM",
+          "Day after tomorrow 3:00 PM"
+        ],
+        consultationFee: "$95",
+        languages: ["English", "Spanish"],
+        image: "/api/placeholder/100/100"
+      }
+    ];
+  }
+
+  async bookTelehealthSession(userId: number, sessionId: string, appointmentTime: string): Promise<any> {
+    return {
+      id: `booking-${Date.now()}`,
+      userId: userId,
+      sessionId: sessionId,
+      appointmentTime: appointmentTime,
+      status: "confirmed",
+      bookingDate: new Date(),
+      meetingLink: `https://telehealth.healthmap.com/room/${sessionId}-${Date.now()}`,
+      reminderSent: false
+    };
   }
 }
 

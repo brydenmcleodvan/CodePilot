@@ -261,6 +261,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sleep Coach endpoint
+  app.get(`${apiRouter}/coach/sleep`, async (req, res) => {
+    try {
+      const sleepTips = await storage.getSleepTips();
+      res.json(sleepTips);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching sleep tips' });
+    }
+  });
+
   // AI Health Assistant route
   app.post(`${apiRouter}/health/assistant`, authenticateToken, async (req, res) => {
     try {
