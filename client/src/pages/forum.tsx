@@ -7,10 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { trackEvent, ANALYTICS_EVENTS, trackPageView } from "@/lib/analytics";
 
 export default function ForumPage() {
   const [activeTab, setActiveTab] = useState("hot");
+
+  // Track forum page view
+  useEffect(() => {
+    trackPageView('forum');
+  }, []);
+
+  const handlePostInteraction = (action: string, postId: number) => {
+    trackEvent(ANALYTICS_EVENTS.FORUM_POST_VIEWED, { 
+      action, 
+      postId,
+      timestamp: new Date().toISOString()
+    });
+  };
   
   // Define forum topics with more realistic health-related content
   const forumTopics = [
@@ -175,16 +190,25 @@ export default function ForumPage() {
 
           {/* Reddit-style posts */}
           <div className="space-y-3">
-            {forumTopics.map((post) => (
-              <div key={post.id} className="bg-white rounded-md shadow-sm hover:border hover:border-gray-300 transition-all">
+            {forumTopics.map((post, index) => (
+              <motion.div 
+                key={post.id} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:scale-102"
+              >
                 <div className="flex">
                   {/* Voting sidebar */}
-                  <div className="bg-gray-50 p-2 flex flex-col items-center rounded-l-md min-w-[40px]">
-                    <button 
-                      className={`p-1 rounded hover:bg-gray-200 ${post.isUpvoted ? "text-primary" : ""}`}
+                  <div className="bg-gray-50 p-4 flex flex-col items-center rounded-l-xl min-w-[50px]">
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handlePostInteraction('upvote', post.id)}
+                      className={`p-2 rounded-md hover:bg-gray-200 transition-all duration-300 hover:scale-105 ${post.isUpvoted ? "text-primary bg-primary/10" : "text-gray-500"}`}
                     >
                       <ChevronUp className="h-5 w-5" />
-                    </button>
+                    </motion.button>
                     <span className={`text-xs font-semibold my-1 ${
                       post.isUpvoted ? "text-primary" : 
                       post.isDownvoted ? "text-red-500" : "text-gray-600"
@@ -259,7 +283,7 @@ export default function ForumPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
