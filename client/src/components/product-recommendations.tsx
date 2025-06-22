@@ -133,9 +133,9 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
                     <p className="text-primary font-bold">{product.price}</p>
                     <p className="mt-2 text-gray-600 text-sm line-clamp-3">{product.description}</p>
                   </div>
-                  <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                  <Button className="mt-4 w-full">
                     Add to Cart
-                  </button>
+                  </Button>
                 </div>
               </SharedCard>
             );

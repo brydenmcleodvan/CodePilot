@@ -3,6 +3,7 @@ import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { SharedCard } from "@/components/ui/shared-card";
+import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
 interface NewsUpdatesProps {
@@ -82,7 +83,7 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
                     year: 'numeric' 
                   })}
                 </span>
-                <button className="text-primary hover:text-secondary">Read More</button>
+                <Button variant="link" size="sm">Read More</Button>
               </div>
             </div>
           </SharedCard>

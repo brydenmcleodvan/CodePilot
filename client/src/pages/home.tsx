@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
 import HealthStats from "@/components/health-stats";
 import MedicationTracker from "@/components/medication-tracker";
 import NewsUpdates from "@/components/news-updates";
@@ -37,25 +38,22 @@ const Home = () => {
               </p>
               <div className="flex flex-wrap gap-3">
                 {user ? (
-                  <Link
-                    href="/profile"
-                    className="bg-white text-primary font-medium py-2 px-6 rounded-md hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    My Profile
+                  <Link href="/profile">
+                    <Button variant="outline" className="bg-white text-blue-600 border-white hover:bg-gray-100">
+                      My Profile
+                    </Button>
                   </Link>
                 ) : (
-                  <Link
-                    href="/auth/register"
-                    className="bg-white text-primary font-medium py-2 px-6 rounded-md hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    Get Started
+                  <Link href="/auth/register">
+                    <Button variant="outline" className="bg-white text-blue-600 border-white hover:bg-gray-100">
+                      Get Started
+                    </Button>
                   </Link>
                 )}
-                <Link
-                  href="/forum"
-                  className="bg-transparent text-white border border-white font-medium py-2 px-6 rounded-md hover:bg-white/10 transition-colors duration-200"
-                >
-                  Community
+                <Link href="/forum">
+                  <Button variant="outline" className="bg-transparent text-white border-white hover:bg-white/10">
+                    Community
+                  </Button>
                 </Link>
               </div>
             </div>
