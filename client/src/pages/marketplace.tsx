@@ -46,8 +46,8 @@ const Marketplace = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
+      <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex items-center justify-center py-16">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-2 text-gray-600">Loading marketplace...</span>

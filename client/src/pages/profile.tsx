@@ -83,20 +83,20 @@ const Profile = () => {
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="flex flex-col lg:flex-row gap-6">
+    <div className="space-y-6 sm:space-y-8 md:space-y-10">
+      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 md:gap-8">
         {/* Profile Sidebar */}
         <div className="lg:w-1/3 xl:w-1/4">
-          <div className="bg-white rounded-xl shadow-md p-4 lg:p-6 mb-6 lg:sticky lg:top-24">
-            <div className="flex flex-col items-center text-center mb-6">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-5 lg:p-6 mb-4 sm:mb-6 lg:sticky lg:top-24">
+            <div className="flex flex-col items-center text-center mb-4 sm:mb-6">
               <img
                 src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
                 alt="Profile Picture"
-                className="w-24 h-24 rounded-full border-4 border-primary mb-4"
+                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-4 border-primary mb-3 sm:mb-4"
               />
-              <h2 className="text-xl font-medium">{user.name}</h2>
-              <p className="text-gray-500">{user.email}</p>
-              <button className="mt-4 w-full rounded-md px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white transition">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-medium">{user.name}</h2>
+              <p className="text-sm sm:text-base text-gray-500">{user.email}</p>
+              <button className="mt-3 sm:mt-4 w-full rounded-md px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white transition text-sm sm:text-base">
                 Edit Profile
               </button>
             </div>

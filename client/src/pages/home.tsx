@@ -22,15 +22,21 @@ const Home = () => {
   });
 
   return (
-    <section id="home" className="space-y-8">
+    <section id="home" className="space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12">
       {/* Hero Section */}
-      <Hero />
+      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+        <Hero />
+      </div>
 
       {/* News & Updates */}
-      <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
+      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+        <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
+      </div>
 
       {/* Personalized Health Store */}
-      <ProductRecommendations user={user} products={recommendedProducts || []} />
+      <div className="px-4 sm:px-6 md:px-8 lg:px-12">
+        <ProductRecommendations user={user} products={recommendedProducts || []} />
+      </div>
     </section>
   );
 };
