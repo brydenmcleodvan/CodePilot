@@ -59,19 +59,21 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
           <SharedCard 
             key={news.id} 
             hover={true}
-            className="overflow-hidden p-0"
+            className="overflow-hidden p-0 min-h-[360px] flex flex-col"
           >
             <img
               src={news.thumbnail}
               alt={news.title}
               className="w-full h-48 object-cover"
             />
-            <div className="p-6">
-              <span className={`text-xs font-medium ${getCategoryStyles(news.category)}`}>
-                {news.category}
-              </span>
-              <h3 className="mt-3 text-lg font-medium">{news.title}</h3>
-              <p className="mt-2 text-gray-600 line-clamp-2">{news.content}</p>
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <span className={`text-xs font-medium ${getCategoryStyles(news.category)}`}>
+                  {news.category}
+                </span>
+                <h3 className="mt-3 text-lg font-medium">{news.title}</h3>
+                <p className="mt-2 text-gray-600 line-clamp-3">{news.content}</p>
+              </div>
               <div className="mt-4 flex justify-between items-center">
                 <span className="text-sm text-gray-500">
                   {new Date(news.timestamp).toLocaleDateString('en-US', { 

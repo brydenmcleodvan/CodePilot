@@ -91,8 +91,8 @@ export default function News() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {allArticles.map((article) => (
-          <Card key={article.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
+          <Card key={article.id} className="hover:shadow-lg transition-shadow min-h-[360px] flex flex-col">
+            <CardHeader className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="secondary">{article.category}</Badge>
                 <div className="flex items-center text-sm text-muted-foreground">
@@ -102,11 +102,11 @@ export default function News() {
               </div>
               <CardTitle className="line-clamp-2">{article.title}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
               <p className="text-muted-foreground mb-4 line-clamp-3">
                 {article.summary}
               </p>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
                 <div className="flex items-center">
                   <CalendarDays className="w-4 h-4 mr-1" />
                   {new Date(article.publishedAt).toLocaleDateString()}

@@ -703,7 +703,7 @@ export default function Dashboard() {
             </p>
             <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {healthArticles.map((article: HealthArticle) => (
-                  <Card key={article.id} className="overflow-hidden">
+                  <Card key={article.id} className="overflow-hidden min-h-[360px] flex flex-col">
                     {article.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden">
                         <img 
@@ -723,30 +723,32 @@ export default function Dashboard() {
                       </div>
                       <CardTitle className="text-lg mt-2">{article.title}</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {article.summary}
-                      </p>
-                      
-                      {article.tags && (
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {article.tags.map((tag: string, index: number) => (
-                            <Badge key={index} variant="secondary" className="capitalize">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0 flex justify-between items-center">
-                      <div className="text-xs text-muted-foreground">
-                        {article.authorName && (
-                          <p>By {article.authorName}</p>
+                    <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {article.summary}
+                        </p>
+                        
+                        {article.tags && (
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {article.tags.map((tag: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="capitalize">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
                         )}
-                        <p>{formatDate(article.publishedAt)}</p>
                       </div>
-                      <Button size="sm">Read Article</Button>
-                    </CardFooter>
+                      <div className="mt-4 flex justify-between items-center">
+                        <div className="text-xs text-muted-foreground">
+                          {article.authorName && (
+                            <p>By {article.authorName}</p>
+                          )}
+                          <p>{formatDate(article.publishedAt)}</p>
+                        </div>
+                        <Button size="sm">Read Article</Button>
+                      </div>
+                    </CardContent>
                   </Card>
                 ))}
             </div>

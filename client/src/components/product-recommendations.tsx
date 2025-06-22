@@ -117,20 +117,22 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
               <SharedCard
                 key={product.id}
                 hover={true}
-                className="overflow-hidden p-0"
+                className="overflow-hidden p-0 min-h-[360px] flex flex-col"
               >
                 <img
                   src={imageUrl}
                   alt={product.name}
                   className="w-full h-48 object-cover"
                 />
-                <div className="p-4">
-                  <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
-                    {isRecommended ? "Recommended" : "Popular"}
-                  </span>
-                  <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
-                  <p className="text-primary font-bold">{product.price}</p>
-                  <p className="mt-2 text-gray-600 text-sm">{product.description}</p>
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
+                      {isRecommended ? "Recommended" : "Popular"}
+                    </span>
+                    <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
+                    <p className="text-primary font-bold">{product.price}</p>
+                    <p className="mt-2 text-gray-600 text-sm line-clamp-3">{product.description}</p>
+                  </div>
                   <button className="mt-4 w-full bg-primary text-white py-2 rounded-md hover:bg-secondary transition-colors duration-200">
                     Add to Cart
                   </button>
