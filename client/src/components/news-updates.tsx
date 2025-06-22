@@ -13,15 +13,15 @@ interface NewsUpdatesProps {
 const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (isLoading) {
     return (
-      <div className="mb-12">
-        <div className="flex justify-between items-center px-4 mb-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-6 w-24" />
+      <div className="mb-8 sm:mb-10 md:mb-12">
+        <div className="flex justify-between items-center px-2 sm:px-4 mb-4 sm:mb-6">
+          <Skeleton className="h-6 sm:h-8 w-48 sm:w-64" />
+          <Skeleton className="h-5 sm:h-6 w-20 sm:w-24" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-96 w-full rounded-xl" />
-          <Skeleton className="h-96 w-full rounded-xl" />
-          <Skeleton className="h-96 w-full rounded-xl hidden lg:block" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Skeleton className="h-80 sm:h-96 w-full rounded-xl" />
+          <Skeleton className="h-80 sm:h-96 w-full rounded-xl" />
+          <Skeleton className="h-80 sm:h-96 w-full rounded-xl hidden lg:block" />
         </div>
       </div>
     );
@@ -45,9 +45,9 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center px-4">
-        <h2 className="text-xl font-semibold tracking-tight">Health News & Updates</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex justify-between items-center px-2 sm:px-4">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">Health News & Updates</h2>
         <Link to="/news" className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>

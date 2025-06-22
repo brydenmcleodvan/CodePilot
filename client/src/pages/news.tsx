@@ -90,18 +90,18 @@ export default function News() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
         {allArticles.map((article) => (
-          <Card key={article.id} className="hover:shadow-lg transition-shadow min-h-[360px] flex flex-col">
-            <CardHeader className="p-4">
+          <Card key={article.id} className="hover:shadow-lg transition-shadow min-h-[320px] sm:min-h-[360px] flex flex-col">
+            <CardHeader className="p-3 sm:p-4 md:p-5">
               <div className="flex items-center justify-between mb-2">
-                <Badge variant="secondary">{article.category}</Badge>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4 mr-1" />
+                <Badge variant="secondary" className="text-xs sm:text-sm">{article.category}</Badge>
+                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   {article.readTime} min read
                 </div>
               </div>
-              <CardTitle className="line-clamp-2">{article.title}</CardTitle>
+              <CardTitle className="line-clamp-2 text-base sm:text-lg md:text-xl">{article.title}</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+            <CardContent className="p-3 sm:p-4 md:p-5 pt-0 flex-1 flex flex-col justify-between">
               <p className="text-muted-foreground mb-4 line-clamp-3">
                 {article.summary}
               </p>

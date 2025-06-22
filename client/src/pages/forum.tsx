@@ -131,19 +131,19 @@ export default function ForumPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-[1200px]">
+    <div className="max-w-[1200px] mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
       {/* Reddit-style header with community name */}
-      <div className="flex items-center gap-3 mb-4 bg-white p-3 rounded-md shadow-sm">
-        <MessageSquare className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-xl font-bold">HealthMap Forum</h1>
-          <p className="text-sm text-muted-foreground">forum.healthmap.com</p>
+      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 bg-white p-2 sm:p-3 rounded-md shadow-sm">
+        <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+        <div className="flex-1">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold">HealthMap Forum</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">forum.healthmap.com</p>
         </div>
-        <Button variant="outline" size="sm" className="ml-auto">Join</Button>
+        <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">Join</Button>
       </div>
 
       {/* Main Reddit-style grid layout */}
-      <div className="flex flex-col md:flex-row gap-5">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-5">
         {/* Main content area - 2/3 width */}
         <div className="w-full md:w-2/3">
           {/* Search bar */}
