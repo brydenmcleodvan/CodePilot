@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent, ANALYTICS_EVENTS, trackPageView } from "@/lib/analytics";
 
 // Define type for chat messages
 interface ChatMessage {
@@ -44,8 +45,9 @@ export function HealthCoach() {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
-  // Set API status to unavailable for demo purposes
+  // Track page view and set API status
   useEffect(() => {
+    trackPageView('health-coach');
     // For demo purposes, we'll always use the fallback responses
     setApiStatus('unavailable');
   }, []);
@@ -816,6 +818,13 @@ function TelehealthTab() {
         body: JSON.stringify({ sessionId, appointmentTime }),
       }),
     onSuccess: (data) => {
+      // Track successful telehealth booking
+      trackEvent(ANALYTICS_EVENTS.TELEHEALTH_SESSION_BOOKED, {
+        sessionId: data.booking?.sessionId,
+        appointmentTime: data.booking?.appointmentTime,
+        bookingId: data.booking?.id
+      });
+      
       setBookedAppointment(data.booking);
       setShowConfirmation(true);
       toast({

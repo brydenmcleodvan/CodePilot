@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import { insertUserSchema, loginSchema, insertForumPostSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { handlePerplexityRequest } from "./perplexity";
+import fs from "fs";
+import path from "path";
 
 const JWT_SECRET = process.env.JWT_SECRET || "healthmap-secret-key";
 
@@ -1026,9 +1028,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Analytics logging route
   app.post(`${apiRouter}/analytics`, (req, res) => {
-    const { event } = req.body;
-    console.log("Analytics Event:", event);
-    res.sendStatus(200);
+    try {
+      const { event } = req.body;
+      
+      if (!event) {
+        return res.status(400).json({ error: "Event is required" });
+      }
+      
+      const timestamp = new Date().toISOString();
+      const logEntry = `${timestamp} - Event: ${event}\n`;
+      const logFilePath = path.join(process.cwd(), 'logs', 'usage.log');
+      
+      // Ensure logs directory exists
+      const logsDir = path.dirname(logFilePath);
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+      }
+      
+      // Append to log file
+      fs.appendFile(logFilePath, logEntry, (err) => {
+        if (err) {
+          console.error("Error writing to analytics log:", err);
+        }
+      });
+      
+      console.log("Analytics Event Logged:", event);
+      res.json({ message: "Event logged successfully" });
+    } catch (error) {
+      console.error("Analytics logging error:", error);
+      res.status(500).json({ error: "Failed to log event" });
+    }
   });
 
   // Wellness Challenges
