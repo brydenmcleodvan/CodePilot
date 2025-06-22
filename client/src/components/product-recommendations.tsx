@@ -82,7 +82,7 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
             <ConnectHealthDataButton />
           ) : (
             <Link href="/auth/login">
-              <Button className="bg-primary hover:bg-secondary">
+              <Button>
                 Log In to Connect Health Data
               </Button>
             </Link>
