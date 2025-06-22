@@ -80,10 +80,9 @@ export default function News() {
   }
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="text-center space-y-6">
+    <div className="space-y-6">
+      <div className="text-center">
         <h1 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h1>
-        <div className="mb-4"></div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Stay informed with the latest developments in health, wellness, and medical research.
         </p>
