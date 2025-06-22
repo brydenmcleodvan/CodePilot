@@ -14,7 +14,7 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (isLoading) {
     return (
       <div className="mb-12">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center px-4 mb-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-6 w-24" />
         </div>
@@ -30,7 +30,9 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
   if (!newsItems || newsItems.length === 0) {
     return (
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h2>
+        <div className="px-4">
+          <h2 className="text-xl font-semibold tracking-tight">Health News & Updates</h2>
+        </div>
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
@@ -44,8 +46,8 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold mb-2 tracking-tight">Health News & Updates</h2>
+      <div className="flex justify-between items-center px-4">
+        <h2 className="text-xl font-semibold tracking-tight">Health News & Updates</h2>
         <Link to="/news" className="text-primary hover:text-secondary flex items-center space-x-1">
           <span>View All</span>
           <i className="ri-arrow-right-line"></i>
