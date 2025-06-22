@@ -8,7 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Menu } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { ChevronDown, Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const [location] = useLocation();
@@ -39,13 +46,160 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden rounded-md px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 transition"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {/* Mobile controls */}
+          <div className="md:hidden flex items-center gap-2">
+            {user && (
+              <img
+                src={user.profilePicture || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"}
+                alt="User profile"
+                className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
+              />
+            )}
+            <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <DrawerTrigger asChild>
+                <button className="rounded-md px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 transition">
+                  <Menu className="h-5 w-5" />
+                </button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[85vh]">
+                <DrawerHeader className="text-left">
+                  <DrawerTitle className="flex items-center justify-between">
+                    <span>Navigation</span>
+                    <button
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="p-2 hover:bg-gray-100 rounded-md"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </DrawerTitle>
+                </DrawerHeader>
+                <nav className="flex flex-col p-4 space-y-2">
+                  <Link
+                    href="/"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Home
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/family"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Family Health
+                  </Link>
+                  <Link
+                    href="/health-coach"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/health-coach" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Health Coach
+                  </Link>
+                  <Link
+                    href="/connections"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/connections" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Connections
+                  </Link>
+                  <Link
+                    href="/forum"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Forum
+                  </Link>
+                  <Link
+                    href="/messenger"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/messenger" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Messenger
+                  </Link>
+                  <Link
+                    href="/marketplace"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/marketplace" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Marketplace
+                  </Link>
+                  <Link
+                    href="/news"
+                    className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
+                      location === "/news" ? "text-primary bg-light-blue-bg font-semibold" : ""
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    News
+                  </Link>
+                  
+                  {/* Mobile auth section */}
+                  {user ? (
+                    <div className="border-t border-light-blue-border pt-4 mt-4">
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="h-12 w-full flex items-center px-4 text-red-600 hover:bg-red-50 transition-colors duration-200 font-medium rounded-md"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-t border-light-blue-border pt-4 mt-4 space-y-2">
+                      <Link
+                        href="/auth/login"
+                        className="h-12 w-full flex items-center justify-center px-4 text-primary border border-light-blue-border hover:bg-light-blue-bg transition-colors duration-200 font-medium rounded-md"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/auth/register"
+                        className="h-12 w-full flex items-center justify-center px-4 bg-primary text-white hover:bg-primary-blue-hover transition-colors duration-200 font-medium rounded-md"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  )}
+                </nav>
+              </DrawerContent>
+            </Drawer>
+          </div>
 
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-8 h-full">
@@ -128,7 +282,7 @@ const Navbar = () => {
           </nav>
 
           {/* User section with improved spacing */}
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-light-blue-bg transition-colors duration-200 focus:outline-none">
@@ -140,7 +294,7 @@ const Navbar = () => {
                         className="w-8 h-8 rounded-full border border-light-blue-border shadow-sm"
                       />
                     </div>
-                    <div className="hidden md:flex items-center justify-center h-full ml-2">
+                    <div className="flex items-center justify-center h-full ml-2">
                       <span className="text-sm font-medium text-dark-text">
                         {user.name ? user.name.split(" ")[0] : user.username}
                       </span>
@@ -197,120 +351,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile menu overlay */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-light-blue-border shadow-lg z-40">
-            <nav className="flex flex-col p-4">
-              <Link
-                href="/"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Home
-              </Link>
-              <Link
-                href="/dashboard"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/dashboard" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/profile"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/profile" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Profile
-              </Link>
-              <Link
-                href="/news"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/news" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                News
-              </Link>
-              <Link
-                href="/family"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/family" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Family Health
-              </Link>
-              <Link
-                href="/health-coach"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/health-coach" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Health Coach
-              </Link>
-              <Link
-                href="/connections"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/connections" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Connections
-              </Link>
-              <Link
-                href="/forum"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location.startsWith("/forum") ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Forum
-              </Link>
-              <Link
-                href="/messenger"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/messenger" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Messenger
-              </Link>
-              <Link
-                href="/marketplace"
-                className={`h-12 w-full flex items-center px-4 text-body-text hover:bg-light-blue-bg hover:text-primary transition-colors duration-200 font-medium rounded-md ${
-                  location === "/marketplace" ? "text-primary bg-light-blue-bg font-semibold" : ""
-                }`}
-              >
-                Marketplace
-              </Link>
-              
-              {/* Mobile auth buttons */}
-              {user ? (
-                <div className="border-t border-light-blue-border pt-4 mt-4">
-                  <button
-                    onClick={handleLogout}
-                    className="h-12 w-full flex items-center px-4 text-red-600 hover:bg-red-50 transition-colors duration-200 font-medium rounded-md"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="border-t border-light-blue-border pt-4 mt-4 space-y-2">
-                  <Link
-                    href="/auth/login"
-                    className="h-12 w-full flex items-center justify-center px-4 text-primary border border-light-blue-border hover:bg-light-blue-bg transition-colors duration-200 font-medium rounded-md"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="h-12 w-full flex items-center justify-center px-4 bg-primary text-white hover:bg-primary-blue-hover transition-colors duration-200 font-medium rounded-md"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
-            </nav>
-          </div>
-        )}
+
       </div>
     </header>
   );
