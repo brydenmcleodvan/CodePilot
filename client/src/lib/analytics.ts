@@ -50,8 +50,10 @@ export const ANALYTICS_EVENTS = {
   HEALTH_METRIC_LOGGED: 'health_metric_logged',
   
   // Marketplace Events
+  MARKETPLACE_VISITED: 'marketplace_visited',
   PRODUCT_VIEWED: 'product_viewed',
   PRODUCT_PURCHASED: 'product_purchased',
+  PRODUCT_ADDED_TO_CART: 'product_added_to_cart',
   CART_ITEM_ADDED: 'cart_item_added',
   CHECKOUT_STARTED: 'checkout_started',
   

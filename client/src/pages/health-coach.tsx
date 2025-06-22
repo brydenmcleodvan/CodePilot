@@ -289,17 +289,24 @@ export function HealthCoach() {
 
         {/* Sleep Coach Tab */}
         <TabsContent value="sleep" className="space-y-6">
-          <SleepCoachTab />
-        </TabsContent>
-
-        {/* Sleep Coach Tab - moved from separate implementation */}
-        <TabsContent value="sleep" className="space-y-6">
-          <SleepCoachTab />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.4 }}
+          >
+            <SleepCoachTab />
+          </motion.div>
         </TabsContent>
 
         {/* Telehealth Tab */}
         <TabsContent value="telehealth" className="space-y-6">
-          <TelehealthTab />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ duration: 0.4 }}
+          >
+            <TelehealthTab />
+          </motion.div>
         </TabsContent>
       </Tabs>
 

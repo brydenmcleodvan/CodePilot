@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { useAuth } from "@/lib/auth";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface Product {
   id: number;
@@ -102,8 +103,16 @@ const Marketplace = () => {
       {/* Products Grid */}
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product: Product) => (
-            <Card key={product.id} className="hover:shadow-lg transition-shadow duration-200">
+          {products.map((product: Product, index: number) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              className="transform transition-all duration-300"
+            >
+              <Card className="rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 hover:scale-105">
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{product.name}</CardTitle>
@@ -166,6 +175,7 @@ const Marketplace = () => {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           ))}
         </div>
 
