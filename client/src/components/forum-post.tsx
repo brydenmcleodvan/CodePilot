@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowBigUp, ArrowBigDown, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";
 
 interface ForumPostProps {
   post: ForumPostType;
@@ -56,6 +57,14 @@ const ForumPost = ({ post }: ForumPostProps) => {
     setIsVoting(true);
     try {
       await voteMutation.mutateAsync({ postId: post.id, isUpvote });
+      
+      // Track forum post interaction
+      trackEvent(ANALYTICS_EVENTS.FORUM_POST_LIKED, {
+        postId: post.id,
+        isUpvote,
+        postTitle: post.title,
+        postCategory: post.category
+      });
     } catch (error) {
       toast({
         title: "Error",
