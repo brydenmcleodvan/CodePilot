@@ -22,18 +22,16 @@ const Home = () => {
   });
 
   return (
-    <div className="container mx-auto px-4">
-      <section id="home" className="space-y-8">
-        {/* Hero Section */}
-        <Hero />
+    <section id="home" className="space-y-8">
+      {/* Hero Section */}
+      <Hero />
 
-        {/* News & Updates */}
-        <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
+      {/* News & Updates */}
+      <NewsUpdates newsItems={newsItems || []} isLoading={newsLoading} />
 
-        {/* Personalized Health Store */}
-        <ProductRecommendations user={user} products={recommendedProducts || []} />
-      </section>
-    </div>
+      {/* Personalized Health Store */}
+      <ProductRecommendations user={user} products={recommendedProducts || []} />
+    </section>
   );
 };
 

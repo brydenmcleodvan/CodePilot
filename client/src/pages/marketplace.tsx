@@ -60,7 +60,7 @@ const Marketplace = () => {
   const products = marketData?.products || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto p-4 md:p-6">

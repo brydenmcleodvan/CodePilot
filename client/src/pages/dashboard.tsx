@@ -142,14 +142,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
-          <p className="text-muted-foreground text-body-text">
-            Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight mb-3">Health Dashboard</h1>
+        <p className="text-muted-foreground text-body-text">
+          Welcome back, <span className="font-medium text-dark-text">{user?.name || user?.username}</span>. Here's your personalized health overview.
+        </p>
+      </div>
 
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="overflow-x-auto pb-2">
@@ -755,7 +754,6 @@ export default function Dashboard() {
           </SharedCard>
         </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }
