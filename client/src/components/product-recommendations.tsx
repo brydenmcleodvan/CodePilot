@@ -5,7 +5,7 @@ import { Product, User } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { SharedCard } from "@/components/ui/shared-card";
+import Card from "@/components/ui/Card";
 import { Link } from "wouter";
 import ConnectHealthDataButton from "@/components/connect-health-data";
 
@@ -114,30 +114,20 @@ const ProductRecommendations = ({ user, products }: ProductRecommendationsProps)
             const isRecommended = Array.isArray(product.tags) && product.tags.includes("recommended");
             
             return (
-              <SharedCard
+              <Card
                 key={product.id}
-                hover={true}
-                className="overflow-hidden p-0 min-h-[360px] flex flex-col"
+                title={product.name}
+                subtitle={product.description}
+                image={imageUrl}
+                tags={product.tags || []}
               >
-                <img
-                  src={imageUrl}
-                  alt={product.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-4 flex-1 flex flex-col justify-between">
-                  <div>
-                    <span className="text-xs font-medium text-blue-500 bg-blue-500/10 rounded-full px-3 py-1">
-                      {isRecommended ? "Recommended" : "Popular"}
-                    </span>
-                    <h3 className="mt-3 text-lg font-medium">{product.name}</h3>
-                    <p className="text-primary font-bold">{product.price}</p>
-                    <p className="mt-2 text-gray-600 text-sm line-clamp-3">{product.description}</p>
-                  </div>
-                  <Button className="mt-4 w-full">
+                <div className="flex flex-col gap-2">
+                  <p className="text-primary font-bold">{product.price}</p>
+                  <Button className="w-full">
                     Add to Cart
                   </Button>
                 </div>
-              </SharedCard>
+              </Card>
             );
           })}
         </div>

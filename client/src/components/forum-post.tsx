@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
+import Card from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import { ArrowBigUp, ArrowBigDown, MessageCircle, Share2, Bookmark } from "lucide-react";
 import { trackEvent, ANALYTICS_EVENTS } from "@/lib/analytics";

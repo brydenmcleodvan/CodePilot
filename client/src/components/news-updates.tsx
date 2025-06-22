@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { NewsUpdate } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { SharedCard } from "@/components/ui/shared-card";
+import Card from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
@@ -57,36 +56,24 @@ const NewsUpdates = ({ newsItems, isLoading }: NewsUpdatesProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {newsItems.map((news, index) => (
-          <SharedCard 
-            key={news.id} 
-            hover={true}
-            className="overflow-hidden p-0 min-h-[360px] flex flex-col"
+          <Card
+            key={news.id}
+            title={news.title}
+            subtitle={news.content}
+            image={news.thumbnail || undefined}
+            tags={[news.category]}
           >
-            <img
-              src={news.thumbnail}
-              alt={news.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <span className={`text-xs font-medium ${getCategoryStyles(news.category)}`}>
-                  {news.category}
-                </span>
-                <h3 className="mt-3 text-lg font-medium">{news.title}</h3>
-                <p className="mt-2 text-gray-600 line-clamp-3">{news.content}</p>
-              </div>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="text-sm text-gray-500">
-                  {new Date(news.timestamp).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
-                  })}
-                </span>
-                <Button variant="link" size="sm">Read More</Button>
-              </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">
+                {new Date(news.timestamp).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  year: 'numeric' 
+                })}
+              </span>
+              <Button variant="link" size="sm">Read More</Button>
             </div>
-          </SharedCard>
+          </Card>
         ))}
       </div>
     </div>
